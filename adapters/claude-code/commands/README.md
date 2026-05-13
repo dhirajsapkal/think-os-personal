@@ -57,4 +57,4 @@ If you want new commands, add a markdown file here following the same pattern, t
 
 ---
 
-*The slash commands assume Basic Memory MCP is wired in (see `docs/setup-global-integration.md`). They use `mcp__basic-memory__*` tools. If MCP is unavailable, they degrade to direct file reads.*
+*The slash commands assume Basic Memory MCP is wired in (the wizard does this automatically; for manual setup see the adapter README). They use `mcp__basic-memory__*` tools. If MCP is unavailable, they degrade to direct file reads.*

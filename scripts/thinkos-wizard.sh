@@ -408,6 +408,68 @@ _compute_oauth_pending() {
 }
 
 # -----------------------------------------------------------------------------
+# Name the personal vault — interactive prompt that runs after apply succeeds
+# and before the completion banner. Idempotent: skips if the chosen id is
+# already in ~/.thinkos/vaults.json.
+# -----------------------------------------------------------------------------
+step_name_vault() {
+  local registry="$HOME/.thinkos/vaults.json"
+  local default_id="personal"
+  local default_label
+  default_label="$(git config user.name 2>/dev/null || whoami)'s Think OS"
+
+  # If the registry already has anything pointing at this vault path, skip.
+  # (Catches re-runs whether or not the user previously picked a custom id.)
+  if [[ -f "$registry" ]]; then
+    local exists
+    exists="$(VAULT_PATH_ENV="$VAULT_PATH" python3 - <<'PYEOF' 2>/dev/null || true
+import json, os, sys
+p = os.path.expanduser("~/.thinkos/vaults.json")
+target = os.path.abspath(os.path.expanduser(os.environ["VAULT_PATH_ENV"]))
+try:
+    with open(p) as fh:
+        data = json.load(fh)
+except Exception:
+    sys.exit(0)
+for v in data.get("vaults", []):
+    vp = v.get("path", "")
+    if vp and os.path.abspath(os.path.expanduser(vp)) == target:
+        print("yes")
+        sys.exit(0)
+PYEOF
+)"
+    if [[ "$exists" == "yes" ]]; then
+      return 0
+    fi
+  fi
+
+  printf '\n══════════════════════════════════════════════════════════════════════\n'
+  printf '  NAME YOUR VAULT\n'
+  printf '══════════════════════════════════════════════════════════════════════\n\n'
+  printf '  Give your personal vault a name in Think OS. The id is what you\n'
+  printf '  type in commands (e.g. `thinkos vault use <id>`). The label is\n'
+  printf '  the human-readable name shown in listings.\n\n'
+
+  local vault_id vault_label
+  while :; do
+    read -r -p "  Vault id (used in commands) [$default_id]: " vault_id || vault_id=""
+    vault_id="${vault_id:-$default_id}"
+    if printf '%s' "$vault_id" | grep -qE '^[a-z0-9-]+$'; then
+      break
+    fi
+    printf '  Invalid id. Use lowercase letters, digits, hyphens only ([a-z0-9-]+).\n'
+  done
+
+  read -r -p "  Display label [$default_label]: " vault_label || vault_label=""
+  vault_label="${vault_label:-$default_label}"
+
+  bash "$SCRIPT_DIR/thinkos-vault.sh" migrate \
+    --path "$VAULT_PATH" \
+    --id "$vault_id" \
+    --label "$vault_label" || true
+}
+
+# -----------------------------------------------------------------------------
 # Apply (or preview-end)
 # -----------------------------------------------------------------------------
 apply() {
@@ -446,7 +508,9 @@ apply() {
     [[ -n "$BUNDLE" ]] && state_args+=(--bundle "$BUNDLE")
     [[ -n "$oauth_pending" ]] && state_args+=(--oauth-pending "$oauth_pending")
     bash "$SCRIPT_DIR/thinkos-state.sh" "${state_args[@]}" >/dev/null 2>&1 || true
-    bash "$SCRIPT_DIR/thinkos-vault.sh" migrate >/dev/null 2>&1 || true
+
+    # Interactive: let the user name their vault before the completion banner.
+    step_name_vault
   fi
 
   # ---------------------------------------------------------------------------

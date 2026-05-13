@@ -14,7 +14,10 @@
 #   clone <git-url>               Clone an existing project vault (interactive)
 #   add-reference <path>          Register an existing folder as a reference
 #   remove <id> --yes             Deregister a vault (does NOT delete files)
+#   rename <old-id>               Rename a vault's id and/or label
+#                                 (--id, --label, --yes)
 #   migrate                       One-time v0-to-v1 migration
+#                                 (--id, --label, --path)
 #   -h, --help
 #
 # Storage: ~/.thinkos/vaults.json (per docs/multi-vault-architecture.md §2)
@@ -36,6 +39,9 @@ TEMPLATE_TEAM_DIR="$REPO_ROOT/templates/team"
 YES=0
 REMOTE_URL=""
 MIGRATE_PATH=""
+NEW_ID=""
+NEW_LABEL=""
+LABEL_SET=0
 
 usage() {
   cat <<'EOF'
@@ -54,14 +60,66 @@ Subcommands:
                                 read-only reference vault.
   remove <id> --yes             Deregister a vault. Does NOT delete files.
                                 Requires --yes to proceed.
-  migrate                       One-time migration: auto-register an
-                                existing v0 single-vault setup as the
-                                personal hub. Idempotent.
+  rename <old-id> [options]     Rename a vault's id and/or label.
+                                Options:
+                                  --id <new-id>       New id ([a-z0-9-]+).
+                                  --label "<text>"    New display label.
+                                  --yes               Skip confirmation.
+                                Updates ~/.thinkos/active-vault if needed.
+                                Does NOT touch path or bm_project.
+  migrate [options]             One-time migration: auto-register an
+                                existing v0 single-vault setup. Idempotent.
+                                Options:
+                                  --id <id>           Register under this id
+                                                      (default: personal).
+                                  --label "<text>"    Display label
+                                                      (default: from git
+                                                      user.name).
+                                  --path <path>      Explicit vault path.
   -h, --help                    Show this help.
 
 Storage:
   Registry:     ~/.thinkos/vaults.json
   Active vault: ~/.thinkos/active-vault
+EOF
+}
+
+rename_usage() {
+  cat <<'EOF'
+Usage: scripts/thinkos-vault.sh rename <old-id> [options]
+
+Rename a vault's id and/or display label. At least one of --id or
+--label must be provided.
+
+Options:
+  --id <new-id>       New id. Must be [a-z0-9-]+.
+  --label "<text>"    New display label. Free-form.
+  --yes               Skip the confirmation prompt.
+  -h, --help          Show this help.
+
+Notes:
+  · Does NOT change the vault's path or bm_project.
+  · If ~/.thinkos/active-vault points at <old-id>, it is updated to
+    the new id.
+EOF
+}
+
+migrate_usage() {
+  cat <<'EOF'
+Usage: scripts/thinkos-vault.sh migrate [options]
+
+One-time migration: register an existing v0 single-vault setup in the
+multi-vault registry. Idempotent — re-running with the same id exits
+cleanly.
+
+Options:
+  --id <id>           Register under this id (default: personal).
+                      Must be [a-z0-9-]+.
+  --label "<text>"    Display label. Defaults to
+                      "<git user.name>'s Think OS" (falls back to
+                      the current OS username if git is unconfigured).
+  --path <path>       Explicit vault path. Skips auto-detection.
+  -h, --help          Show this help.
 EOF
 }
 
@@ -187,6 +245,23 @@ elif op == "remove":
     if len(data["vaults"]) == before:
         print("remove: not found: %s" % vid, file=sys.stderr)
         sys.exit(1)
+    save(data)
+    sys.exit(0)
+
+elif op == "update":
+    # update <old-id> <json-patch>
+    # Applies the keys in <json-patch> to the entry whose id == old-id.
+    # If the patch contains "id", that becomes the new id (caller is
+    # responsible for ensuring no collision).
+    data = load()
+    old_id = argv[1]
+    patch = json.loads(argv[2])
+    target = find_by_id(data, old_id)
+    if target is None:
+        print("update: not found: %s" % old_id, file=sys.stderr)
+        sys.exit(1)
+    for k, v in patch.items():
+        target[k] = v
     save(data)
     sys.exit(0)
 
@@ -330,18 +405,8 @@ cmd_create_project() {
 
   mkdir -p "$THINKOS_DIR"
 
-  # Reject if id already taken
-  if [ -f "$REGISTRY" ]; then
-    local exists
-    exists="$(_registry_py exists-id "$name")"
-    if [ "$exists" = "yes" ]; then
-      err "create-project: a vault with id '$name' is already registered."
-      err "Pick a different name, or run: scripts/thinkos-vault.sh remove $name --yes"
-      return 1
-    fi
-  fi
-
   # Defaults
+  local default_id="$name"
   local default_label
   default_label="$(printf '%s' "$name" | tr '-' ' ') Team OS"
   local default_path="$HOME/ThinkOS/projects/$name"
@@ -351,8 +416,9 @@ cmd_create_project() {
   log ""
   log "Creating project vault '$name'."
   log ""
-  local label path bm remote
+  local vid label path bm remote
   if [ "$YES" -eq 1 ]; then
+    vid="$default_id"
     label="$default_label"
     path="$default_path"
     bm="$default_bm"
@@ -361,6 +427,14 @@ cmd_create_project() {
     printf '  Display label [%s]: ' "$default_label"
     read -r label || label=""
     label="${label:-$default_label}"
+
+    printf '  Vault id (used in commands like `thinkos vault use <id>`) [%s]: ' "$default_id"
+    read -r vid || vid=""
+    vid="${vid:-$default_id}"
+    if ! valid_id "$vid"; then
+      err "create-project: invalid id '$vid'. Use lowercase letters, digits, hyphens only ([a-z0-9-]+)."
+      return 2
+    fi
 
     printf '  Vault path [%s]: ' "$default_path"
     read -r path || path=""
@@ -380,6 +454,17 @@ cmd_create_project() {
     else
       printf '  Git remote URL (optional, ENTER to skip): '
       read -r remote || remote=""
+    fi
+  fi
+
+  # Reject if the chosen id is already taken
+  if [ -f "$REGISTRY" ]; then
+    local exists
+    exists="$(_registry_py exists-id "$vid")"
+    if [ "$exists" = "yes" ]; then
+      err "create-project: a vault with id '$vid' is already registered."
+      err "Pick a different id, or run: scripts/thinkos-vault.sh remove $vid --yes"
+      return 1
     fi
   fi
 
@@ -426,7 +511,7 @@ cmd_create_project() {
   # Stamp .thinkos/vault.json with this vault's metadata
   mkdir -p "$path/.thinkos"
   VAULT_PATH="$path" \
-  VAULT_ID="$name" \
+  VAULT_ID="$vid" \
   VAULT_LABEL="$label" \
   VAULT_BM="$bm" \
   python3 - <<'PYEOF'
@@ -472,7 +557,7 @@ PYEOF
   log ""
   log "Registering vault in $REGISTRY ..."
   local entry
-  entry="$(VAULT_ID="$name" VAULT_LABEL="$label" VAULT_PATH_ENV="$path" \
+  entry="$(VAULT_ID="$vid" VAULT_LABEL="$label" VAULT_PATH_ENV="$path" \
            VAULT_BM="$bm" VAULT_REMOTE="$remote" python3 - <<'PYEOF'
 import os, json
 entry = {
@@ -511,7 +596,7 @@ PYEOF
   fi
 
   log ""
-  log "Project vault '$name' created."
+  log "Project vault '$vid' created."
   log "  Path:        $path"
   log "  Label:       $label"
   log "  BM project:  $bm"
@@ -819,6 +904,136 @@ cmd_remove() {
 }
 
 # -----------------------------------------------------------------------------
+# `rename <old-id>` — change a vault's id and/or label
+# -----------------------------------------------------------------------------
+cmd_rename() {
+  local old_id="$1"
+  if [ -z "$old_id" ]; then
+    err "rename: missing <old-id>"
+    rename_usage >&2
+    return 2
+  fi
+
+  if [ ! -f "$REGISTRY" ]; then
+    err "rename: no registry exists at $REGISTRY."
+    return 1
+  fi
+
+  if [ "$(_registry_py exists-id "$old_id")" != "yes" ]; then
+    err "rename: no such vault id: $old_id"
+    err ""
+    err "Registered vault ids:"
+    local ids
+    ids="$(_registry_py ids 2>/dev/null)"
+    if [ -n "$ids" ]; then
+      printf '%s\n' "$ids" | sed 's/^/  /' >&2
+    fi
+    return 1
+  fi
+
+  # At least one of --id or --label must be set
+  if [ -z "$NEW_ID" ] && [ "$LABEL_SET" -ne 1 ]; then
+    err "rename: nothing to do. Provide --id <new-id> and/or --label \"<text>\"."
+    rename_usage >&2
+    return 2
+  fi
+
+  # Validate new id if provided
+  if [ -n "$NEW_ID" ]; then
+    if ! valid_id "$NEW_ID"; then
+      err "rename: invalid --id '$NEW_ID'. Use lowercase letters, digits, hyphens only ([a-z0-9-]+)."
+      return 2
+    fi
+    if [ "$NEW_ID" != "$old_id" ] && [ "$(_registry_py exists-id "$NEW_ID")" = "yes" ]; then
+      err "rename: id '$NEW_ID' is already registered."
+      return 1
+    fi
+  fi
+
+  # Build a description of the change for confirmation + final summary
+  local old_label
+  old_label="$(_registry_py field "$old_id" label 2>/dev/null || true)"
+
+  local effective_new_id="${NEW_ID:-$old_id}"
+  local effective_new_label
+  if [ "$LABEL_SET" -eq 1 ]; then
+    effective_new_label="$NEW_LABEL"
+  else
+    effective_new_label="$old_label"
+  fi
+
+  # Confirmation prompt (skip with --yes)
+  if [ "$YES" -ne 1 ]; then
+    log ""
+    log "Proposed rename:"
+    if [ "$effective_new_id" != "$old_id" ]; then
+      log "  id:    $old_id → $effective_new_id"
+    else
+      log "  id:    $old_id (unchanged)"
+    fi
+    if [ "$LABEL_SET" -eq 1 ]; then
+      log "  label: '${old_label}' → '${effective_new_label}'"
+    else
+      log "  label: '${old_label}' (unchanged)"
+    fi
+    log ""
+    local ans
+    printf '  Proceed? [y/N]: '
+    read -r ans || ans=""
+    case "$ans" in
+      [Yy]*) ;;
+      *) log "Aborted."; return 1 ;;
+    esac
+  fi
+
+  # Build the JSON patch
+  local patch
+  patch="$(NEW_ID_ENV="$effective_new_id" \
+           NEW_LABEL_ENV="$effective_new_label" \
+           SET_ID="$([ -n "$NEW_ID" ] && echo 1 || echo 0)" \
+           SET_LABEL="$LABEL_SET" \
+           python3 - <<'PYEOF'
+import os, json
+patch = {}
+if os.environ.get("SET_ID") == "1":
+    patch["id"] = os.environ["NEW_ID_ENV"]
+if os.environ.get("SET_LABEL") == "1":
+    patch["label"] = os.environ["NEW_LABEL_ENV"]
+print(json.dumps(patch))
+PYEOF
+)"
+
+  _registry_py update "$old_id" "$patch" || {
+    err "rename: registry update failed."
+    return 1
+  }
+
+  # Update active-vault pointer if it matched the old id
+  if [ -f "$ACTIVE_FILE" ] && [ -n "$NEW_ID" ] && [ "$NEW_ID" != "$old_id" ]; then
+    local cur
+    cur="$(cat "$ACTIVE_FILE" 2>/dev/null | head -1 | tr -d '[:space:]')"
+    if [ "$cur" = "$old_id" ]; then
+      printf '%s\n' "$NEW_ID" > "$ACTIVE_FILE"
+      log "Updated active-vault pointer: $old_id → $NEW_ID"
+    fi
+  fi
+
+  # Summary
+  log ""
+  if [ -n "$NEW_ID" ] && [ "$NEW_ID" != "$old_id" ] && [ "$LABEL_SET" -eq 1 ]; then
+    log "Renamed: $old_id → $effective_new_id; label: '$old_label' → '$effective_new_label'"
+  elif [ -n "$NEW_ID" ] && [ "$NEW_ID" != "$old_id" ]; then
+    log "Renamed: $old_id → $effective_new_id"
+  elif [ "$LABEL_SET" -eq 1 ]; then
+    log "Renamed label on '$old_id': '$old_label' → '$effective_new_label'"
+  else
+    log "No effective change."
+  fi
+  log ""
+  log "Note: path and bm_project were not touched."
+}
+
+# -----------------------------------------------------------------------------
 # `migrate` — auto-register an existing v0 single-vault setup as 'personal'
 # Accepts:  --path PATH   explicit vault path (skip auto-detection)
 # Auto-detect order:
@@ -913,9 +1128,16 @@ PYEOF
 cmd_migrate() {
   mkdir -p "$THINKOS_DIR"
 
-  # Idempotency: if a 'personal' id is already registered, skip early
-  if [ -f "$REGISTRY" ] && [ "$(_registry_py exists-id personal)" = "yes" ]; then
-    log "migrate: 'personal' is already registered. Nothing to do."
+  # Resolve the id to register under (default: personal)
+  local target_id="${NEW_ID:-personal}"
+  if ! valid_id "$target_id"; then
+    err "migrate: invalid --id '$target_id'. Use lowercase letters, digits, hyphens only ([a-z0-9-]+)."
+    return 2
+  fi
+
+  # Idempotency: if the chosen id is already registered, skip early
+  if [ -f "$REGISTRY" ] && [ "$(_registry_py exists-id "$target_id")" = "yes" ]; then
+    log "migrate: '$target_id' is already registered. Nothing to do."
     return 0
   fi
 
@@ -981,33 +1203,39 @@ cmd_migrate() {
     return 0
   fi
 
-  # Derive label from directory name if not already known
-  local dir_name
-  dir_name="$(basename "$v0")"
-  local username
-  username="$(id -un 2>/dev/null || whoami 2>/dev/null || echo user)"
-  local label="${username}'s ${dir_name}"
+  # Derive label: --label wins; else "<git user.name>'s Think OS";
+  # fall back to current OS username if git unconfigured.
+  local label="$NEW_LABEL"
+  if [ -z "$label" ]; then
+    local owner
+    owner="$(git config user.name 2>/dev/null || true)"
+    if [ -z "$owner" ]; then
+      owner="$(id -un 2>/dev/null || whoami 2>/dev/null || echo user)"
+    fi
+    label="${owner}'s Think OS"
+  fi
 
   # Derive BM project name: use the one detected from basic-memory, or derive
   # from the directory name (sanitized), or fall back to "think-os"
   if [ -z "$bm" ]; then
-    # sanitize dir_name to lowercase with hyphens
+    local dir_name
+    dir_name="$(basename "$v0")"
     bm="$(printf '%s' "$dir_name" | tr 'A-Z' 'a-z' | sed -E 's/[^a-z0-9-]+/-/g; s/^-+//; s/-+$//')"
     [ -z "$bm" ] && bm="think-os"
   fi
 
   log "Migrating v0 vault → multi-vault registry"
-  log "  Detected via:  $detect_source"
-  log "  Path:          $v0"
-  log "  Registering as id:  personal"
-  log "  Label:         $label"
-  log "  BM project:    $bm"
+  log "  Detected via:       $detect_source"
+  log "  Path:               $v0"
+  log "  Registering as id:  $target_id"
+  log "  Label:              $label"
+  log "  BM project:         $bm"
 
   local entry
-  entry="$(VAULT_LABEL="$label" VAULT_PATH_ENV="$v0" VAULT_BM="$bm" python3 - <<'PYEOF'
+  entry="$(VAULT_ID="$target_id" VAULT_LABEL="$label" VAULT_PATH_ENV="$v0" VAULT_BM="$bm" python3 - <<'PYEOF'
 import os, json
 entry = {
-    "id": "personal",
+    "id": os.environ["VAULT_ID"],
     "type": "personal",
     "label": os.environ["VAULT_LABEL"],
     "path": os.environ["VAULT_PATH_ENV"],
@@ -1020,7 +1248,7 @@ PYEOF
   _registry_py add "$entry"
 
   log ""
-  log "Registered your existing vault as 'personal'. Ready to add project vaults."
+  log "Registered your existing vault as '$target_id'. Ready to add project vaults."
   log "Next:"
   log "  scripts/thinkos-vault.sh list"
   log "  scripts/thinkos-vault.sh create-project <name>"
@@ -1044,6 +1272,15 @@ esac
 
 SUB="$1"
 shift
+
+# Pick the right help text for -h/--help based on the current subcommand.
+sub_help() {
+  case "$SUB" in
+    rename)  rename_usage ;;
+    migrate) migrate_usage ;;
+    *)       usage ;;
+  esac
+}
 
 # Collect positional + recognized flags. Subcommand-specific positional args
 # are passed through in order.
@@ -1073,13 +1310,31 @@ while [ $# -gt 0 ]; do
       fi
       shift 2
       ;;
+    --id)
+      NEW_ID="${2:-}"
+      if [ -z "$NEW_ID" ]; then
+        err "--id requires a value"
+        exit 2
+      fi
+      shift 2
+      ;;
+    --label)
+      # Allow empty string explicitly; require the arg to be present.
+      if [ $# -lt 2 ]; then
+        err "--label requires a value"
+        exit 2
+      fi
+      NEW_LABEL="$2"
+      LABEL_SET=1
+      shift 2
+      ;;
     -h|--help)
-      usage
+      sub_help
       exit 0
       ;;
     --*)
       err "Unknown flag: $1"
-      usage >&2
+      sub_help >&2
       exit 2
       ;;
     *)
@@ -1104,6 +1359,7 @@ case "$SUB" in
   clone)           cmd_clone "$P1" ;;
   add-reference)   cmd_add_reference "$P1" ;;
   remove)          cmd_remove "$P1" ;;
+  rename)          cmd_rename "$P1" ;;
   migrate)         cmd_migrate ;;
   *)
     err "Unknown subcommand: $SUB"

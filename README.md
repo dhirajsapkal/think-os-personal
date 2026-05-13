@@ -23,51 +23,31 @@ This OS makes a small, deliberate bet: **plain markdown files on disk are the so
 ## What's inside
 
 ```
-export/think-os-alpha/
-├── README.md                    ← you are here
-├── AGENTS.md                    ← first file agents should read
-├── CLAUDE.md                    ← Claude-specific pointer to AGENTS.md
-├── scripts/
-│   ├── thinkos-doctor.sh        ← compact setup/status checks
-│   └── thinkos-setup.sh         ← safe first-run automation
-├── templates/                   ← copy this folder into your live vault
-│   ├── 00 Home.md              ← Obsidian dashboard + portal
-│   ├── 01 Now/                 ← current week, inbox, work log
-│   ├── 02 Projects/            ← Project Index + one note per project
-│   ├── 03 People/              ← lightweight personal CRM
-│   ├── 04 Knowledge/           ← decisions + reusable learnings
-│   ├── 05 Profile/             ← identity, voice, business context
-│   ├── 90 System/              ← agent instructions + connector inventory
-│   └── 99 Archive/             ← rotated logs and dormant notes
+think-os/
+├── README.md                  ← you are here
+├── AGENTS.md                  ← first file agents should read
+├── CLAUDE.md                  ← Claude-specific pointer to AGENTS.md
+├── CHANGELOG.md / VERSION     ← release history
+├── LIMITATIONS.md             ← what's out of scope
+├── MAINTENANCE.md             ← daily/weekly/quarterly cadence
+├── scripts/                   ← wizard, setup, vault, git, doctor, uninstall, update
+├── templates/
+│   ├── (personal vault)       ← 00 Home, 01 Now, 02 Projects, 03 People,
+│   │                              04 Knowledge, 05 Profile, 90 System, 99 Archive
+│   ├── instructions/          ← curated always-on agent guidance
+│   └── team/                  ← project vault skeleton (one-file-per-entry)
 ├── docs/
-│   ├── agent-setup-playbook.md  ← first-run behavior for agents
-│   ├── setup-basic-memory.md    ← install Basic Memory MCP + Obsidian
-│   ├── setup-global-integration.md  ← wire CLI agent + desktop agent + scheduled cadence
-│   └── vault-architecture.md    ← why the Obsidian vault is organized this way
-└── adapters/
-    ├── README.md                ← product adapter index
-    ├── claude-cowork/           ← Claude Cowork MCP + instructions
-    ├── claude-code/             ← Claude Code MCP + instructions + slash commands
-    └── codex/                   ← Codex MCP + AGENTS.md instructions
+│   ├── agent-setup-playbook.md       ← first-run behavior for agents
+│   ├── multi-vault-architecture.md   ← personal + project + reference vault design
+│   ├── phase-2-seeding-playbook.md   ← seeding HOT-tier from connected tools
+│   ├── setup-basic-memory.md         ← manual install (non-Mac fallback)
+│   └── vault-architecture.md         ← Obsidian-facing layout rationale
+├── adapters/
+│   ├── claude-cowork/         ← Cowork MCP + instructions + slash commands
+│   ├── claude-code/           ← Claude Code MCP + instructions + slash commands
+│   └── codex/                 ← Codex MCP + AGENTS.md
+└── data/plugin-catalog.yaml   ← plugins/connectors per role bundle
 ```
-
-## How to use it
-
-> **Platform**: The setup scripts are macOS-only for the early alpha. Linux/Windows users can follow [`docs/setup-basic-memory.md`](docs/setup-basic-memory.md) and the adapter README for their tool to set up manually.
-
-1. **Pick a home for your live OS files.** Recommended local-only path: `~/ThinkOS/vault/` (or wherever you want). Throughout the docs this is called `{{OS_HOME}}`.
-2. **Copy `templates/` into `{{OS_HOME}}`.** That's your starting OS.
-3. **Fill in the HOT tier first.** `05 Profile/Identity.md`, `01 Now/Current Focus.md`, `02 Projects/Project Index.md`, and `90 System/OS Instructions.md`. Use `00 Home.md` as the Obsidian dashboard once the vault exists.
-4. **Follow `docs/setup-basic-memory.md`** (15 min). Installs the MCP server that exposes your OS to MCP-aware tools.
-5. **Choose your product adapter.** Start with one of:
-   - `adapters/claude-cowork/` for Claude Cowork
-   - `adapters/claude-code/` for Claude Code CLI
-   - `adapters/codex/` for OpenAI Codex
-6. **Install your stack.** Use the bundle wizard to install plugins/connectors. Claude Code: `scripts/thinkos-setup.sh --bundle pm` (or eng/design/ops). Cowork: open Cowork and ask the agent to set up your Think OS bundle. See [`data/plugin-catalog.yaml`](data/plugin-catalog.yaml) for the full list and [`adapters/claude-cowork/commands/thinkos-bundle.md`](adapters/claude-cowork/commands/thinkos-bundle.md) for the Cowork flow.
-7. **Optionally follow `docs/setup-global-integration.md`** for scheduled maintenance and broader integration patterns.
-8. **Verify.** Open a new agent session anywhere on your machine. Ask "who am I and what am I working on?" You should get a specific answer.
-
-Total time to "it works": about an hour by hand, or faster with an agent running the setup scripts. Most of the real work is filling in your identity / projects, not technical setup.
 
 ## Guided Setup
 

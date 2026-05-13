@@ -274,7 +274,7 @@ Diagnostic order if anything fails: (a) Basic Memory binary works at the CLI? (b
 ## What this doesn't solve
 
 - **Mobile / web reach** — Basic Memory is stdio-only by default. To call it from mobile or web-only tools, you'd need to expose it via HTTPS+OAuth (a remote MCP, HTTPS/OAuth, or a tool-native connector). Defer this unless mobile reach becomes a daily pain.
-- **Auto-refresh of `01 Now/Tasks.md` / `01 Now/Current Focus.md`** — those need `productivity:update` (desktop agent) and `/weekly-review` to run. Schedule those as desktop agent scheduled tasks (see `setup-global-integration.md`).
+- **Auto-refresh of `01 Now/Tasks.md` / `01 Now/Current Focus.md`** — those need `productivity:update` (desktop agent) and `/weekly-review` to run. Schedule those as desktop agent scheduled tasks. See `MAINTENANCE.md` for the cadence model.
 - **Cross-Mac sync** — files live on local disk by default. To use multiple machines, choose an explicit sync strategy (for example Git, Syncthing, Obsidian Sync, or a managed company storage location). Each Mac runs its own Basic Memory index pointed at the synced files; the index rebuilds from markdown.
 
 ---
