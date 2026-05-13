@@ -5,160 +5,229 @@ permalink: think-os/adapters/claude-code/commands/thinkos-vault
 
 Manage Think OS vaults. Canonical reference: `docs/multi-vault-architecture.md`.
 
+## Critical UX rules
+
+- **Use `AskUserQuestion` for every choice.** No free-text "type 1/2/3" prompts, no "Y/N for each" bullet lists. Load via `ToolSearch select:AskUserQuestion` if needed.
+- **Run state-check shell commands silently.** Don't paste their output to the user unless something's broken.
+- **One short message at a time.** No preambles, no recaps, no lectures.
+- **Surface script errors verbatim.** When `thinkos-vault.sh` or `thinkos-git.sh` print errors, relay the exact text.
+
+---
+
 ## Step 0 — Confirm repo access
 
-Check that `scripts/thinkos-vault.sh` exists. If not, ask the user for the path to the Think OS export repo and use it as the prefix for all script calls below.
+Check that `scripts/thinkos-vault.sh` exists (silent — don't echo). If not, ask the user for the path to the Think OS export repo and use it as the prefix for all script calls below.
 
-## Step 1 — List current vaults
+## Step 1 — Silent state read
 
-```bash
-bash scripts/thinkos-vault.sh list
-```
+Run `bash scripts/thinkos-vault.sh list` silently to know what's currently registered. Use this internally for chip options below. Don't paste raw output to the user unless they ask "what's currently registered?"
 
-Show the output verbatim. If `~/.thinkos/vaults.json` doesn't exist yet, the script will auto-register the existing personal vault (or report none). Relay whatever it prints.
+## Step 2 — Top-level picker
 
-## Step 2 — Ask what the user wants to do
+`AskUserQuestion`:
+- Header: "Vault management"
+- Question: "What do you want to do?"
+- multiSelect: false
+- Options:
+  | label | description |
+  |---|---|
+  | "Create new project vault" | "Spin up a fresh project vault for your team." |
+  | "Clone existing project vault" | "Pull a teammate's vault from a git URL." |
+  | "Add reference vault" | "Register a folder of markdown as read-only context." |
+  | "Switch active vault" | "Change which vault the agent treats as 'current'." |
+  | "Remove a vault" | "Deregister a vault (files stay on disk)." |
 
-> What would you like to do?
->
-> 1. Create a new project vault
-> 2. Clone an existing project vault from a git URL
-> 3. Add a reference vault (read-only)
-> 4. Switch the active vault
-> 5. Remove a vault from the registry
-
-Wait for the user's choice, then follow the matching branch below.
+Branch on the answer. The flows below all use `AskUserQuestion` for sub-choices.
 
 ---
 
 ## Branch 1 — Create new project vault
 
-Ask in sequence (one question at a time):
+### 1a. Project name (free text)
 
-1. **Project name** — must match `[a-z0-9-]+`. Example: `argenx-team`.
-2. **Human-readable label** — e.g. "Argenx Team OS".
-3. **Local path** — default `~/ThinkOS/projects/<name>/`. If `~/Documents/Think/` exists on this machine, also offer `~/Documents/Think/<Label>/team-os/` as an alternative. Wait for the user to confirm or enter a custom path.
-4. **Git remote now or skip?** — ask Y/N. Default: N.
+Ask plainly: "What's the project name? Used as the vault id in commands. Lowercase letters, digits, hyphens only (e.g., `argenx-team`)."
 
-If the user wants a git remote (Y):
+Validate `[a-z0-9-]+`. Re-ask if invalid.
 
-- Ask: "Enter a remote URL, OR type `gh` to create a new private repo on GitHub via `gh repo create`."
-- If they enter a URL: use it directly.
-- If they type `gh`:
-  - Check: `command -v gh && gh auth status`
-  - If either fails: tell the user to run `bash scripts/thinkos-git.sh setup-gh` in their terminal, then confirm when done before continuing.
-  - Once gh is ready: ask for `<org>/<repo-name>` and note you'll run `gh repo create <org>/<repo-name> --private`.
+### 1b. Label (free text, with auto-default)
 
-Run:
+Default label is `<project name> Team OS` (title-cased). Ask: "Friendly label? (Enter to keep default: `<that>`)" — accept empty input as the default.
+
+### 1c. Path (chip picker)
+
+`AskUserQuestion`:
+- Header: "Where should this vault live?"
+- Question: "Where do you want the folder?"
+- multiSelect: false
+- Options (only include `~/Documents/Think/` if that folder exists):
+  | label | description | maps to |
+  |---|---|---|
+  | "Default" | `~/ThinkOS/projects/<name>/` | `~/ThinkOS/projects/<name>` |
+  | "Under Documents/Think" | `~/Documents/Think/<Label>/team-os/` | (computed) |
+  | "Custom path" | "I'll specify." | (free-text follow-up) |
+
+### 1d. Git remote (chip picker)
+
+`AskUserQuestion`:
+- Header: "Git remote"
+- Question: "Set up a git remote now?"
+- multiSelect: false
+- Options:
+  | label | description |
+  |---|---|
+  | "Skip for now" | "Local only. Add a remote later via `git remote add origin <url>`." |
+  | "Paste a URL" | "I already have a repo URL." |
+  | "Create on GitHub via gh" | "Make a new private repo for me." |
+
+- "Paste a URL" → free-text prompt for the URL.
+- "Create on GitHub via gh" → silently check `command -v gh && gh auth status`. If either fails: tell the user briefly to run `bash scripts/thinkos-git.sh setup-gh` in their terminal, then wait for confirmation. Once ready, ask for `<org>/<repo-name>` as a free-text prompt; you'll run `gh repo create <org>/<repo-name> --private` as part of the next command.
+
+### 1e. Run create-project
 
 ```bash
 bash scripts/thinkos-vault.sh create-project <name> \
   --label "<label>" \
   --path "<path>" \
-  [--remote <url-or-gh-shorthand>]
+  [--remote <url-or-gh-shorthand>] \
+  --yes
 ```
 
-Show all output verbatim. Then confirm the new vault appears:
+Show output. After success, run `bash scripts/thinkos-vault.sh list` and show the result.
 
-```bash
-bash scripts/thinkos-vault.sh list
-```
-
-End: "Vault `<name>` created. Teammates can join with: `thinkos vault clone <remote-url>` (or `/thinkos-vault` in their agent)."
+End with one line: "Vault `<name>` created. Teammates can join via `/thinkos-vault` → Clone → `<remote-url>`."
 
 ---
 
 ## Branch 2 — Clone existing project vault
 
-Ask in sequence:
+### 2a. Git URL (free text)
 
-1. **Git URL** — e.g. `git@github.com:thinkco/argenx-os.git`
-2. **Local path** — default `~/ThinkOS/projects/<derived-name>/` (derive from the last segment of the URL, strip `.git`).
+Ask: "Git URL of the project vault?" (e.g., `git@github.com:thinkco/argenx-os.git`)
 
-Pre-flight git check — run both:
+### 2b. Local path (chip picker)
+
+Derive default name from the URL's last segment (strip `.git`).
+
+`AskUserQuestion`:
+- Header: "Where should it land?"
+- Question: "Where do you want the clone?"
+- multiSelect: false
+- Options:
+  | label | description | maps to |
+  |---|---|---|
+  | "Default" | `~/ThinkOS/projects/<derived-name>/` | (computed) |
+  | "Custom path" | "I'll specify." | (free-text follow-up) |
+
+### 2c. Pre-flight git check
+
+Run silently:
 
 ```bash
 bash scripts/thinkos-git.sh check-or-install
 bash scripts/thinkos-git.sh check-auth
 ```
 
-If either fails, surface the error line-for-line and tell the user:
+If either fails, show the error verbatim and `AskUserQuestion`:
+- Header: "Git not ready"
+- Question: "Git isn't set up for clone. What do you want to do?"
+- Options based on the failure:
+  - For missing git: "Install via brew" → tell user to run `brew install git` in their terminal, then come back.
+  - For missing config: "Set up name/email" → tell user to run `git config --global user.name "..."` and `git config --global user.email "..."` in terminal.
+  - For SSH auth failure: "Set up SSH key" → tell user to run `bash scripts/thinkos-git.sh setup-ssh` in terminal.
+  - For gh auth failure: "Set up gh auth" → tell user to run `bash scripts/thinkos-git.sh setup-gh` in terminal.
+  - Always include: "Skip — I'll fix it later" → abort the clone.
 
-- Missing git: run `brew install git` in their terminal.
-- Missing git config: run `git config --global user.name "..."` and `git config --global user.email "..."`.
-- SSH auth failed: run `bash scripts/thinkos-git.sh setup-ssh` in their terminal.
-- `gh` auth failed: run `bash scripts/thinkos-git.sh setup-gh` in their terminal.
+After user confirms the fix is done, re-run the checks. Once both pass, proceed.
 
-Ask them to confirm the fix is done, then re-run the checks before continuing.
-
-Once both checks pass:
+### 2d. Run clone
 
 ```bash
 bash scripts/thinkos-vault.sh clone <url> --path "<path>"
 ```
 
-Show output verbatim. If the script reports "this doesn't look like a Think OS project vault": relay that message and ask: "Register it as a read-only reference vault instead? (Y/N)" — if Y, drop to Branch 3 with this path.
+Show output. If the script reports "this doesn't look like a Think OS project vault" — `AskUserQuestion`:
+- Header: "Not a Think OS vault"
+- Question: "This repo doesn't have Think OS metadata. What do you want to do?"
+- Options:
+  | label | description |
+  |---|---|
+  | "Register as reference (read-only)" | "I'll mark results from it as `[reference]`. Good for company wikis." |
+  | "Abort" | "Don't register; remove the clone." |
 
-End: "Vault `<derived-name>` cloned and registered. Run `git pull` inside `<path>` to stay in sync with teammates."
+If "Register as reference": continue with `add-reference` (Branch 3 logic) using the cloned path.
+
+End with one line: "Vault `<derived-name>` cloned and registered."
 
 ---
 
 ## Branch 3 — Add reference vault
 
-Ask:
+### 3a. Path (free text)
 
-1. **Path** to the existing folder.
-2. **Label** — short display name, e.g. "Material Design Docs".
+Ask: "Path to the folder you want to register as read-only context?"
+
+### 3b. Label (free text, with auto-default)
+
+Default label is the basename of the path. Ask: "Friendly label? (Enter to keep default: `<basename>`)"
+
+### 3c. Run add-reference
 
 ```bash
 bash scripts/thinkos-vault.sh add-reference "<path>" --label "<label>"
 ```
 
-Show output. End: "Registered `<label>` as a read-only reference vault. The agent will mark results from it as `[reference]`."
+Show output. End: "Registered `<label>` as a read-only reference vault."
 
 ---
 
 ## Branch 4 — Switch active vault
 
-Show the vault list again (already visible from Step 1, but re-run if needed):
+`AskUserQuestion`:
+- Header: "Active vault"
+- Question: "Which vault should be active?"
+- multiSelect: false
+- Options: one chip per registered vault (parse from the `list` output you ran in Step 1).
+  - `label`: vault id
+  - `description`: label + path + type (e.g., "Argenx Team OS · ~/ThinkOS/projects/argenx · project")
 
 ```bash
-bash scripts/thinkos-vault.sh list
+bash scripts/thinkos-vault.sh use <chosen-id>
 ```
 
-Ask: "Enter the id of the vault to make active."
-
-```bash
-thinkos vault use <chosen-id>
-```
-
-Show output. End: "Active vault is now `<chosen-id>`. Your agent will surface this in its first response next session."
+End: "Active vault is now `<chosen-id>`."
 
 ---
 
 ## Branch 5 — Remove a vault
 
-Show:
+`AskUserQuestion`:
+- Header: "Remove which vault?"
+- Question: "Which vault should I deregister? (Files on disk stay.)"
+- multiSelect: false
+- Options: one chip per registered vault. Don't include the personal hub if there's only one personal vault — removing it would orphan the user. Add a final "Cancel" chip.
 
-```bash
-bash scripts/thinkos-vault.sh list
-```
+If user picks a vault, confirm once:
 
-Ask: "Enter the id of the vault to remove from the registry."
+`AskUserQuestion`:
+- Header: "Confirm removal"
+- Question: "Remove `<id>` from the registry? Files at `<path>` will NOT be deleted."
+- Options:
+  | label | description |
+  |---|---|
+  | "Yes, remove" | "Deregister `<id>`." |
+  | "Cancel" | "Don't touch anything." |
 
-Confirm once: "This only removes the vault from the registry — your files on disk are not deleted. Confirm? (Y/N)"
-
-If Y:
+If confirmed:
 
 ```bash
 bash scripts/thinkos-vault.sh remove <id> --yes
 ```
 
-Show output. End: "Removed `<id>` from the registry. Files at `<path>` are untouched."
+End: "Removed `<id>` from the registry. Files at `<path>` are untouched."
 
 ---
 
 ## Error handling
 
-- Surface all script error output verbatim — do not swallow or paraphrase.
-- On unexpected exit codes, tell the user the exact command that failed and the error, then offer to retry or abort.
+- Surface all script error output verbatim. Don't paraphrase.
+- On unexpected exit codes, show the exact command that failed and the error, then `AskUserQuestion` with options "Retry" / "Abort".
