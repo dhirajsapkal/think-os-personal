@@ -22,7 +22,7 @@ git clone https://github.com/dhirajsapkal/think-os.git
 cd think-os
 ```
 
-Tell the user once: "Cloned to `~/code/think-os/`. I'll walk you through the install."
+Don't announce the clone — the welcome message in Step 1 mentions it.
 
 **B. You're already inside a local checkout of the repo.** Skip the clone; you're ready.
 
@@ -30,59 +30,112 @@ Verify you're in the right place: `ls scripts/thinkos-setup.sh` should exist.
 
 ---
 
-## Step 1 — Ask the user 5 questions, one at a time
+## Step 1 — Welcome the user
 
-Don't batch. Don't pre-fill from your guesses. Show the bracketed default and wait for each answer before asking the next.
+Before asking anything, show this welcome message verbatim:
 
-### Question 1: Vault location
-
-> Where should your Think OS vault live? **[~/ThinkOS/vault]**
-
-Notes for you:
-- Accept the default (press ENTER) or a custom path.
-- Expand `~` to `$HOME` if the user typed it.
-- Warn if the path is under `~/Documents`, `~/Desktop`, or `~/Downloads` — macOS protected folders that require Files & Folders access. Suggest `~/ThinkOS/vault` instead.
-
-### Question 2: Install Basic Memory if missing
-
-> Should I install Basic Memory via uv if it's missing? **[Y]**
-
-Notes:
-- Check first: `command -v basic-memory && command -v uv` — if both exist, tell the user it's already installed and skip the question.
-- If basic-memory exists but uv doesn't, they're using a different install. Confirm with: "I see basic-memory at `$(which basic-memory)`. Use that?"
-
-### Question 3: Plugin bundle
-
-> Pick a plugin bundle to install with Think OS:
->   - **pm** — Product management stack: Slack, Gmail, Notion, Linear, Granola, Figma + PM and Productivity skills
->   - **eng** — Engineering: Slack, Gmail, Atlassian Rovo, Linear + Engineering and Productivity skills
->   - **design** — Design: Slack, Gmail, Notion, Figma, Granola + Design and Productivity skills
->   - **ops** — Operations: Slack, Gmail, Microsoft 365, Notion, QuickBooks + Productivity skills
->   - **skip** — install nothing now; the user can add later
-
-Notes:
-- If the user is unsure, suggest based on their role if you can infer it from context (you may have it from prior turns).
-- Accept lowercase preset names or the literal word "skip".
-
-### Question 4: Vault id
-
-> What would you like to call your vault in commands? **[personal]**
-
-Notes:
-- Validate: must match `[a-z0-9-]+`. Reject capitals, spaces, special chars; ask again.
-- Used as the registry key (e.g., `thinkos vault use <id>`).
-
-### Question 5: Display label
-
-> Display label for your vault? **[<name>'s Think OS]**
-
-Notes:
-- Default to `$(git config user.name)'s Think OS` if git is configured; otherwise `$(whoami)'s Think OS`.
-- Free-form. Any text.
+> ## Welcome to Think OS
+>
+> Think OS gives me durable memory across every session — who you are, what you're working on, who you work with, and how you like to work. I'll have you set up in about five minutes.
+>
+> The repo is cloned to `~/code/think-os/`. I'll ask you five quick questions — each has a recommended default you can pick with a click, so you barely need to type.
 
 ---
 
-## Step 2 — Run the install
+## Step 2 — Ask 5 questions using AskUserQuestion
+
+**Use the `AskUserQuestion` tool for every question.** Claude Code renders it as a chip-picker the user can click — no typing required to accept defaults. If `AskUserQuestion` isn't loaded yet, load it first via:
+
+```
+ToolSearch select:AskUserQuestion
+```
+
+Ask one question at a time. Wait for each answer before moving to the next.
+
+### Question 1 of 5 — Vault location
+
+Use `AskUserQuestion`:
+
+- Header: "Vault location"
+- Question: "Where should your Think OS vault live? Your vault is just a folder of markdown files — identity, projects, decisions, work log."
+- multiSelect: false
+- Options:
+  - Label: `~/ThinkOS/vault` — Recommended. Clean local path, no macOS permission friction.
+  - Label: `~/Documents/ThinkOS` — Convenient if you already keep notes there. May require Files & Folders access for Claude Code.
+  - Label: `Pick a custom path` — I'll tell you where I want it.
+
+If the user picks "Pick a custom path", follow up with a plain text prompt asking for the full path. Expand `~` to `$HOME`. Warn if the path is under `~/Documents`, `~/Desktop`, or `~/Downloads`.
+
+### Question 2 of 5 — Basic Memory
+
+First, check the local environment:
+
+```bash
+command -v basic-memory && command -v uv
+```
+
+If `basic-memory` already exists: tell the user "Basic Memory is already installed at `$(which basic-memory)`. I'll use that." Skip this question entirely.
+
+If basic-memory is missing, use `AskUserQuestion`:
+
+- Header: "Install Basic Memory?"
+- Question: "Basic Memory is the MCP server that exposes your vault to me. It needs to be installed."
+- multiSelect: false
+- Options:
+  - Label: `Yes — install via uv` — Recommended. Takes ~30 seconds.
+  - Label: `No — I'll install it myself later` — Setup will continue, but I won't be able to query your vault until you install Basic Memory manually.
+
+### Question 3 of 5 — Plugin bundle
+
+Use `AskUserQuestion`:
+
+- Header: "Plugin bundle"
+- Question: "Think OS can install a curated set of MCPs for you. Pick the bundle that matches how you work — you can always add or remove later."
+- multiSelect: false
+- Options:
+  - Label: `pm — Product management` — Slack, Gmail, Notion, Linear, Granola, Figma + PM and Productivity skills.
+  - Label: `eng — Engineering` — Slack, Gmail, Atlassian Rovo, Linear + Engineering and Productivity skills.
+  - Label: `design — Design` — Slack, Gmail, Notion, Figma, Granola + Design and Productivity skills.
+  - Label: `ops — Operations` — Slack, Gmail, Microsoft 365, Notion, QuickBooks + Productivity skills.
+  - Label: `Skip — I'll add tools individually later` — No bundle.
+
+### Question 4 of 5 — Vault id
+
+Use `AskUserQuestion`:
+
+- Header: "Vault id"
+- Question: "What should I call this vault in commands? (e.g., `thinkos vault use <id>`)"
+- multiSelect: false
+- Options:
+  - Label: `personal` — Recommended default.
+  - Label: `Pick a custom id` — I want a different name.
+
+If "Pick a custom id", follow up with a plain text prompt. Validate the input matches `[a-z0-9-]+` (lowercase letters, digits, hyphens). Re-ask if invalid.
+
+### Question 5 of 5 — Display label
+
+First, get the user's name:
+
+```bash
+git config user.name 2>/dev/null || whoami
+```
+
+Build the default label: `<that name>'s Think OS`.
+
+Use `AskUserQuestion`:
+
+- Header: "Display label"
+- Question: "Friendly label shown in vault listings. Just for your benefit."
+- multiSelect: false
+- Options:
+  - Label: `<name>'s Think OS` — Default based on your git/system name.
+  - Label: `Customize` — I'll write my own.
+
+If "Customize", follow up with a free-text prompt.
+
+---
+
+## Step 3 — Run the install
 
 Construct the command from the user's answers:
 
@@ -96,15 +149,15 @@ bash scripts/thinkos-setup.sh \
 
 Include `--bundle <preset>` only if the user picked pm/eng/design/ops. Omit if they picked skip.
 
-If basic-memory turned out to be already installed (Step 1 detected it), drop `--install-basic-memory`.
+If basic-memory turned out to be already installed (Step 2 detected it), drop `--install-basic-memory`.
 
 Run the command. Show the output to the user as it streams. The script handles vault folder creation, template copy, Basic Memory project registration, `~/.claude/CLAUDE.md` block injection, slash command install, and (if bundled) Claude Code MCP registrations.
 
-If the script fails: stop, surface the error verbatim, suggest the user run `bash scripts/thinkos-doctor.sh --deep` for diagnosis. Don't continue to Step 3 on failure.
+If the script fails: stop, surface the error verbatim, suggest the user run `bash scripts/thinkos-doctor.sh --deep` for diagnosis. Don't continue to Step 4 on failure.
 
 ---
 
-## Step 3 — Register the vault in the registry
+## Step 4 — Register the vault in the registry
 
 After setup.sh succeeds, run:
 
@@ -118,7 +171,7 @@ This auto-detects the vault, registers it in `~/.thinkos/vaults.json`, and makes
 
 ---
 
-## Step 4 — Show the user what landed
+## Step 5 — Show the user what landed
 
 Display the install manifest:
 
@@ -174,7 +227,7 @@ Then present the post-install checklist as a clear numbered list. Emphasize thes
 
 ---
 
-## Step 5 — Quick verify
+## Step 6 — Quick verify
 
 Run the doctor:
 
