@@ -118,19 +118,9 @@ Think OS core is one vault plus one MCP server. Product support lives in adapter
 - **A capture habit.** When you make a decision or share a learning, the agent offers to log it. You confirm. Six months later, search finds it.
 - **Self-maintenance.** A daily desktop agent task refreshes your inbox from connectors. Sundays roll over Current Focus. Quarterly archives the Work Log. You don't remember to do this; it happens.
 
-## What you won't get (out of scope for early alpha)
+See [LIMITATIONS.md](LIMITATIONS.md) for what's deliberately out of scope.
 
-- **Mobile / web reach to your OS.** Basic Memory is local-stdio by default. To call it from mobile or web-only tools you need a remote MCP, HTTPS+OAuth, or a tool-native connector. Defer this unless mobile is a daily pain.
-- **Cross-machine sync by default.** Files live on local disk. If you want multiple machines, choose an explicit sync strategy such as Git, Syncthing, Obsidian Sync, or managed company storage; each machine runs its own Basic Memory index.
-- **Auto-detect every project.** The early alpha maintains `02 Projects/Project Index.md` by hand, with capture-on-mention assist. A future `/index-projects` command can auto-scan local project folders.
-- **A magic AI assistant.** This is structure + cadence. The OS doesn't make the model smarter; it makes the agent *consistent*.
-
-## Maintenance budget
-
-- **Daily** (free): the Stop hook auto-logs your sessions to `01 Now/Work Log.md`. You do nothing.
-- **Weekly** (~5 min): `/weekly-review` rolls over `01 Now/Current Focus.md`. Run it manually or schedule in desktop agent.
-- **Quarterly** (~30 min): `/quarterly-review` archives the Work Log, audits projects, prunes connectors. Hand-curate.
-- **Annually** (~60 min): hand-review `05 Profile/Identity.md` and `05 Profile/Business Brain.md`. Slow-changing things benefit from deliberate review.
+Maintenance is light — see [MAINTENANCE.md](MAINTENANCE.md) for cadence and what's automated.
 
 ## Feedback I'm looking for
 
