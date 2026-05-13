@@ -38,11 +38,11 @@ Before asking anything, show this welcome message verbatim:
 >
 > Think OS gives me durable memory across every session — who you are, what you're working on, who you work with, and how you like to work. I'll have you set up in about five minutes.
 >
-> The repo is cloned to `~/code/think-os/`. I'll ask you five quick questions — each has a recommended default you can pick with a click, so you barely need to type.
+> The repo is cloned to `~/code/think-os/`. I'll ask you four quick questions — each has a recommended default you can pick with a click, so you barely need to type.
 
 ---
 
-## Step 2 — Ask 5 questions using AskUserQuestion
+## Step 2 — Ask 4 questions using AskUserQuestion
 
 **Use the `AskUserQuestion` tool for every question.** Claude Code renders it as a chip-picker the user can click — no typing required to accept defaults. If `AskUserQuestion` isn't loaded yet, load it first via:
 
@@ -54,7 +54,7 @@ Ask one question at a time. Wait for each answer before moving to the next.
 
 **Important formatting rule for all questions below.** Each chip option has a `label` (one short phrase, shown ON the chip) and a `description` (one sentence, shown under or alongside the chip). Don't combine them into one string. Don't put dashes between preset keys and human names in the label — that causes duplicate-looking chips ("design-Design"). The user's pick is mapped to a preset key by you, internally.
 
-### Question 1 of 5 — Vault location
+### Question 1 of 4 — Vault location
 
 `AskUserQuestion`:
 
@@ -70,7 +70,7 @@ Ask one question at a time. Wait for each answer before moving to the next.
 
 If the user picks "Custom path", follow up with a plain text prompt asking for the full path. Expand `~` to `$HOME`. Warn if the path is under `~/Documents`, `~/Desktop`, or `~/Downloads`.
 
-### Question 2 of 5 — Basic Memory
+### Question 2 of 4 — Basic Memory
 
 First, check the local environment:
 
@@ -91,7 +91,7 @@ If basic-memory is missing, use `AskUserQuestion`:
   | "Yes, install it" | "Takes about 30 seconds via uv." |
   | "Skip for now" | "I'll install it myself later." |
 
-### Question 3 of 5 — Plugin bundle
+### Question 3 of 4 — Plugin bundle
 
 `AskUserQuestion`:
 
@@ -107,7 +107,7 @@ If basic-memory is missing, use `AskUserQuestion`:
   | "Operations" | "Slack, Gmail, Microsoft 365, Notion, QuickBooks + Productivity skills." | `ops` |
   | "Skip" | "Add tools individually later." | (omit `--bundle` flag) |
 
-### Question 4 of 5 — Vault name
+### Question 4 of 4 — Vault name
 
 `AskUserQuestion`:
 
@@ -120,26 +120,17 @@ If basic-memory is missing, use `AskUserQuestion`:
   | "personal (work)" | "Your own vault, not shared with a team." | `personal` |
   | "Custom" | "Pick your own id." | (follow-up free-text prompt, validate `[a-z0-9-]+`) |
 
-### Question 5 of 5 — Display label
+---
 
-First, get the user's name:
+## Step 2.5 — Auto-generate the display label
+
+Don't ask the user. Run:
 
 ```bash
 git config user.name 2>/dev/null || whoami
 ```
 
-Build the default label as `<that name>'s Think OS`.
-
-`AskUserQuestion`:
-
-- Header: "Display label"
-- Question: "What do you want the label to say?"
-- multiSelect: false
-- Options:
-  | label | description |
-  |---|---|
-  | "Use default" | The label you computed (e.g., "Dhiraj's Think OS"). |
-  | "Customize" | "Write my own." (follow-up free-text prompt) |
+Build the display label as `<that name>'s Think OS`. This is just a friendly string shown in `thinkos vault list`. The user can rename later with `thinkos vault rename`.
 
 ---
 
