@@ -1,5 +1,8 @@
 ---
 title: Standing Decisions
+aliases:
+- Decisions
+- decisions
 type: note
 permalink: think-os/decisions
 tier: WARM

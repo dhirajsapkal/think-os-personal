@@ -1,5 +1,9 @@
 ---
 title: Current Focus
+aliases:
+- current-focus
+- now
+- priorities
 type: note
 permalink: think-os/current-focus
 tier: HOT
@@ -30,7 +34,7 @@ Lower-priority but live work I want the agent to be aware of:
 
 ## Awaiting from others
 
-People I'm waiting on. the agent can surface during `/morning` if anyone has gone quiet too long.
+People I'm waiting on. The agent can surface during `/morning` if anyone has gone quiet too long.
 
 - **{{Name}}** — {{what I need, asked {{date}}}}
 

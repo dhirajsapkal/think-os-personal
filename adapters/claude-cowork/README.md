@@ -46,7 +46,7 @@ Use Basic Memory to answer: who am I and what am I working on?
 Expected:
 
 - Cowork can see Basic Memory tools.
-- The answer references `identity.md` and `current-focus.md`.
+- The answer references `05 Profile/Identity.md` and `01 Now/Current Focus.md`.
 - The answer is specific, not generic.
 
 ## Troubleshooting

@@ -65,7 +65,7 @@ basic-memory tool search-notes "what's on my plate"
 basic-memory tool search-notes "current focus"
 ```
 
-You should see hits from `identity.md`, `TASKS.md`, and `current-focus.md` respectively. If you see errors, run `basic-memory status` and check that the project path matches `{{OS_HOME}}`.
+You should see hits from `05 Profile/Identity.md`, `01 Now/Tasks.md`, and `01 Now/Current Focus.md` respectively. If you see errors, run `basic-memory status` and check that the project path matches `{{OS_HOME}}`.
 
 ### Step 1.5 — macOS file access
 
@@ -148,20 +148,20 @@ Update your desktop agent **global personalization** (or per-project instruction
 You are operating in my personal context OS. Use the Basic Memory MCP tools to access context:
 
 - search_notes("identity") — load my role, working style, guardrails
-- search_notes("active projects") — load the project index
+- search_notes("project index active projects") — load the project index
 - search_notes("current focus") — load this week's priorities
 - search_notes("os instructions") — load the meta-rules for using this OS
 
-For "what's on my plate" questions, also: read_note("TASKS")
-For questions about people, also: read_note("people")
-For comms drafting, also: read_note("business-brain") and any relevant active-projects/<slug>
+For "what's on my plate" questions, also: read_note("Tasks")
+For questions about people, also: read_note("People")
+For comms drafting, also: search_notes("business brain") and any relevant 02 Projects/<slug>
 
 The source-of-truth files are at {{OS_HOME}}. If Basic Memory MCP is unavailable, fall back to direct file reads against that path.
 
 Default write targets: {{OS_HOME}} for memory/notes; the relevant project subfolder for project work. Never write to your Documents root unless I tell you to.
 ```
 
-Save and verify: start a new desktop agent conversation in any project and ask "who am I?" — you should get a specific answer pulled from `identity.md`.
+Save and verify: start a new desktop agent conversation in any project and ask "who am I?" — you should get a specific answer pulled from `05 Profile/Identity.md`.
 
 ---
 
@@ -183,9 +183,11 @@ Or download from [obsidian.md](https://obsidian.md).
 2. "Open folder as vault"
 3. Navigate to `{{OS_HOME}}`
 4. Select it
+5. Open `00 Home.md`
 
 You'll see:
 
+- A quiet root with `00 Home.md` plus numbered folders
 - Wiki-links (`[[Person Name]]`, `[[project-slug]]`) become clickable
 - Frontmatter renders as a properties panel
 - Backlinks panel shows where each file is referenced
@@ -229,7 +231,7 @@ Diagnostic order if anything fails: (a) Basic Memory binary works at the CLI? (b
 ## What this doesn't solve
 
 - **Mobile / web reach** — Basic Memory is stdio-only by default. To call it from mobile or web-only tools, you'd need to expose it via HTTPS+OAuth (a remote MCP, HTTPS/OAuth, or a tool-native connector). Defer this unless mobile reach becomes a daily pain.
-- **Auto-refresh of `TASKS.md` / `current-focus.md`** — those need `productivity:update` (desktop agent) and `/weekly-review` to run. Schedule those as desktop agent scheduled tasks (see `setup-global-integration.md`).
+- **Auto-refresh of `01 Now/Tasks.md` / `01 Now/Current Focus.md`** — those need `productivity:update` (desktop agent) and `/weekly-review` to run. Schedule those as desktop agent scheduled tasks (see `setup-global-integration.md`).
 - **Cross-Mac sync** — files live on local disk by default. To use multiple machines, choose an explicit sync strategy (for example Git, Syncthing, Obsidian Sync, or a managed company storage location). Each Mac runs its own Basic Memory index pointed at the synced files; the index rebuilds from markdown.
 
 ---

@@ -1,5 +1,8 @@
 ---
 title: Work Log
+aliases:
+- work-log
+- session log
 type: note
 permalink: think-os/work-log
 tier: WARM
@@ -14,7 +17,7 @@ Used for:
 - "What did we do last session?" continuity
 - Quarterly review and archive rotation
 
-**Rotation**: at the start of each quarter, `/quarterly-review` moves this file to `archive/work-log-YYYY-Qn.md` and starts a fresh one.
+**Rotation**: at the start of each quarter, `/quarterly-review` moves this file to `99 Archive/Work Log YYYY-Qn.md` and starts a fresh one.
 
 ---
 

@@ -1,5 +1,8 @@
 ---
 title: Voice Profile
+aliases:
+- voice-profile
+- writing style
 type: note
 permalink: think-os/voice-profile
 tier: WARM

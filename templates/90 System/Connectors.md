@@ -1,5 +1,8 @@
 ---
 title: Connectors
+aliases:
+- MCP inventory
+- tool connections
 type: note
 permalink: think-os/connectors
 tier: WARM
@@ -44,7 +47,7 @@ Inventory of every MCP server / connector I have wired up to my agentic tools (d
 - **Auth status**: Connected
 - **What I use it for**: Catching up on unread channels, drafting replies, "what was that thread last week."
 - **When the agent should reach for it**: Comms triage. Drafting replies. Catching threads I've missed.
-- **When the agent should NOT reach for it**: Sending without my approval (see `identity.md`: draft, never send).
+- **When the agent should NOT reach for it**: Sending without my approval (see `05 Profile/Identity.md`: draft, never send).
 
 ---
 

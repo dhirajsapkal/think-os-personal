@@ -2,7 +2,7 @@
 title: {{Project Name}}
 slug: {{slug}}
 type: note
-permalink: think-os/active-projects/{{slug}}
+permalink: think-os/projects/{{slug}}
 tier: WARM
 status: 🟢
 last_reviewed: {{YYYY-MM-DD}}
@@ -17,7 +17,7 @@ Deep context for one project. Loaded only when working on this project (the agen
 
 ## One-liner
 
-{{What this is, one sentence — same as the row in active-projects.md}}
+{{What this is, one sentence — same as the row in `02 Projects/Project Index.md`}}
 
 ## Why this exists
 

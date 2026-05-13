@@ -1,5 +1,8 @@
 ---
 title: People
+aliases:
+- personal CRM
+- stakeholders
 type: note
 permalink: think-os/people
 tier: WARM
@@ -21,7 +24,7 @@ Mini personal CRM. Colleagues, clients, stakeholders, useful contacts. Used when
 - **Role**: <title, team>
 - **Organization**: <employer, or "external" / "client at X">
 - **Working relationship**: <how I know them, frequency, channel>
-- **Current projects**: <which active-projects slugs we share>
+- **Current projects**: <which project slugs we share>
 - **Communication style**: <how they like to be reached, what works, what doesn't>
 - **Last touched**: <YYYY-MM-DD, what about>
 - **Notes**: <anything useful — preferences, sensitivities, context>

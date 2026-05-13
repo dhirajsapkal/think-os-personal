@@ -1,9 +1,9 @@
 ---
-description: Capture a standing decision into decisions.md
+description: Capture a standing decision into 04 Knowledge/Decisions.md
 permalink: think-os/adapters/claude-code/commands/decide
 ---
 
-Append a structured decision entry to `decisions.md` via Basic Memory.
+Append a structured decision entry to `04 Knowledge/Decisions.md` via Basic Memory.
 
 Take the user's message ($ARGUMENTS) and shape it into the standard format:
 
@@ -20,7 +20,7 @@ Use today's date. Extract topic, decision, why, context, applies-to from $ARGUME
 
 Then call `mcp__basic-memory__edit_note(identifier="Standing Decisions", operation="append", content="<formatted entry>")`.
 
-Per `decisions.md` convention, NEWER entries go above older ones — find the right insertion point or append after the format guide block.
+Per `04 Knowledge/Decisions.md` convention, NEWER entries go above older ones — find the right insertion point or append after the format guide block.
 
 Confirm written.
 

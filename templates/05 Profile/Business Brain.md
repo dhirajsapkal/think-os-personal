@@ -1,5 +1,9 @@
 ---
 title: Business Brain
+aliases:
+- business-brain
+- strategy
+- organization context
 type: note
 permalink: think-os/business-brain
 tier: WARM
@@ -12,7 +16,7 @@ Stable strategy, voice, and standing principles for the org / team / client enga
 
 **Refresh cadence**: hand review once a year. Edit anytime the underlying strategy materially shifts.
 
-**Length budget**: ≤800 words. Push specifics to `decisions.md` or per-project files.
+**Length budget**: ≤800 words. Push specifics to `04 Knowledge/Decisions.md` or per-project files.
 
 ---
 
@@ -49,7 +53,7 @@ Anti-patterns the org / team has explicitly ruled out. Save the agent from sugge
 
 ## Sensitivities
 
-Topics, names, or framings that need care. the agent should flag rather than draft confidently.
+Topics, names, or framings that need care. The agent should flag rather than draft confidently.
 
 - {{e.g., "Anything that touches our pricing model — defer to me before drafting."}}
 - {{e.g., "Don't speculate publicly about clients' financials or roadmaps."}}
@@ -64,7 +68,7 @@ The pipeline so the agent knows where the draft lands:
 3. {{Optional: peer review by {{role}}}}
 4. Send
 
-the agent should never skip step 1. "Draft, never send" is in `identity.md` as a hard rule.
+The agent should never skip step 1. "Draft, never send" is in `05 Profile/Identity.md` as a hard rule.
 
 ---
 

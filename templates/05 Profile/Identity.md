@@ -1,5 +1,8 @@
 ---
 title: Identity
+aliases:
+- who I am
+- profile
 type: note
 permalink: think-os/identity
 tier: HOT
@@ -48,7 +51,7 @@ Stable, slow-changing context about who I am and how I work. This is the first f
 
 ## Guardrails (things the agent should NOT do)
 
-Edit these to reflect your real ones. the agent will refer back to this list when drafting outbound content or making suggestions.
+Edit these to reflect your real ones. The agent will refer back to this list when drafting outbound content or making suggestions.
 
 1. {{e.g., "Don't overstate AI capabilities or invent features."}}
 2. {{e.g., "Don't dump code when the question is strategy."}}
@@ -63,7 +66,7 @@ Edit these to reflect your real ones. the agent will refer back to this list whe
 
 In a new agent session anywhere on this machine, ask: *"who am I and what am I working on?"*
 
-Expected: a specific answer with your role, your employer, and at least one current priority pulled from `current-focus.md`. If you get a generic "I don't have personal context about you" reply, the OS isn't loading — debug the MCP connection.
+Expected: a specific answer with your role, your employer, and at least one current priority pulled from `01 Now/Current Focus.md`. If you get a generic "I don't have personal context about you" reply, the OS isn't loading — debug the MCP connection.
 
 ---
 

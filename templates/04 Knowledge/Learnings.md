@@ -1,5 +1,8 @@
 ---
 title: Learnings
+aliases:
+- reusable learnings
+- patterns
 type: note
 permalink: think-os/learnings
 tier: WARM

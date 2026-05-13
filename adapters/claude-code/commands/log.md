@@ -1,9 +1,9 @@
 ---
-description: Append a manual entry to work-log.md
+description: Append a manual entry to 01 Now/Work Log.md
 permalink: think-os/adapters/claude-code/commands/log
 ---
 
-Append a manual log entry to `work-log.md` via Basic Memory:
+Append a manual log entry to `01 Now/Work Log.md` via Basic Memory:
 
 ```
 mcp__basic-memory__edit_note(

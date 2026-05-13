@@ -1,16 +1,20 @@
 ---
-title: TASKS
+title: Tasks
+aliases:
+- TASKS
+- inbox
+- plate
 type: note
 permalink: think-os/tasks
 tier: WARM
 last_synced: {{YYYY-MM-DD HH:MM}}
 ---
 
-# TASKS
+# Tasks
 
 Connector-synced inbox: open items pulled from email, chat, project trackers, calendar. Refreshed by the `productivity:update` skill in desktop agent (it queries the connectors and rewrites this file).
 
-**Does NOT replace `current-focus.md`.** That's intent. This is inbox.
+**Does NOT replace `01 Now/Current Focus.md`.** That's intent. This is inbox.
 
 **Freshness rule**: if `last_synced` > 24 hours, suggest running `productivity:update`.
 

@@ -64,7 +64,7 @@ Use Basic Memory to answer: who am I and what am I working on?
 Expected:
 
 - Codex can see the `basic-memory` MCP server.
-- The answer references `identity.md` and `current-focus.md`.
+- The answer references `05 Profile/Identity.md` and `01 Now/Current Focus.md`.
 - Codex does not need the vault manually attached as a project.
 
 ## Troubleshooting

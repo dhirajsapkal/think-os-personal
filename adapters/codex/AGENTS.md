@@ -7,30 +7,30 @@ Use Think OS selectively for substantive work involving my role, projects, peopl
 Default lookups:
 
 - `search_notes("identity")` for role, preferences, and guardrails
-- `search_notes("active projects")` for the project index
+- `search_notes("project index active projects")` for the project index
 - `search_notes("current focus")` for this week's priorities
 - `search_notes("os instructions")` for OS usage rules
-- `read_note("TASKS")` or `search_notes("tasks")` for the task inbox
-- `read_note("people")` for colleagues / clients / stakeholders
+- `read_note("Tasks")` or `search_notes("tasks")` for the task inbox
+- `read_note("People")` for colleagues / clients / stakeholders
 - `search_notes("learnings " + topic)` for reusable prior patterns
 
-When working inside a known project folder, search for the relevant `active-projects/<slug>` note before making substantive recommendations.
+When working inside a known project folder, search for the relevant `02 Projects/<slug>` note before making substantive recommendations.
 
-For drafts written as me, load `voice-profile` first.
+For drafts written as me, load `Voice Profile` first.
 
 Freshness:
 
 - HOT files stale > 7 days: mention before relying on them
-- `current-focus` outside its `covers_week`: flag before answering priority questions
-- `TASKS` last_synced > 24 hours: offer to refresh through the connector-enabled desktop workflow
+- `Current Focus` outside its `covers_week`: flag before answering priority questions
+- `Tasks` last_synced > 24 hours: offer to refresh through the connector-enabled desktop workflow
 
 Capture habit:
 
-- Reusable learning: offer to append to `learnings.md`
-- Standing decision: offer to append to `decisions.md`
-- New person: offer to add/update `people.md`
-- New task: offer to append to `TASKS.md`
-- New project: offer to update `active-projects.md` and create a project stub
+- Reusable learning: offer to append to `04 Knowledge/Learnings.md`
+- Standing decision: offer to append to `04 Knowledge/Decisions.md`
+- New person: offer to add/update `03 People/People.md`
+- New task: offer to append to `01 Now/Tasks.md`
+- New project: offer to update `02 Projects/Project Index.md` and create a project stub
 
 Default write targets:
 

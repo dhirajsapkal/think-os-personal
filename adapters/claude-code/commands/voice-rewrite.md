@@ -1,10 +1,10 @@
 ---
-description: Capture an AI draft vs my rewrite into voice-profile.md so the agent
+description: Capture an AI draft vs my rewrite into 05 Profile/Voice Profile.md so the agent
   learns my voice
 permalink: think-os/adapters/claude-code/commands/voice-rewrite
 ---
 
-Append a rewrite delta to `voice-profile.md` so the agent's voice modeling improves over time. The user's input ($ARGUMENTS) contains either:
+Append a rewrite delta to `05 Profile/Voice Profile.md` so the agent's voice modeling improves over time. The user's input ($ARGUMENTS) contains either:
 
 1. **A before / after pair** — the agent's draft, then how I actually said it. Format hints: separated by `|`, `→`, `vs`, newlines with labels like "AI:" / "Me:", or whatever's clear from context.
 2. **A standalone positive sample** — just a message I wrote that should be studied as a reference pattern.
@@ -41,7 +41,7 @@ mcp__basic-memory__edit_note(
 
 This places the new entry at the top of the Rewrite log section (newest-first convention).
 
-If `voice-profile.md` doesn't load or the rule isn't clear from $ARGUMENTS, ask ONCE for the missing piece (usually: "what was the rule you want me to take away from this?") before writing.
+If `05 Profile/Voice Profile.md` doesn't load or the rule isn't clear from $ARGUMENTS, ask ONCE for the missing piece (usually: "what was the rule you want me to take away from this?") before writing.
 
 Confirm written and quote the rule extracted in one short line.
 

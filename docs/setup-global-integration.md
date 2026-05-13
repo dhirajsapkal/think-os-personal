@@ -60,7 +60,7 @@ cd ~
 claude
 ```
 
-Inside Claude Code, ask: *"Use Basic Memory tools to find my identity"* — should return hits from `identity.md` even though you're in your home directory.
+Inside Claude Code, ask: *"Use Basic Memory tools to find my identity"* — should return hits from `05 Profile/Identity.md` even though you're in your home directory.
 
 Troubleshooting:
 
@@ -105,11 +105,11 @@ My personal context OS lives at {{OS_HOME}} and is accessible through the `basic
 Before answering anything substantive, use Basic Memory tools (selectively — don't load everything every session):
 
 - `mcp__basic-memory__search_notes("identity")` — my role, working style, guardrails
-- `mcp__basic-memory__search_notes("active projects")` — project index
+- `mcp__basic-memory__search_notes("project index active projects")` — project index
 - `mcp__basic-memory__search_notes("current focus")` — this week's priorities
 - `mcp__basic-memory__search_notes("os instructions")` — meta-rules
-- `mcp__basic-memory__read_note("TASKS")` — connector-synced inbox
-- `mcp__basic-memory__read_note("people")` — colleagues / clients
+- `mcp__basic-memory__read_note("Tasks")` — connector-synced inbox
+- `mcp__basic-memory__read_note("People")` — colleagues / clients
 - `mcp__basic-memory__search_notes("learnings " + topic)` — prior reusable patterns
 
 For trivial questions (factual lookup, code completion, syntax), skip the OS query — it's overhead. For anything about my work, projects, people, or decisions, load the relevant slice.
@@ -119,30 +119,30 @@ For trivial questions (factual lookup, code completion, syntax), skip the OS que
 If `cwd` is under a known project root, that's a known project. Pull its deep file:
 
 ```
-mcp__basic-memory__search_notes("active-projects/" + <project-slug>)
+mcp__basic-memory__search_notes("02 Projects/" + <project-slug>)
 ```
 
 ## Freshness check (before relying on HOT files)
 
 Check `last_reviewed` / `covers_week` frontmatter. Flag staleness:
 
-- HOT files (`identity`, `active-projects`, `os-instructions`) stale > 7 days → mention
-- `current-focus` past its `covers_week` end → must flag before "what am I working on this week"
-- `TASKS` last_synced > 24 hours → offer to run `productivity:update`
+- HOT files (`Identity`, `Project Index`, `OS Instructions`) stale > 7 days → mention
+- `Current Focus` past its `covers_week` end → must flag before "what am I working on this week"
+- `Tasks` last_synced > 24 hours → offer to run `productivity:update`
 
 ## Capture habit (write back to the OS)
 
 When I make a decision or share a learning that has any chance of being reusable on a future project, offer to capture it:
 
-> "Worth logging in learnings.md? I can add it with tags [suggested]."
+> "Worth logging in Learnings? I can add it with tags [suggested]."
 
 If yes, append via `mcp__basic-memory__edit_note(identifier="Learnings", operation="append", content="...")`.
 
 Other capture targets:
-- New person mentioned → offer to add to `people.md`
-- Standing decision → offer to add to `decisions.md`
-- New active task → offer to append to `TASKS.md` Manually-added section
-- New project surfaces → row in `active-projects.md` AND stub at `active-projects/<slug>.md`
+- New person mentioned → offer to add to `03 People/People.md`
+- Standing decision → offer to add to `04 Knowledge/Decisions.md`
+- New active task → offer to append to `01 Now/Tasks.md` under the Manually added section
+- New project surfaces → row in `02 Projects/Project Index.md` AND stub at `02 Projects/<slug>.md`
 
 Default write targets: {{OS_HOME}} for memory/notes; project subfolder for project work. Never write above project folders unless explicitly told.
 
@@ -154,9 +154,9 @@ Terse, direct. Skip preamble. Surface tradeoffs explicitly. When unsure, ask —
 
 For any task producing frontend code / UI mocks / design tokens / visual artifacts: load `/frontend-design` (Anthropic plugin) before writing code. Working from Figma? Load `figma:figma-implement-design` or `figma:figma-use` first. Commit to typography + palette + layout philosophy BEFORE implementation. No Inter + purple-gradient defaults.
 
-## Guardrails (mirror of identity.md)
+## Guardrails (mirror of 05 Profile/Identity.md)
 
-See identity.md for the full list. The hard rule: **draft, never send.** All outbound (email, Slack, comments, PRs, calendar invites) is drafted only — I approve before send.
+See 05 Profile/Identity.md for the full list. The hard rule: **draft, never send.** All outbound (email, Slack, comments, PRs, calendar invites) is drafted only — I approve before send.
 ```
 
 Verify:
@@ -165,7 +165,7 @@ Open a fresh Claude Code session in any directory (`cd ~ && claude`). Ask:
 
 > "Who am I and what am I working on?"
 
-You should get a specific answer pulled from `identity.md` + `current-focus.md`. If you get a generic answer, run `claude mcp list` — the MCP may not be reachable.
+You should get a specific answer pulled from `05 Profile/Identity.md` + `01 Now/Current Focus.md`. If you get a generic answer, run `claude mcp list` — the MCP may not be reachable.
 
 ---
 
@@ -178,18 +178,18 @@ You are operating in my personal context OS. The source-of-truth files live at {
 
 Before answering anything substantive, query Basic Memory:
 - search_notes("identity") — who I am, role, guardrails
-- search_notes("active projects") — project index
+- search_notes("project index active projects") — project index
 - search_notes("current focus") — this week's priorities
 - search_notes("os instructions") — meta-rules
 
-For "what's on my plate" → also read_note("TASKS")
-For people questions → also read_note("people")
-For comms drafting → also read_note("business-brain") and relevant active-projects/<slug>
+For "what's on my plate" → also read_note("Tasks")
+For people questions → also read_note("People")
+For comms drafting → also search_notes("business brain") and relevant 02 Projects/<slug>
 For starting new work → search_notes("learnings " + topic) to surface past patterns
 
-Freshness: flag HOT files stale > 7 days; `current-focus` past `covers_week`; `TASKS` last_synced > 24h.
+Freshness: flag HOT files stale > 7 days; `Current Focus` past `covers_week`; `Tasks` last_synced > 24h.
 
-Capture habit: offer "Worth logging in learnings.md?" when I make a reusable decision or share a learning, and append via edit_note if I confirm. Same for new people (people.md), standing decisions (decisions.md), new tasks (TASKS.md), new projects (active-projects.md + stub).
+Capture habit: offer "Worth logging in Learnings?" when I make a reusable decision or share a learning, and append via edit_note if I confirm. Same for new people (03 People/People.md), standing decisions (04 Knowledge/Decisions.md), new tasks (01 Now/Tasks.md), new projects (02 Projects/Project Index.md + stub).
 
 Default write targets: {{OS_HOME}} for memory/notes; project subfolder for project work. Never write above project folders unless explicitly told.
 
@@ -212,16 +212,16 @@ This is the system that keeps the OS current without you remembering to do anyth
 
 | File | Update mechanism | Cadence |
 |---|---|---|
-| `work-log.md` | Tool hook or manual `/log` | Every session end |
-| `TASKS.md` | `productivity:update` skill | Daily (when you ask) OR scheduled |
-| `current-focus.md` | `/weekly-review` skill | Sundays (scheduled) |
-| `people.md` | Capture-on-mention + monthly mining | Continuous + monthly |
-| `decisions.md` | Capture habit | When made |
-| `learnings.md` | Capture habit | When made |
-| `connectors.md` | Manual quarterly review | Quarterly |
-| `active-projects.md` + stubs | Capture-on-mention + quarterly audit | Continuous + quarterly |
-| `archive/` | `/quarterly-review` | Quarter start |
-| `identity.md`, `business-brain.md` | Annual hand-review | Annually |
+| `01 Now/Work Log.md` | Tool hook or manual `/log` | Every session end |
+| `01 Now/Tasks.md` | `productivity:update` skill | Daily (when you ask) OR scheduled |
+| `01 Now/Current Focus.md` | `/weekly-review` skill | Sundays (scheduled) |
+| `03 People/People.md` | Capture-on-mention + monthly mining | Continuous + monthly |
+| `04 Knowledge/Decisions.md` | Capture habit | When made |
+| `04 Knowledge/Learnings.md` | Capture habit | When made |
+| `90 System/Connectors.md` | Manual quarterly review | Quarterly |
+| `02 Projects/Project Index.md` + stubs | Capture-on-mention + quarterly audit | Continuous + quarterly |
+| `99 Archive/` | `/quarterly-review` | Quarter start |
+| `05 Profile/Identity.md`, `05 Profile/Business Brain.md` | Annual hand-review | Annually |
 
 ### Step 4.1 — Set Up Scheduled Tasks
 
@@ -229,23 +229,23 @@ If your desktop agent supports scheduled tasks, add these:
 
 **Daily 7am — morning brief** (optional, high-value)
 - Schedule: daily at 7:00 AM
-- Prompt: *"Run morning brief: check TASKS.md staleness; if stale, run productivity:update. Then summarize: today's calendar, top 3 action items, this week's priority. Cap at 200 words."*
+- Prompt: *"Run morning brief: check 01 Now/Tasks.md staleness; if stale, run productivity:update. Then summarize: today's calendar, top 3 action items, this week's priority. Cap at 200 words."*
 
-**Daily 6pm — TASKS sync** (recommended)
+**Daily 6pm — Tasks sync** (recommended)
 - Schedule: daily at 6:00 PM
-- Prompt: *"Run productivity:update --comprehensive against the Think OS project. Refresh TASKS.md with new connector data."*
+- Prompt: *"Run productivity:update --comprehensive against the Think OS project. Refresh 01 Now/Tasks.md with new connector data."*
 
 **Sundays 8pm — Weekly review** (recommended)
 - Schedule: weekly, Sunday at 8:00 PM
-- Prompt: *"Weekly review: roll over current-focus.md to next week. Capture this week's wins / blockers. Check for stale projects in active-projects.md. Suggest 3-5 priorities for next week based on TASKS.md + calendar."*
+- Prompt: *"Weekly review: roll over 01 Now/Current Focus.md to next week. Capture this week's wins / blockers. Check for stale projects in 02 Projects/Project Index.md. Suggest 3-5 priorities for next week based on 01 Now/Tasks.md + calendar."*
 
 **Quarter start — Quarterly audit** (recommended)
 - Schedule: quarterly (first day of Q1 / Q2 / Q3 / Q4)
-- Prompt: *"Quarterly audit: rotate work-log.md to archive/. Audit active-projects.md (mark dormant ⚪, archive completed). Re-mine connectors for people.md updates. Review connectors.md for staleness."*
+- Prompt: *"Quarterly audit: rotate 01 Now/Work Log.md to 99 Archive/. Audit 02 Projects/Project Index.md (mark dormant ⚪, archive completed). Re-mine connectors for 03 People/People.md updates. Review 90 System/Connectors.md for staleness."*
 
 ### Step 4.2 — Tool Hooks (optional but high-leverage)
 
-To auto-capture session activity into `work-log.md`, add a Stop/session-end hook if your tool supports it. Claude Code example:
+To auto-capture session activity into `01 Now/Work Log.md`, add a Stop/session-end hook if your tool supports it. Claude Code example:
 
 ```json
 {
@@ -255,7 +255,7 @@ To auto-capture session activity into `work-log.md`, add a Stop/session-end hook
 }
 ```
 
-The script reads the session transcript and appends a one-paragraph summary to `{{OS_HOME}}/work-log.md`. Failure modes exit 0 to avoid blocking your workflow.
+The script reads the session transcript and appends a one-paragraph summary to `{{OS_HOME}}/01 Now/Work Log.md`. Failure modes exit 0 to avoid blocking your workflow.
 
 ---
 
@@ -266,8 +266,8 @@ The script reads the session transcript and appends a one-paragraph summary to `
 - [ ] Fresh desktop agent session in any project responds specifically to "who am I?"
 - [ ] Scheduled tasks panel shows your chosen schedules, if supported
 - [ ] Tool-specific global instruction file exists with Think OS instructions
-- [ ] After a few days: `work-log.md` shows new auto-captured entries
-- [ ] After a week: `TASKS.md` last_synced is < 24h (auto-refresh working)
+- [ ] After a few days: `01 Now/Work Log.md` shows new auto-captured entries
+- [ ] After a week: `01 Now/Tasks.md` last_synced is < 24h (auto-refresh working)
 
 ---
 
@@ -275,14 +275,14 @@ The script reads the session transcript and appends a one-paragraph summary to `
 
 - **Every agentic tool knows your OS exists**, when to query it, and how to update it. No more re-explaining context every session.
 - **Cross-project queries work everywhere.** "What did I do on Project X that applies to Project Y" works from any directory.
-- **The OS self-maintains.** Scheduled tasks refresh `TASKS.md` and `current-focus.md`. Work-log captures session activity. The capture habit prompts surface learnings into searchable form.
+- **The OS self-maintains.** Scheduled tasks refresh `01 Now/Tasks.md` and `01 Now/Current Focus.md`. Work-log captures session activity. The capture habit prompts surface learnings into searchable form.
 - **Failure modes are well-defined.** MCP down → file fallback. Hook breaks → manual `/log`. Scheduled task misses → manual run.
 
 ## What's still manual (by design)
 
 - **Capture decisions.** The agent prompts; you confirm. This is human judgment.
-- **Yearly identity / business-brain review.** Slow-changing things benefit from deliberate review.
-- **Connector setup if new tools appear.** Add to `connectors.md`, register MCP if applicable.
+- **Yearly Identity / Business Brain review.** Slow-changing things benefit from deliberate review.
+- **Connector setup if new tools appear.** Add to `90 System/Connectors.md`, register MCP if applicable.
 
 ---
 

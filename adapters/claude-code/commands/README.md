@@ -26,27 +26,27 @@ To verify: `cd ~ && claude`, then type `/` — you should see the list.
 
 | Slash | What it does |
 |---|---|
-| `/whoami` | Quick identity + current-focus dump |
-| `/plate` | What's on my plate today (TASKS + priorities) |
+| `/whoami` | Quick identity + Current Focus dump |
+| `/plate` | What's on my plate today (Tasks + priorities) |
 | `/morning` | Full morning brief (identity + focus + plate + Slack tracker) |
-| `/who <name>` | Search `people.md` for a name |
+| `/who <name>` | Search `03 People/People.md` for a name |
 | `/project <slug>` | Load deep context for a project |
 | `/decisions [topic]` | Search standing decisions |
 | `/learnings [topic]` | Search cross-project learnings |
-| `/log <message>` | Append a manual entry to `work-log.md` |
-| `/capture <learning>` | Append a structured learning to `learnings.md` |
-| `/decide <decision>` | Append a structured standing decision to `decisions.md` |
+| `/log <message>` | Append a manual entry to `01 Now/Work Log.md` |
+| `/capture <learning>` | Append a structured learning to `04 Knowledge/Learnings.md` |
+| `/decide <decision>` | Append a structured standing decision to `04 Knowledge/Decisions.md` |
 | `/stale` | Walk frontmatter dates, report stale files |
 | `/update` | Refresh Basic Memory's index from disk |
-| `/voice-rewrite <before \| after>` | Capture an AI draft vs my rewrite into `voice-profile.md` |
+| `/voice-rewrite <before \| after>` | Capture an AI draft vs my rewrite into `05 Profile/Voice Profile.md` |
 
 ## What's NOT here (and why)
 
 The connector-sync workflow (`/productivity:update` in desktop agent — pulls from Gmail / Slack / project tracker / etc.) is **deliberately not** in CLI agent. The connector MCPs are registered in desktop agent, not CLI agent. Run that in desktop agent; use these commands here for read / write against the OS files themselves.
 
 The two surfaces are complementary, not parallel:
-- **desktop agent** = where `TASKS.md` gets refreshed FROM connectors
-- **CLI agent** = where you READ `TASKS.md` and WRITE to the OS while doing project work
+- **desktop agent** = where `01 Now/Tasks.md` gets refreshed FROM connectors
+- **CLI agent** = where you READ `01 Now/Tasks.md` and WRITE to the OS while doing project work
 
 ## Maintenance
 
