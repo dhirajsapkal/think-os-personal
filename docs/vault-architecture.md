@@ -15,13 +15,13 @@ Think OS is organized for two audiences at once:
 1. **Humans opening the vault in Obsidian**
 2. **Agents reading and writing through Basic Memory MCP**
 
-The vault should feel like a small workspace, not a directory dump. The root stays quiet: `00 Home.md` plus numbered areas.
+The vault should feel like a small workspace, not a directory dump. The root stays quiet: one dashboard (`00 Home.md`) plus numbered areas.
 
 ## Human Map
 
 | Area | Human question it answers | Notes |
 |---|---|---|
-| `00 Home.md` | "Where do I start?" | Front door, first-fill checklist, vault map |
+| `00 Home.md` | "Where do I go next?" | Dashboard and portal into the vault |
 | `01 Now/` | "What matters this week?" | Current Focus, Tasks, Work Log |
 | `02 Projects/` | "What am I working on?" | Project Index plus one note per project |
 | `03 People/` | "Who is this person?" | Lightweight personal CRM |

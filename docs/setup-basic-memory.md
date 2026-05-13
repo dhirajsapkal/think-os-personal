@@ -183,11 +183,11 @@ Or download from [obsidian.md](https://obsidian.md).
 2. "Open folder as vault"
 3. Navigate to `{{OS_HOME}}`
 4. Select it
-5. Open `00 Home.md`
+5. Open `00 Home.md` as your dashboard
 
 You'll see:
 
-- A quiet root with `00 Home.md` plus numbered folders
+- A quiet root with a dashboard plus numbered folders
 - Wiki-links (`[[Person Name]]`, `[[project-slug]]`) become clickable
 - Frontmatter renders as a properties panel
 - Backlinks panel shows where each file is referenced

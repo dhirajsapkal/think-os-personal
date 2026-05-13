@@ -24,7 +24,7 @@ This OS makes a small, deliberate bet: **plain markdown files on disk are the so
 export/think-os-alpha/
 ├── README.md                    ← you are here
 ├── templates/                   ← copy this folder into your live vault
-│   ├── 00 Home.md              ← Obsidian front door
+│   ├── 00 Home.md              ← Obsidian dashboard + portal
 │   ├── 01 Now/                 ← current week, inbox, work log
 │   ├── 02 Projects/            ← Project Index + one note per project
 │   ├── 03 People/              ← lightweight personal CRM
@@ -47,7 +47,7 @@ export/think-os-alpha/
 
 1. **Pick a home for your live OS files.** Recommended local-only path: `~/ThinkOS/vault/` (or wherever you want). Throughout the docs this is called `{{OS_HOME}}`.
 2. **Copy `templates/` into `{{OS_HOME}}`.** That's your starting OS.
-3. **Open `00 Home.md` in Obsidian and fill in the HOT tier first.** `05 Profile/Identity.md`, `01 Now/Current Focus.md`, `02 Projects/Project Index.md`, and `90 System/OS Instructions.md`. Skip placeholders you're not sure about — you can add later.
+3. **Fill in the HOT tier first.** `05 Profile/Identity.md`, `01 Now/Current Focus.md`, `02 Projects/Project Index.md`, and `90 System/OS Instructions.md`. Use `00 Home.md` as the Obsidian dashboard once the vault exists.
 4. **Follow `docs/setup-basic-memory.md`** (15 min). Installs the MCP server that exposes your OS to MCP-aware tools.
 5. **Choose your product adapter.** Start with one of:
    - `adapters/claude-cowork/` for Claude Cowork
@@ -62,7 +62,7 @@ Total time to "it works": about an hour, most of which is filling in your identi
 
 Think OS is now organized around the way someone naturally opens a knowledge vault:
 
-- `00 Home.md` is the front door.
+- `00 Home.md` is the dashboard and portal into the vault.
 - `01 Now/` is what they check most often.
 - `02 Projects/Project Index.md` replaces the old active-projects file/folder split with one clear map plus project notes beside it.
 - `90 System/` keeps agent rules out of the daily workspace.
