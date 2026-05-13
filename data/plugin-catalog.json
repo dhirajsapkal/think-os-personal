@@ -5,6 +5,11 @@
       "name": "Slack",
       "category": "communication",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "slack"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -19,6 +24,11 @@
       "name": "Gmail",
       "category": "communication",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "gmail"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -40,13 +50,18 @@
         "url": "https://graph.microsoft.com/mcp",
         "mcp_name": "ms365"
       },
-      "notes": "Covers Outlook mail, Teams messages, and OneDrive files via MS Graph."
+      "notes": "No Cowork connector available yet; CC-only. Covers Outlook mail, Teams messages, and OneDrive files via MS Graph."
     },
     {
       "id": "notion",
       "name": "Notion",
       "category": "docs",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "notion"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -61,6 +76,11 @@
       "name": "Google Drive",
       "category": "docs",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "google-drive"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -75,6 +95,11 @@
       "name": "Airtable",
       "category": "docs",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "airtable"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -89,6 +114,11 @@
       "name": "Atlassian Rovo (Jira + Confluence)",
       "category": "tracker",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "atlassian-rovo"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -110,13 +140,18 @@
         "url": "https://mcp.linear.app/mcp",
         "mcp_name": "linear"
       },
-      "notes": "Covers issues, cycles, projects, and roadmaps."
+      "notes": "No Cowork connector available yet; CC-only. Covers issues, cycles, projects, and roadmaps."
     },
     {
       "id": "clickup",
       "name": "ClickUp",
       "category": "tracker",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "clickup"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -138,7 +173,7 @@
         "url": "https://mcp.asana.com/mcp",
         "mcp_name": "asana"
       },
-      "notes": "Covers tasks, projects, goals, and portfolios."
+      "notes": "No Cowork connector available yet; CC-only. Covers tasks, projects, goals, and portfolios."
     },
     {
       "id": "monday",
@@ -152,13 +187,18 @@
         "url": "https://mcp.monday.com/mcp",
         "mcp_name": "monday"
       },
-      "notes": "Boards, items, subitems, and automations."
+      "notes": "No Cowork connector available yet; CC-only. Boards, items, subitems, and automations."
     },
     {
       "id": "granola",
       "name": "Granola",
       "category": "meetings",
       "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "granola"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_stdio",
@@ -175,6 +215,11 @@
       "name": "Zoom for Claude",
       "category": "meetings",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "zoom-claude"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -196,7 +241,7 @@
         "url": "https://mcp.fireflies.ai/mcp",
         "mcp_name": "fireflies"
       },
-      "notes": "Meeting transcripts, action items, and search."
+      "notes": "No Cowork connector available yet; CC-only. Meeting transcripts, action items, and search."
     },
     {
       "id": "otter",
@@ -210,13 +255,18 @@
         "url": "https://mcp.otter.ai/mcp",
         "mcp_name": "otter"
       },
-      "notes": "Meeting transcripts and summaries."
+      "notes": "No Cowork connector available yet; CC-only. Meeting transcripts and summaries."
     },
     {
       "id": "figma",
       "name": "Figma",
       "category": "design",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "figma"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -231,6 +281,11 @@
       "name": "Canva",
       "category": "design",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "canva"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -245,6 +300,11 @@
       "name": "HubSpot",
       "category": "crm_analytics",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "hubspot"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -259,6 +319,11 @@
       "name": "ZoomInfo",
       "category": "crm_analytics",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "zoominfo"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -280,7 +345,7 @@
         "url": "https://mcp.amplitude.com/mcp",
         "mcp_name": "amplitude"
       },
-      "notes": "Product analytics, funnels, and user behavior."
+      "notes": "No Cowork connector available yet; CC-only. Product analytics, funnels, and user behavior."
     },
     {
       "id": "pendo",
@@ -294,7 +359,7 @@
         "url": "https://mcp.pendo.io/mcp",
         "mcp_name": "pendo"
       },
-      "notes": "Product analytics, NPS, and in-app guides."
+      "notes": "No Cowork connector available yet; CC-only. Product analytics, NPS, and in-app guides."
     },
     {
       "id": "similarweb",
@@ -308,7 +373,7 @@
         "url": "https://mcp.similarweb.com/mcp",
         "mcp_name": "similarweb"
       },
-      "notes": "Web traffic, market intelligence, and competitor analysis."
+      "notes": "No Cowork connector available yet; CC-only. Web traffic, market intelligence, and competitor analysis."
     },
     {
       "id": "intercom",
@@ -322,13 +387,18 @@
         "url": "https://mcp.intercom.com/mcp",
         "mcp_name": "intercom"
       },
-      "notes": "Customer messaging, tickets, and conversation analytics."
+      "notes": "No Cowork connector available yet; CC-only. Customer messaging, tickets, and conversation analytics."
     },
     {
       "id": "quickbooks",
       "name": "Intuit QuickBooks",
       "category": "finance",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "quickbooks"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -343,6 +413,11 @@
       "name": "Google Calendar",
       "category": "calendar",
       "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "google-calendar"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -357,6 +432,11 @@
       "name": "PubMed",
       "category": "crm_analytics",
       "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "pubmed"
+      },
       "claude_code": {
         "available": true,
         "kind": "mcp_remote",
@@ -371,6 +451,11 @@
       "name": "Productivity Skills",
       "category": "skills_bundle",
       "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "productivity"
+      },
       "claude_code": {
         "available": true,
         "kind": "skill_bundle",
@@ -384,6 +469,11 @@
       "name": "Product Management Skills",
       "category": "skills_bundle",
       "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "product-management"
+      },
       "claude_code": {
         "available": true,
         "kind": "skill_bundle",
@@ -397,6 +487,11 @@
       "name": "Engineering Skills",
       "category": "skills_bundle",
       "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "engineering"
+      },
       "claude_code": {
         "available": true,
         "kind": "skill_bundle",
@@ -410,6 +505,11 @@
       "name": "Design Skills",
       "category": "skills_bundle",
       "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "design"
+      },
       "claude_code": {
         "available": true,
         "kind": "skill_bundle",
@@ -430,6 +530,11 @@
       "name": "Anthropic Core Skills",
       "category": "skills_bundle",
       "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "anthropic-skills"
+      },
       "claude_code": {
         "available": true,
         "kind": "skill_bundle",

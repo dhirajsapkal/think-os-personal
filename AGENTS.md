@@ -10,6 +10,8 @@ Use this file when you are an agent helping someone install, inspect, or improve
 4. `docs/multi-vault-architecture.md` for the multi-vault design (privacy tiers, schema enforcement, git integration).
 5. `adapters/claude-code/README.md` for the Claude Code adapter.
 
+**Roadmap (not active in v0.3):** `adapters/claude-cowork/` and `adapters/codex/` are scaffolding for future versions. Don't install them during v0.3 setup; the install prompt should only ask Claude-Code-relevant questions.
+
 Do not read every template file by default. Use `scripts/thinkos-doctor.sh --json` for setup state and `scripts/thinkos-state.sh where-am-i` for onboarding phase.
 
 ## Setup Principle

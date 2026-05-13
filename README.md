@@ -2,9 +2,11 @@
 
 **Your personal context, available to every agent.**
 
-Think OS gives Claude Code durable memory of who you are, what you're working on, who you work with, and how you like to work. It's a markdown vault plus a context server (Basic Memory MCP) that any modern agent can query and update.
+Think OS gives your agentic tools durable memory of who you are, what you're working on, who you work with, and how you like to work. It's a markdown vault plus a context server (Basic Memory MCP) that any modern agent can query and update.
 
 Early alpha — v0.3.0. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
+
+> **Tool support roadmap.** v0.3 focuses on **Claude Code**. Cowork and Codex adapters are preserved in this repo (`adapters/claude-cowork/`, `adapters/codex/`) and will light up in future versions. The install flow today only wires up Claude Code; the architecture is designed to extend.
 
 ---
 
@@ -92,7 +94,9 @@ think-os/
 │   ├── instructions/           ← curated always-on agent guidance (loaded into CLAUDE.md)
 │   └── team/                   ← project vault skeleton (one-file-per-entry, git-friendly)
 ├── adapters/
-│   └── claude-code/            ← Claude Code MCP + global instructions + slash commands
+│   ├── claude-code/            ← v0.3 active — MCP, instructions, slash commands
+│   ├── claude-cowork/          ← scaffolding for future version
+│   └── codex/                  ← scaffolding for future version
 ├── docs/
 │   ├── multi-vault-architecture.md   ← personal + project + reference vault design
 │   ├── phase-2-seeding-playbook.md   ← how Phase 2 drafts HOT-tier from connectors
@@ -147,9 +151,11 @@ This refreshes the BEGIN/END THINK OS block in `~/.claude/CLAUDE.md` without tou
 
 ## Product support
 
-| Product | Status | Setup |
+| Product | v0.3 status | Notes |
 |---|---|---|
-| Claude Code CLI | Early alpha | [`adapters/claude-code/README.md`](adapters/claude-code/README.md) |
+| Claude Code CLI | ✓ Active | Full install flow; primary supported target |
+| Claude Cowork | Scaffolding | Adapter files preserved; install integration coming in v0.4 |
+| Codex | Scaffolding | Adapter files preserved; install integration coming in v0.5 |
 
 ## Feedback I'm looking for
 

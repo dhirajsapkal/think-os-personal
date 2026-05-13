@@ -18,20 +18,24 @@ usage() {
 Usage: scripts/thinkos-update.sh [options]
 
 Pulls the latest Think OS curated instructions from this repo and re-applies
-the global agent instruction block (BEGIN/END THINK OS) for Claude Code.
-Use this when curated instructions change or after `git pull`.
+the global agent instruction block (BEGIN/END THINK OS) for each installed
+product. Use this when curated instructions change or after `git pull`.
 
 Options:
   --pull             Run `git pull --ff-only` in this repo before reapplying.
                      Requires this directory to be a git checkout with a clean
                      working tree (otherwise the pull is aborted).
   --skip-pull        (default) Just reapply current local instructions.
-  --products LIST    Accepted for backward compatibility; ignored.
+  --products LIST    Comma-separated subset to update (claude-code,codex,
+                     claude-cowork,all). Default: auto-detect installed.
   --dry-run          Show what would change without writing.
   -h, --help         Show this help
 
 What gets re-applied:
-  - The BEGIN/END THINK OS block in ~/.claude/CLAUDE.md (Claude Code)
+  - The BEGIN/END THINK OS block in:
+      ~/.claude/CLAUDE.md             (Claude Code)
+      ~/.codex/AGENTS.md              (Codex)
+      ~/.thinkos/claude-cowork-instructions.md  (Cowork; user re-pastes)
   - Slash commands in ~/.claude/commands/ (overwrites older versions)
 
 What this does NOT do:
@@ -184,11 +188,19 @@ maybe_git_pull() {
   run git -C "$REPO_ROOT" pull --ff-only
 }
 
-# Detect whether Claude Code is installed by checking for the marker block.
+# Detect which products are installed. We use the marker file each product
+# writes during setup so we don't accidentally clobber a product the user
+# never installed.
 detect_installed_products() {
   local found=""
   if [[ -f "$HOME/.claude/CLAUDE.md" ]] && grep -q "BEGIN THINK OS" "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
-    found="claude-code"
+    found="${found:+$found,}claude-code"
+  fi
+  if [[ -f "$HOME/.codex/AGENTS.md" ]] && grep -q "BEGIN THINK OS" "$HOME/.codex/AGENTS.md" 2>/dev/null; then
+    found="${found:+$found,}codex"
+  fi
+  if [[ -f "$HOME/.thinkos/claude-cowork-instructions.md" ]]; then
+    found="${found:+$found,}claude-cowork"
   fi
   printf '%s' "$found"
 }
@@ -215,6 +227,35 @@ update_claude_code() {
   done
 }
 
+update_codex() {
+  log "Refreshing Codex instructions"
+  install_marked_block \
+    "$HOME/.codex/AGENTS.md" \
+    "<!-- BEGIN THINK OS -->" \
+    "<!-- END THINK OS -->" \
+    "$REPO_ROOT/adapters/codex/AGENTS.md"
+}
+
+update_claude_cowork() {
+  log "Refreshing Cowork personalization block"
+  local out_dir="$HOME/.thinkos"
+  local instructions="$out_dir/claude-cowork-instructions.md"
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "Would rewrite $instructions"
+    return 0
+  fi
+
+  mkdir -p "$out_dir"
+  render_think_os_block "$REPO_ROOT/adapters/claude-cowork/instructions.md" > "$instructions"
+  log "Cowork instructions rewritten: $instructions"
+  log "  Paste this into Cowork → Settings → Personalization and restart Cowork."
+  if command -v pbcopy >/dev/null 2>&1; then
+    pbcopy < "$instructions"
+    log "  Already copied to clipboard."
+  fi
+}
+
 maybe_git_pull
 
 if [[ -z "$PRODUCTS" ]]; then
@@ -227,10 +268,22 @@ if [[ -z "$PRODUCTS" ]]; then
   log "Detected installed products: $PRODUCTS"
 fi
 
+if [[ "$PRODUCTS" == "all" ]]; then
+  PRODUCTS="claude-code,codex,claude-cowork"
+fi
+
 UPDATED_COUNT=0
 
 if has_product "claude-code"; then
   update_claude_code
+  UPDATED_COUNT=$((UPDATED_COUNT + 1))
+fi
+if has_product "codex"; then
+  update_codex
+  UPDATED_COUNT=$((UPDATED_COUNT + 1))
+fi
+if has_product "claude-cowork"; then
+  update_claude_cowork
   UPDATED_COUNT=$((UPDATED_COUNT + 1))
 fi
 

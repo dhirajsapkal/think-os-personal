@@ -1,11 +1,11 @@
 # =============================================================================
 # Think OS Plugin / Connector Catalog
 # =============================================================================
-# Single source of truth for the Claude Code installer.
+# Single source of truth for the CC installer and the Cowork wizard.
 #
 # Schema overview:
 #   catalog  — list of plugin/connector entries (see field docs below)
-#   presets  — named bundles of catalog ids used by the installer
+#   presets  — named bundles of catalog ids used by the setup wizards
 #
 # Catalog entry fields:
 #   id          string   Stable lowercase slug; primary key.
@@ -13,6 +13,11 @@
 #   category    string   One of: communication | docs | tracker | meetings |
 #                          design | crm_analytics | finance | calendar | skills_bundle
 #   oauth       bool     User must complete OAuth after install.
+#   cowork      map      Present only when the item is installable in Cowork.
+#     available   bool
+#     kind        string  connector | plugin
+#     registry_id string  Id passed to mcp__mcp-registry__suggest_connectors or
+#                          mcp__plugins__suggest_plugin_install
 #   claude_code map      Present only when the item is installable from CC CLI.
 #     available   bool
 #     kind        string  mcp_remote | mcp_stdio | plugin | skill_bundle
@@ -40,6 +45,10 @@ catalog:
     name: Slack
     category: communication
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: slack
     claude_code:
       available: true
       kind: mcp_remote
@@ -53,6 +62,10 @@ catalog:
     name: Gmail
     category: communication
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: gmail
     claude_code:
       available: true
       kind: mcp_remote
@@ -73,7 +86,7 @@ catalog:
       url: https://graph.microsoft.com/mcp
       # TODO: verify MS Graph MCP endpoint when GA
       mcp_name: ms365
-    notes: Covers Outlook mail, Teams messages, and OneDrive files via MS Graph.
+    notes: No Cowork connector available yet; CC-only. Covers Outlook mail, Teams messages, and OneDrive files via MS Graph.
 
   # ---------------------------------------------------------------------------
   # Docs / Knowledge
@@ -83,6 +96,10 @@ catalog:
     name: Notion
     category: docs
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: notion
     claude_code:
       available: true
       kind: mcp_remote
@@ -96,6 +113,10 @@ catalog:
     name: Google Drive
     category: docs
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: google-drive
     claude_code:
       available: true
       kind: mcp_remote
@@ -109,6 +130,10 @@ catalog:
     name: Airtable
     category: docs
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: airtable
     claude_code:
       available: true
       kind: mcp_remote
@@ -126,6 +151,10 @@ catalog:
     name: Atlassian Rovo (Jira + Confluence)
     category: tracker
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: atlassian-rovo
     claude_code:
       available: true
       kind: mcp_remote
@@ -146,12 +175,16 @@ catalog:
       url: https://mcp.linear.app/mcp
       # TODO: verify Linear MCP endpoint
       mcp_name: linear
-    notes: Covers issues, cycles, projects, and roadmaps.
+    notes: No Cowork connector available yet; CC-only. Covers issues, cycles, projects, and roadmaps.
 
   - id: clickup
     name: ClickUp
     category: tracker
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: clickup
     claude_code:
       available: true
       kind: mcp_remote
@@ -172,7 +205,7 @@ catalog:
       url: https://mcp.asana.com/mcp
       # TODO: verify Asana MCP endpoint
       mcp_name: asana
-    notes: Covers tasks, projects, goals, and portfolios.
+    notes: No Cowork connector available yet; CC-only. Covers tasks, projects, goals, and portfolios.
 
   - id: monday
     name: Monday.com
@@ -185,7 +218,7 @@ catalog:
       url: https://mcp.monday.com/mcp
       # TODO: verify Monday MCP endpoint
       mcp_name: monday
-    notes: Boards, items, subitems, and automations.
+    notes: No Cowork connector available yet; CC-only. Boards, items, subitems, and automations.
 
   # ---------------------------------------------------------------------------
   # Meetings / Transcription
@@ -195,6 +228,10 @@ catalog:
     name: Granola
     category: meetings
     oauth: false
+    cowork:
+      available: true
+      kind: connector
+      registry_id: granola
     claude_code:
       available: true
       kind: mcp_stdio
@@ -208,6 +245,10 @@ catalog:
     name: Zoom for Claude
     category: meetings
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: zoom-claude
     claude_code:
       available: true
       kind: mcp_remote
@@ -228,7 +269,7 @@ catalog:
       url: https://mcp.fireflies.ai/mcp
       # TODO: verify Fireflies MCP endpoint
       mcp_name: fireflies
-    notes: Meeting transcripts, action items, and search.
+    notes: No Cowork connector available yet; CC-only. Meeting transcripts, action items, and search.
 
   - id: otter
     name: Otter.ai
@@ -241,7 +282,7 @@ catalog:
       url: https://mcp.otter.ai/mcp
       # TODO: verify Otter MCP endpoint
       mcp_name: otter
-    notes: Meeting transcripts and summaries.
+    notes: No Cowork connector available yet; CC-only. Meeting transcripts and summaries.
 
   # ---------------------------------------------------------------------------
   # Design
@@ -251,6 +292,10 @@ catalog:
     name: Figma
     category: design
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: figma
     claude_code:
       available: true
       kind: mcp_remote
@@ -264,6 +309,10 @@ catalog:
     name: Canva
     category: design
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: canva
     claude_code:
       available: true
       kind: mcp_remote
@@ -281,6 +330,10 @@ catalog:
     name: HubSpot
     category: crm_analytics
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: hubspot
     claude_code:
       available: true
       kind: mcp_remote
@@ -294,6 +347,10 @@ catalog:
     name: ZoomInfo
     category: crm_analytics
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: zoominfo
     claude_code:
       available: true
       kind: mcp_remote
@@ -314,7 +371,7 @@ catalog:
       url: https://mcp.amplitude.com/mcp
       # TODO: verify Amplitude MCP endpoint
       mcp_name: amplitude
-    notes: Product analytics, funnels, and user behavior.
+    notes: No Cowork connector available yet; CC-only. Product analytics, funnels, and user behavior.
 
   - id: pendo
     name: Pendo
@@ -327,7 +384,7 @@ catalog:
       url: https://mcp.pendo.io/mcp
       # TODO: verify Pendo MCP endpoint
       mcp_name: pendo
-    notes: Product analytics, NPS, and in-app guides.
+    notes: No Cowork connector available yet; CC-only. Product analytics, NPS, and in-app guides.
 
   - id: similarweb
     name: Similarweb
@@ -340,7 +397,7 @@ catalog:
       url: https://mcp.similarweb.com/mcp
       # TODO: verify Similarweb MCP endpoint
       mcp_name: similarweb
-    notes: Web traffic, market intelligence, and competitor analysis.
+    notes: No Cowork connector available yet; CC-only. Web traffic, market intelligence, and competitor analysis.
 
   - id: intercom
     name: Intercom
@@ -353,7 +410,7 @@ catalog:
       url: https://mcp.intercom.com/mcp
       # TODO: verify Intercom MCP endpoint
       mcp_name: intercom
-    notes: Customer messaging, tickets, and conversation analytics.
+    notes: No Cowork connector available yet; CC-only. Customer messaging, tickets, and conversation analytics.
 
   # ---------------------------------------------------------------------------
   # Finance
@@ -363,6 +420,10 @@ catalog:
     name: Intuit QuickBooks
     category: finance
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: quickbooks
     claude_code:
       available: true
       kind: mcp_remote
@@ -380,6 +441,10 @@ catalog:
     name: Google Calendar
     category: calendar
     oauth: true
+    cowork:
+      available: true
+      kind: connector
+      registry_id: google-calendar
     claude_code:
       available: true
       kind: mcp_remote
@@ -397,6 +462,10 @@ catalog:
     name: PubMed
     category: crm_analytics
     oauth: false
+    cowork:
+      available: true
+      kind: connector
+      registry_id: pubmed
     claude_code:
       available: true
       kind: mcp_remote
@@ -414,6 +483,10 @@ catalog:
     name: Productivity Skills
     category: skills_bundle
     oauth: false
+    cowork:
+      available: true
+      kind: plugin
+      registry_id: productivity
     claude_code:
       available: true
       kind: skill_bundle
@@ -425,6 +498,10 @@ catalog:
     name: Product Management Skills
     category: skills_bundle
     oauth: false
+    cowork:
+      available: true
+      kind: plugin
+      registry_id: product-management
     claude_code:
       available: true
       kind: skill_bundle
@@ -436,6 +513,10 @@ catalog:
     name: Engineering Skills
     category: skills_bundle
     oauth: false
+    cowork:
+      available: true
+      kind: plugin
+      registry_id: engineering
     claude_code:
       available: true
       kind: skill_bundle
@@ -447,6 +528,10 @@ catalog:
     name: Design Skills
     category: skills_bundle
     oauth: false
+    cowork:
+      available: true
+      kind: plugin
+      registry_id: design
     claude_code:
       available: true
       kind: skill_bundle
@@ -464,6 +549,10 @@ catalog:
     name: Anthropic Core Skills
     category: skills_bundle
     oauth: false
+    cowork:
+      available: true
+      kind: plugin
+      registry_id: anthropic-skills
     claude_code:
       available: true
       kind: skill_bundle

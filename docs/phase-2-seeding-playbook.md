@@ -33,6 +33,33 @@ This playbook is invoked from `adapters/claude-code/commands/thinkos-continue.md
 
 ---
 
+## Section 0a — Indexer-first principle
+
+Phase 2 should **dump deterministic data to disk first, then synthesize**. Scripts handle the cheap stuff (filesystem scans, git logs, README extraction). MCPs are called exactly once per consented source. The agent reads cached JSON during synthesis, not paginated tool responses.
+
+See `docs/automation-roadmap.md` for the full source matrix and token-economics rationale (~60-70% saving on Phase 2 spend). Concretely:
+
+1. **Filesystem first.** Ask the user which project root folders to scan (default suggestions: `~/Documents/Think/`, `~/code/`, `~/Projects/` — only suggest paths that exist). Then run:
+   ```bash
+   bash scripts/thinkos-index.sh <folder1> <folder2> ...
+   ```
+   This writes `<vault>/.index/projects.json` with per-project metadata (path, slug, tech stack, README first paragraph, last commit date + subject, top 5 git collaborators last 180 days, last modified). Cheap, no MCP, no LLM.
+
+2. **Connectors next.** For each consented MCP source, make ONE call and dump the result to `<vault>/.index/<source>.json`:
+   - Granola → `granola-meetings.json` (titles + summaries, last 90 days)
+   - Calendar → `calendar-events.json` (recurring next 14 days)
+   - Slack → `slack-channels.json` (channel list only, not contents)
+   - Gmail → `gmail-signature.txt` (signature from last sent)
+   - Linear/Jira/ClickUp → `tickets.json` (assigned + open)
+
+3. **Synthesize from disk.** When drafting each HOT-tier file, read the relevant `.index/*.json` files. Don't re-fetch from MCPs during iteration.
+
+4. **Iterate cheaply.** If the user edits the draft, the agent re-reads cached data — no new MCP calls.
+
+Skip this principle only when a connector is unavailable or the user explicitly asks for live data.
+
+---
+
 ## Section 0 — State check (do this first)
 
 Before any UX, read the state file and confirm the user is in the right phase.

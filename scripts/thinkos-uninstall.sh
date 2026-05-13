@@ -41,6 +41,7 @@ M_BM_PROJECT="think-os"
 M_PRODUCTS=""
 M_FILES=""            # newline-separated raw entries (may include " (block injected)")
 M_CC_MCPS=""          # newline-separated
+M_CODEX_MCPS=""       # newline-separated
 M_PLUGINS=""          # newline-separated "slug|marketplace"
 M_BUNDLE=""
 M_SOURCE=""           # "manifest" or "fallback"
@@ -165,6 +166,7 @@ bm = m.get("bm_project", "") or "think-os"
 products = ",".join(m.get("products", []) or [])
 files = lines(m.get("files", []))
 cc = lines((m.get("mcps", {}) or {}).get("claude-code", []))
+cx = lines((m.get("mcps", {}) or {}).get("codex", []))
 plugins = m.get("plugins", []) or []
 plugin_lines = []
 for pl in plugins:
@@ -182,6 +184,7 @@ print("M_BM_PROJECT=" + shquote(bm))
 print("M_PRODUCTS=" + shquote(products))
 print("M_FILES=" + shquote(files))
 print("M_CC_MCPS=" + shquote(cc))
+print("M_CODEX_MCPS=" + shquote(cx))
 print("M_PLUGINS=" + shquote(plugins_s))
 print("M_BUNDLE=" + shquote(bundle))
 PYEOF
@@ -219,16 +222,23 @@ _fallback_enumerate() {
 
   M_BM_PROJECT="think-os"
 
-  # Products: infer from on-disk artifacts (Claude Code only).
+  # Products: infer from on-disk artifacts.
   local prods=""
   if [ -f "$HOME/.claude/CLAUDE.md" ] && grep -q '<!-- BEGIN THINK OS -->' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
-    prods="claude-code"
+    prods="${prods}claude-code,"
   fi
+  if [ -f "$HOME/.codex/AGENTS.md" ] && grep -q '<!-- BEGIN THINK OS -->' "$HOME/.codex/AGENTS.md" 2>/dev/null; then
+    prods="${prods}codex,"
+  fi
+  if [ -f "$HOME/.thinkos/claude-cowork-instructions.md" ] || [ -f "$HOME/.thinkos/claude-cowork-mcp.txt" ]; then
+    prods="${prods}claude-cowork,"
+  fi
+  prods="${prods%,}"
   M_PRODUCTS="$prods"
 
   # Files: enumerate by walking the repo's adapters.
   local files=""
-  if [ -f "$HOME/.claude/CLAUDE.md" ] && grep -q '<!-- BEGIN THINK OS -->' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+  case ",$M_PRODUCTS," in *,claude-code,*)
     files+="$HOME/.claude/CLAUDE.md (block injected)"$'\n'
     if [ -d "$REPO_ROOT/adapters/claude-code/commands" ]; then
       while IFS= read -r -d '' cf; do
@@ -240,14 +250,22 @@ _fallback_enumerate() {
         fi
       done < <(find "$REPO_ROOT/adapters/claude-code/commands" -maxdepth 1 -name '*.md' -type f -print0)
     fi
-  fi
+  ;; esac
+  case ",$M_PRODUCTS," in *,codex,*)
+    files+="$HOME/.codex/AGENTS.md (block injected)"$'\n'
+  ;; esac
+  case ",$M_PRODUCTS," in *,claude-cowork,*)
+    [ -f "$HOME/.thinkos/claude-cowork-instructions.md" ] && files+="$HOME/.thinkos/claude-cowork-instructions.md"$'\n'
+    [ -f "$HOME/.thinkos/claude-cowork-mcp.txt" ] && files+="$HOME/.thinkos/claude-cowork-mcp.txt"$'\n'
+    [ -f "$HOME/.thinkos/claude-cowork-bundle.json" ] && files+="$HOME/.thinkos/claude-cowork-bundle.json"$'\n'
+  ;; esac
   M_FILES="$files"
 
-  # MCPs: assume basic-memory if Claude Code was set up.
+  # MCPs: assume basic-memory if the matching adapter was set up.
   local cc=""
-  if [ -f "$HOME/.claude/CLAUDE.md" ] && grep -q '<!-- BEGIN THINK OS -->' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
-    cc="basic-memory"$'\n'
-  fi
+  local cx=""
+  case ",$M_PRODUCTS," in *,claude-code,*) cc="basic-memory"$'\n' ;; esac
+  case ",$M_PRODUCTS," in *,codex,*) cx="basic-memory"$'\n' ;; esac
 
   # In fallback mode we ALSO want to consider bundle MCPs from the catalog,
   # but only if a bundle marker file exists. We don't try to read which MCPs
@@ -286,6 +304,7 @@ _fallback_enumerate() {
   fi
 
   M_CC_MCPS="$cc"
+  M_CODEX_MCPS="$cx"
 }
 
 # ---------------------------------------------------------------------------
@@ -335,7 +354,12 @@ _print_plan() {
     plan_step "Remove Think OS block from $HOME/.claude/CLAUDE.md (preserves other content)."
   fi
 
-  # 2. Slash commands
+  # 2. Codex AGENTS.md block
+  if printf '%s\n' "$M_FILES" | grep -q '/\.codex/AGENTS\.md '; then
+    plan_step "Remove Think OS block from $HOME/.codex/AGENTS.md (preserves other content)."
+  fi
+
+  # 3. Slash commands
   local cmd_count=0
   while IFS= read -r line; do
     case "$line" in
@@ -346,12 +370,29 @@ _print_plan() {
     plan_step "Remove $cmd_count Think OS slash command file(s) from $HOME/.claude/commands/."
   fi
 
-  # 3. basic-memory MCP in claude-code
+  # 4. Cowork artifact files
+  local cowork_files=""
+  while IFS= read -r line; do
+    case "$line" in
+      "$HOME/.thinkos/claude-cowork-"*) cowork_files+="$line"$'\n' ;;
+    esac
+  done < <(printf '%s\n' "$M_FILES")
+  if [ -n "$(printf '%s' "$cowork_files" | tr -d '[:space:]')" ]; then
+    plan_step "Remove Cowork handoff files from $HOME/.thinkos/ (claude-cowork-mcp.txt, claude-cowork-instructions.md, claude-cowork-bundle.json if present)."
+  fi
+
+  # 5. basic-memory MCPs in claude-code / codex
   local cc_bm=0 cc_bundle=0
   while IFS= read -r m; do
     [ -z "$m" ] && continue
     if _is_bm_mcp "$m"; then cc_bm=1; else cc_bundle=$((cc_bundle + 1)); fi
   done < <(printf '%s\n' "$M_CC_MCPS")
+
+  local cx_bm=0
+  while IFS= read -r m; do
+    [ -z "$m" ] && continue
+    if _is_bm_mcp "$m"; then cx_bm=1; fi
+  done < <(printf '%s\n' "$M_CODEX_MCPS")
 
   if [ "$cc_bm" -eq 1 ]; then
     if [ "$REMOVE_BASIC_MEMORY" -eq 1 ]; then
@@ -360,8 +401,15 @@ _print_plan() {
       plan_step "Skip Claude Code 'basic-memory' MCP removal (pass --remove-basic-memory to unregister)."
     fi
   fi
+  if [ "$cx_bm" -eq 1 ]; then
+    if [ "$REMOVE_BASIC_MEMORY" -eq 1 ]; then
+      plan_step "Unregister 'basic-memory' MCP from Codex (codex mcp remove basic-memory)."
+    else
+      plan_step "Skip Codex 'basic-memory' MCP removal (pass --remove-basic-memory to unregister)."
+    fi
+  fi
 
-  # 4. Bundle MCPs
+  # 6. Bundle MCPs
   if [ "$cc_bundle" -gt 0 ]; then
     if [ "$REMOVE_MCPS" -eq 1 ]; then
       local bundle_names=""
@@ -378,7 +426,7 @@ _print_plan() {
     fi
   fi
 
-  # 5. Basic Memory project registration
+  # 7. Basic Memory project registration
   if [ "$REMOVE_BASIC_MEMORY" -eq 1 ]; then
     plan_step "Unregister Basic Memory project '$M_BM_PROJECT' (basic-memory project remove)."
     plan_step "Optionally uninstall the basic-memory binary (prompted)."
@@ -386,10 +434,10 @@ _print_plan() {
     plan_step "Skip Basic Memory project '$M_BM_PROJECT' removal (pass --remove-basic-memory to unregister)."
   fi
 
-  # 6. ~/.thinkos state files
-  plan_step "Remove ~/.thinkos state files (vaults.json, active-vault, claude-code-bundle.txt, install-manifest.json) and the ~/.thinkos directory if it ends up empty."
+  # 8. ~/.thinkos state files
+  plan_step "Remove ~/.thinkos state files (wizard-state.json, vaults.json, active-vault, claude-code-bundle.txt, install-manifest.json) and the ~/.thinkos directory if it ends up empty."
 
-  # 7. Vault directory
+  # 9. Vault directory
   if [ -n "$M_VAULT_PATH" ]; then
     if [ "$REMOVE_VAULT" -eq 1 ]; then
       plan_step "DELETE vault directory: $M_VAULT_PATH  (user data will be lost!)"
@@ -398,7 +446,7 @@ _print_plan() {
     fi
   fi
 
-  # 8. Plugin removal instructions
+  # 10. Plugin removal instructions
   local plugin_count=0
   while IFS= read -r line; do
     [ -z "$line" ] && continue
@@ -406,6 +454,11 @@ _print_plan() {
   done < <(printf '%s\n' "$M_PLUGINS")
   if [ "$plugin_count" -gt 0 ]; then
     plan_step "Print interactive /plugin remove instructions for $plugin_count Claude Code plugin(s) (no CLI auto-removal available)."
+  fi
+
+  # 11. Cowork manual cleanup
+  if _has_product "claude-cowork"; then
+    plan_step "Print manual Cowork cleanup steps (UI-managed; cannot be automated)."
   fi
 
   log ""
@@ -511,6 +564,27 @@ _remove_cc_mcp() {
   fi
 }
 
+_remove_codex_mcp() {
+  local name="$1"
+  if ! command -v codex >/dev/null 2>&1; then
+    log "  Skip: codex CLI not found, can't remove MCP '$name'"
+    return 0
+  fi
+  if [ "$DRY_RUN" -eq 1 ]; then
+    log "  Would run: codex mcp remove $name"
+    return 0
+  fi
+  if ! codex mcp get "$name" >/dev/null 2>&1; then
+    log "  Skip: Codex MCP '$name' is not registered"
+    return 0
+  fi
+  if codex mcp remove "$name" >/dev/null 2>&1; then
+    log "  Removed Codex MCP: $name"
+  else
+    err "  Failed to remove Codex MCP '$name'"
+  fi
+}
+
 # ---------------------------------------------------------------------------
 # Action: basic-memory project removal
 # ---------------------------------------------------------------------------
@@ -577,19 +651,29 @@ _remove_vault_dir() {
 _execute() {
   hdr "Removing Think OS files"
 
-  # 1. Strip CLAUDE.md block.
+  # 1+2. Strip blocks.
   if printf '%s\n' "$M_FILES" | grep -q '/\.claude/CLAUDE\.md '; then
     _strip_block "$HOME/.claude/CLAUDE.md"
   fi
+  if printf '%s\n' "$M_FILES" | grep -q '/\.codex/AGENTS\.md '; then
+    _strip_block "$HOME/.codex/AGENTS.md"
+  fi
 
-  # 2. Slash commands.
+  # 3. Slash commands.
   while IFS= read -r line; do
     case "$line" in
       "$HOME/.claude/commands/"*.md) _rm_file "$line" ;;
     esac
   done < <(printf '%s\n' "$M_FILES")
 
-  # 3+4. MCPs.
+  # 4. Cowork artifact files.
+  while IFS= read -r line; do
+    case "$line" in
+      "$HOME/.thinkos/claude-cowork-"*) _rm_file "$line" ;;
+    esac
+  done < <(printf '%s\n' "$M_FILES")
+
+  # 5+6. MCPs.
   hdr "Removing MCPs"
   while IFS= read -r m; do
     [ -z "$m" ] && continue
@@ -608,7 +692,18 @@ _execute() {
     fi
   done < <(printf '%s\n' "$M_CC_MCPS")
 
-  # 5. Basic Memory project + binary.
+  while IFS= read -r m; do
+    [ -z "$m" ] && continue
+    if _is_bm_mcp "$m"; then
+      if [ "$REMOVE_BASIC_MEMORY" -eq 1 ]; then
+        _remove_codex_mcp "$m"
+      else
+        log "  Skip Codex MCP '$m' (pass --remove-basic-memory)"
+      fi
+    fi
+  done < <(printf '%s\n' "$M_CODEX_MCPS")
+
+  # 7. Basic Memory project + binary.
   if [ "$REMOVE_BASIC_MEMORY" -eq 1 ]; then
     hdr "Removing Basic Memory project registration"
     _remove_bm_project "$M_BM_PROJECT"
@@ -637,8 +732,9 @@ _execute() {
     fi
   fi
 
-  # 6. ~/.thinkos state files.
+  # 8. ~/.thinkos state files.
   hdr "Removing Think OS state files"
+  _rm_file "$THINKOS_DIR/wizard-state.json"
   _rm_file "$THINKOS_DIR/vaults.json"
   _rm_file "$THINKOS_DIR/active-vault"
   _rm_file "$THINKOS_DIR/claude-code-bundle.txt"
@@ -658,7 +754,7 @@ _execute() {
     fi
   fi
 
-  # 7. Vault directory.
+  # 9. Vault directory.
   if [ "$REMOVE_VAULT" -eq 1 ]; then
     hdr "Removing vault directory"
     _remove_vault_dir "$M_VAULT_PATH"
@@ -693,6 +789,19 @@ _print_post_checklist() {
     log ""
     log "After that, run '/plugin marketplace remove <mp>' for any marketplaces"
     log "you no longer want."
+  fi
+
+  # Cowork manual cleanup.
+  if _has_product "claude-cowork"; then
+    log ""
+    log "Cowork cleanup (UI-managed; cannot be automated)."
+    log "Open Claude Cowork and:"
+    log "  1. Settings → Connectors → remove the Basic Memory MCP server."
+    log "  2. Settings → Plugins → remove any Think OS plugins you installed."
+    log "  3. Settings → Personalization → remove the Think OS block from"
+    log "     your instructions (between the BEGIN THINK OS / END THINK OS"
+    log "     markers, if present)."
+    log "  4. Quit Cowork (not just close the window) and reopen."
   fi
 
   # Time Machine / APFS exclusions (placeholder for Slice 2).
@@ -756,7 +865,7 @@ fi
 
 # Sanity: if there's truly nothing to do, exit cleanly.
 if [ -z "$M_PRODUCTS" ] && [ -z "$M_VAULT_PATH" ] \
-    && [ -z "$(printf '%s' "$M_FILES$M_CC_MCPS$M_PLUGINS" | tr -d '[:space:]')" ]; then
+    && [ -z "$(printf '%s' "$M_FILES$M_CC_MCPS$M_CODEX_MCPS$M_PLUGINS" | tr -d '[:space:]')" ]; then
   log ""
   log "Nothing detected that looks like a Think OS install. Exiting."
   exit 0
