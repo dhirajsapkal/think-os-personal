@@ -388,7 +388,8 @@ New shell commands:
 | `thinkos vault list` | Show all registered vaults with type, path, status |
 | `thinkos vault use <id>` | Sticky-override active vault for this session |
 | `thinkos vault create-project <name>` | Create a new project vault (walks through prompts) |
-| `thinkos vault clone <git-url>` | Clone an existing project vault, register, index |
+| `thinkos vault clone <git-url>` | Clone an existing Think-OS-shaped project vault, register, index |
+| `thinkos vault import-existing <git-url>` | (future) Clone a team's existing repo that ISN'T yet Think-OS-shaped, add the Think OS metadata + schema folders alongside existing content, register as a project vault |
 | `thinkos vault add-reference <path>` | Register an existing folder as a reference vault |
 | `thinkos vault remove <id>` | Deregister (does not delete files) |
 | `thinkos vault setup-encrypted` | Create `.vault/` APFS encrypted volume for personal vault |
@@ -441,6 +442,28 @@ New slash commands (mirror shell commands for in-agent use):
 
 - Federated search across all registered vaults' BM projects
 - Result vault-tagging in agent surface
+
+### Slice 6 (future PR) — Import existing team repo
+
+For when a team already has a GitHub repo of project docs that isn't Think-OS-shaped (a wiki, a docs site, a Notion export, hand-written markdown). `thinkos vault import-existing <git-url>`:
+
+1. Clones the repo to the user's chosen path.
+2. Adds Think OS metadata **alongside** existing content (does not move or rename files):
+   - `.thinkos/vault.json` declaring `type: project` + bm_project name
+   - `.thinkos/schemas/` JSON Schemas
+   - `.gitignore` entries for `.private/`, `.vault/`, `.thinkos/state*`
+   - The Think OS schema folders (`00 Project Home.md`, `01 Work/`, `02 Decisions/`, etc.) created empty for new content. Existing folders stay untouched.
+3. Registers the vault in `~/.thinkos/vaults.json` with `type: project`.
+4. `basic-memory project add` + reindex.
+5. Optionally: agent reads the top-level files and proposes which existing content should move into Think OS slots (read-only suggestion — user decides). Default is "leave alone."
+6. The user commits + pushes the new metadata when ready. Each teammate who runs `import-existing` against the same URL gets the same setup locally — git access controls handle the rest.
+
+What this doesn't do:
+- No LLM-driven reorganization of existing content by default. Risky and reversal-unfriendly.
+- No PR creation. The user is in charge of when changes hit the shared branch.
+- No conflict-handling for the metadata files. If two teammates run `import-existing` and commit simultaneously, standard git merge applies — likely fine since the metadata is small and additive.
+
+This is meaningfully different from `clone` (which expects a vault already shaped) and `add-reference` (which is read-only and never adds metadata). It's the "we already collaborate via this repo; layer Think OS on top" path.
 
 ---
 
