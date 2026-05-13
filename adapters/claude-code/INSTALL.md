@@ -170,7 +170,7 @@ Then present the post-install checklist as a clear numbered list. Emphasize thes
 >
 > The agent will offer to set up scheduled triggers that keep your OS fresh: daily reindex, weekly Current Focus refresh, quarterly archive rotation, optional daily morning brief. These run remotely on Anthropic's infrastructure — your machine doesn't need to stay on.
 >
-> Total cost across all four triggers: ~$5-15/month in API tokens.
+> Each trigger fire uses Anthropic API tokens. Whether that's covered by your Claude subscription or counts as pay-as-you-go API spend depends on your account; check your plan.
 
 ---
 

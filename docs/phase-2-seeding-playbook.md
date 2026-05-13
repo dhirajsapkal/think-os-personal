@@ -37,7 +37,7 @@ This playbook is invoked from `adapters/claude-code/commands/thinkos-continue.md
 
 Phase 2 should **dump deterministic data to disk first, then synthesize**. Scripts handle the cheap stuff (filesystem scans, git logs, README extraction). MCPs are called exactly once per consented source. The agent reads cached JSON during synthesis, not paginated tool responses.
 
-See `docs/automation-roadmap.md` for the full source matrix and token-economics rationale (~60-70% saving on Phase 2 spend). Concretely:
+See `docs/automation-roadmap.md` for the source matrix and the structural rationale. Concretely:
 
 1. **Filesystem first.** Ask the user which project root folders to scan (default suggestions: `~/Documents/Think/`, `~/code/`, `~/Projects/` — only suggest paths that exist). Then run:
    ```bash

@@ -26,7 +26,7 @@ Key UX points:
 
 2. Offer each of the 4 automations one at a time with Y/N defaults. Show the cron schedule translated to English ("every Sunday at 8pm" not `0 20 * * 0`).
 
-3. Cost transparency. Tell the user up front: "These triggers use Anthropic API tokens each time they fire. Total estimated cost across all four: ~$5-15/month depending on usage."
+3. Cost transparency. Tell the user up front: "Each trigger fire uses Anthropic API tokens. Whether that's covered by your Claude subscription quota or counts as pay-as-you-go API spend depends on your account — check your plan. Basic Memory itself is fully local; no cloud mode."
 
 4. Use the `schedule` skill (preferred) or `CronCreate` tool directly to create each trigger. The exact prompt body for each is in the playbook.
 

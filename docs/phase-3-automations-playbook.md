@@ -65,7 +65,7 @@ When the user runs `/thinkos-automate`, the agent offers these by default. Each 
 basic-memory reindex --project think-os
 ```
 
-**Cost**: ~500 tokens per fire. ~$0.10/month estimated.
+**Cost**: each fire spawns a tiny Claude session (one Bash call). Token usage is minimal. Whether you're billed for it depends on your Claude plan; we have no published per-trigger pricing yet — measure on your own account if it matters.
 
 ### 2. Weekly review — `0 20 * * 0` (Sunday 8pm)
 
@@ -77,7 +77,7 @@ basic-memory reindex --project think-os
 3. Drafts an updated `01 Now/Current Focus.md` covering next week.
 4. Writes the draft to `01 Now/Current Focus.md.draft` (NOT the live file) for the user to review and approve on Monday morning.
 
-**Cost**: ~5K-15K tokens per fire. ~$5-15/month estimated.
+**Cost**: each fire spawns a Claude session that reads ~7 days of vault content and drafts an updated focus file. Larger Work Logs = more tokens. Whether you're billed depends on your Claude plan.
 
 ### 3. Quarterly archive — `0 21 1-7 1,4,7,10 0` (first Sunday of Jan/Apr/Jul/Oct, 9pm)
 
@@ -90,7 +90,7 @@ basic-memory reindex --project think-os
 4. Prunes stale entries from `02 Projects/Project Index.md` (projects with no activity in 6+ months get marked dormant).
 5. Writes a quarterly summary to `99 Archive/quarterly-summary-YYYY-QN.md`.
 
-**Cost**: ~20K-50K tokens, fires 4x/year. Negligible.
+**Cost**: fires 4 times a year. Per-fire token usage scales with vault size at end of quarter.
 
 ### 4. Daily morning brief — `0 7 * * 1-5` (7am Mon-Fri) — *optional*
 
@@ -101,7 +101,7 @@ basic-memory reindex --project think-os
 2. Reads Calendar events for today (via MCP if `Granola` / `Google Calendar` MCPs are installed).
 3. Writes a brief markdown summary to `01 Now/briefs/YYYY-MM-DD-brief.md`.
 
-**Cost**: ~3K-8K tokens per fire. ~$3-8/month estimated.
+**Cost**: each fire reads several HOT-tier files + (optionally) today's calendar events. Whether you're billed depends on your Claude plan.
 
 **Skip if**: You already use `/thinkos-morning` interactively each day. Then there's no benefit to scheduling.
 
@@ -239,7 +239,7 @@ No. Triggers run on Anthropic's infrastructure. Your laptop can be asleep.
 The next run will retry. If it fails repeatedly, you'll see warnings in `/thinkos-doctor` output.
 
 **"How much will this cost?"**
-Roughly $5-15/month for all four triggers combined, depending on bundle size. The reindex is essentially free; the weekly/quarterly are the bulk.
+We have no published per-trigger pricing or benchmarks. Token usage depends on vault size, bundle contents, and how chatty each trigger's prompt is. Whether that token usage is free under your Claude plan or pay-as-you-go depends on your account.
 
 **"Can I add my own?"**
 Yes — use the `schedule` skill directly or `CronCreate` tool. Anything you can prompt an agent to do, you can schedule. Common candidates:

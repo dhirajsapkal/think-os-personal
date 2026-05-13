@@ -228,14 +228,11 @@ Some things are intentionally manual because they require human judgment:
 
 ---
 
-## Token economics
+## Why the indexer pattern matters
 
-Rough back-of-envelope for a Phase 2 session with 8 connectors enabled:
+Two structural wins, no benchmark numbers attached (we don't have any yet):
 
-| Old way (no indexer) | New way (indexer pattern) |
-|---|---|
-| Agent re-fetches sources per file (~4 files × 6 sources × 2K tokens each) = ~48K tokens of tool output | Agent fetches each source once (~6 × 2K = 12K) + reads `.index/*.json` per file (~4K reused) = ~16K tokens |
-| LLM synthesizes from in-context tool output (uneven attention) | LLM synthesizes from disk-cached, deduped, structured JSON (focused) |
-| Each iteration re-fetches if context dropped | Each iteration re-reads from `.index/` (no MCP cost) |
+- **MCP calls per source happen exactly once.** With an indexer, each connector is queried, the result cached to disk, and re-read locally during iteration. Without it, every draft refresh tends to re-fetch.
+- **Synthesis reads structured JSON, not paginated tool output.** Easier for the LLM to attend to deduped, sorted, schematized input than to a raw tool response.
 
-Estimated saving: **~60-70% on Phase 2 token spend**, plus higher draft quality because the data is structured before the LLM sees it.
+We can add real measurements once Phase 2 has run on actual installs.

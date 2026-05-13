@@ -54,7 +54,7 @@ The agent will offer scheduled triggers that keep your OS fresh on its own: dail
 
 **Important — Claude Code triggers run remotely.** They fire on Anthropic's infrastructure on a cron schedule. You do NOT need to keep Claude Code or any app open or any terminal running. Your machine can be asleep. (This is different from Cowork's scheduled tasks, which require the app to be running. Claude Code's path is strictly better for "set and forget" maintenance.)
 
-Cost: ~$5-15/month in API tokens for all four triggers combined.
+Each trigger fire uses Anthropic API tokens. Whether that's covered by your Claude subscription quota (Max/Pro) or pay-as-you-go API depends on your account — check your plan. Basic Memory itself stays fully local; no cloud mode, no recurring infrastructure cost.
 
 ---
 

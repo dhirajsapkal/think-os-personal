@@ -6,7 +6,7 @@ All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-M
 
 ### Added
 
-- **`/thinkos-automate` slash command** + canonical playbook at `docs/phase-3-automations-playbook.md`. Offers 4 pre-built scheduled triggers (daily reindex, weekly Current Focus review, quarterly archive rotation, optional daily morning brief) via Claude Code's remote-trigger infrastructure (`schedule` skill / `CronCreate` tool). Each opt-in Y/N. Triggers run on Anthropic's infrastructure — no local app needs to stay open. Cost transparency built in (~$5-15/month for all four combined).
+- **`/thinkos-automate` slash command** + canonical playbook at `docs/phase-3-automations-playbook.md`. Offers 4 pre-built scheduled triggers (daily reindex, weekly Current Focus review, quarterly archive rotation, optional daily morning brief) via Claude Code's remote-trigger infrastructure (`schedule` skill / `CronCreate` tool). Each opt-in Y/N. Triggers run on Anthropic's infrastructure — no local app needs to stay open.
 
 ### Changed
 
@@ -71,8 +71,8 @@ The previous install prompt was 6 steps long because the prompt itself had to sp
 
 - **Phase 2 playbook** (`docs/phase-2-seeding-playbook.md`) adds Section 0a
   "Indexer-first principle" — Phase 2 now dumps deterministic data to disk
-  first, then synthesizes from cache. Saves ~60-70% token spend per session
-  by avoiding re-fetching during iteration.
+  first, then synthesizes from cache. Avoids re-fetching MCP data during
+  draft iteration.
 - **README + AGENTS.md** clarify the tool support roadmap: Claude Code in
   v0.3, Cowork in v0.4, Codex in v0.5.
 
