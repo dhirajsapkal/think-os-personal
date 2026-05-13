@@ -60,39 +60,63 @@ Skip this principle only when a connector is unavailable or the user explicitly 
 
 ---
 
-## Section 0 — State check (do this first)
+## Section 0 — Silent state check
 
-Before any UX, read the state file and confirm the user is in the right phase.
+Run `bash scripts/thinkos-state.sh show` **silently** (do NOT paste output to the user). Branch on `phase`:
 
-```bash
-bash scripts/thinkos-state.sh path
-bash scripts/thinkos-state.sh show
-```
-
-Branch on `phase`:
-
-- `awaiting_oauth_and_restart` → User hasn't finished Phase 1 manual steps. Run `scripts/thinkos-doctor.sh --deep` to verify MCPs, then if OAuth + restart look done, advance: `scripts/thinkos-state.sh set-phase ready_for_seeding`. If something is still broken, surface what's wrong and stop.
+- `awaiting_oauth_and_restart` → Phase 1 manual steps aren't done. Tell the user briefly: "Looks like you haven't restarted Claude Code yet, or some MCPs aren't authed. Try `/mcp` first, then come back." Stop.
 - `ready_for_seeding` → Proceed to Section 1.
-- `seeding` → Phase 2 was previously started. Read `files_seeded` to see what's done; ask the user "want to keep going with the unfinished files, or pick a specific one?"
-- `complete` → "You're done. Want to re-seed a specific file?" If yes: `scripts/thinkos-state.sh set files_seeded.<file> false` then `set-phase seeding`.
-- Anything else / missing → tell the user to run Phase 1 first.
+- `seeding` → Phase 2 was in progress. Read `files_seeded` silently; in Section 1 mention which files are still pending.
+- `complete` → Tell the user "Setup is fully complete. Want to re-seed a specific file?" If yes: `scripts/thinkos-state.sh set files_seeded.<file> false` then `set-phase seeding`.
+
+**Don't run other exploratory shell commands at this stage.** No `ls`, no `pwd`, no `find` against unrelated folders (especially don't try to auto-detect the user's old vault — they'll mention it if they want to import). The user should NOT see shell output before the welcome message.
 
 ---
 
-## Section 1 — Welcome to Phase 2
+## Section 1 — Welcome (one short message, then connector check, then file picker)
 
-Show the user a short, honest framing:
+### 1a. Welcome message
 
-> Phase 2 reads your connected tools to draft the HOT-tier files of your vault: Identity, Project Index, Current Focus, and People. I'll ask for consent before reading from each source. Every draft will be shown to you for review with citations; nothing writes to your vault until you say yes.
+Show this single message — nothing else, no status dumps, no Phase 1 recap:
+
+> ## Phase 2 — Context Seeding
 >
-> Want to proceed with all four files in order, pick just one, or skip Phase 2 entirely?
+> I'll draft 4 files from your connected tools: **Project Index**, **Current Focus**, **Identity**, **People**. You see each draft before anything writes to your vault.
 
-Branch:
-- **All four** → Run sections 2.1 → 2.4 in order.
-- **Pick one** → Ask which, run that section only.
-- **Skip** → `scripts/thinkos-state.sh set-phase complete`. Tell the user they can run `/thinkos-continue` anytime to come back.
+### 1b. Check connector auth
 
-Recommended order if "all four": **Project Index → Current Focus → Identity → People.**
+Run `claude mcp list` silently. Parse the output for any MCP showing "Needs authentication" (or similar). If ANY are flagged:
+
+`AskUserQuestion`:
+- Header: "Some connectors need auth"
+- Question: "These tools need authorization before I can read from them: <comma-separated list>. What do you want to do?"
+- Options:
+  | label | description |
+  |---|---|
+  | "I'll auth them now" | "I'll pause. Open `/mcp` in this session, authorize each, then come back and tell me to continue." |
+  | "Skip un-authed tools" | "Proceed with whatever's already connected. We can't use the un-authed sources." |
+
+If everything is authed, skip this step entirely.
+
+### 1c. File picker
+
+`AskUserQuestion`:
+- Header: "Where to start?"
+- Question: "Which file should I draft first?"
+- multiSelect: false
+- Options:
+  | label | description |
+  |---|---|
+  | "Project Index" | "Recommended. Pulls candidate projects from your folders + tools." |
+  | "Current Focus" | "This week's priorities from meetings + tickets." |
+  | "Identity" | "Role, working style, tool stack." |
+  | "People" | "Frequent collaborators." |
+  | "All four in order" | "Draft them sequentially: Project Index → Current Focus → Identity → People." |
+  | "Pause for now" | "I'll come back later. (Sets state to `complete`; you can re-run /thinkos-continue anytime.)" |
+
+If "Pause for now": run `bash scripts/thinkos-state.sh set-phase complete`. Stop.
+
+Otherwise proceed to Section 2 with the chosen file (or all four in order).
 
 ---
 
