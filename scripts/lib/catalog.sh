@@ -27,23 +27,49 @@ catalog_path() {
   echo "${_lib_dir}/../../data/plugin-catalog.yaml"
 }
 
+# Path to the pre-rendered JSON copy of the catalog. Kept in sync with the YAML
+# via scripts/lib/render-catalog.sh and used as a fallback when neither yq nor
+# system PyYAML is available — Python's stdlib `json` is always present, so
+# this path keeps onboarding working on a stock Homebrew Python.
+catalog_json_path() {
+  local _lib_dir
+  _lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  echo "${_lib_dir}/../../data/plugin-catalog.json"
+}
+
 # ---------------------------------------------------------------------------
-# Internal: run a Python snippet against the catalog YAML.
-# Usage: _catalog_python <python_expression_string>
-# The snippet receives the parsed YAML as variable `data`.
+# Internal: run a Python snippet against the catalog.
+# Tries PyYAML first (parses the canonical YAML); falls back to the rendered
+# JSON. The snippet receives the parsed catalog as variable `data`.
 # ---------------------------------------------------------------------------
 _catalog_python() {
   local snippet="$1"
-  python3 - "$(catalog_path)" <<PYEOF
-import sys, yaml
-with open(sys.argv[1]) as fh:
-    data = yaml.safe_load(fh)
+  python3 - "$(catalog_path)" "$(catalog_json_path)" <<PYEOF
+import sys
+yaml_path, json_path = sys.argv[1], sys.argv[2]
+data = None
+try:
+    import yaml
+    with open(yaml_path) as fh:
+        data = yaml.safe_load(fh)
+except ModuleNotFoundError:
+    import json, os
+    if not os.path.exists(json_path):
+        sys.stderr.write(
+            "catalog.sh: PyYAML not available and no rendered JSON at "
+            + json_path + ".\\n"
+            "Run scripts/lib/render-catalog.sh (requires PyYAML once) to regenerate.\\n"
+        )
+        sys.exit(1)
+    with open(json_path) as fh:
+        data = json.load(fh)
 $snippet
 PYEOF
 }
 
 # Run a yq-style expression against the catalog.
-# Prefers yq if available; falls back to python3+PyYAML.
+# Prefers yq if available; falls back to python3 (which uses PyYAML or the
+# rendered JSON via _catalog_python).
 catalog_yq() {
   local query="$1"
   local cat_file

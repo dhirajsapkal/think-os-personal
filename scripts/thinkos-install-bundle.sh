@@ -319,7 +319,36 @@ fi
 # ---------------------------------------------------------------------------
 log_header "Installing"
 
-declare -A ITEM_STATUS=()
+# Status tracking uses parallel arrays (bash 3.2 compatible — macOS default
+# bash has no associative arrays). The two arrays stay aligned by index.
+STATUS_IDS=()
+STATUS_VALUES=()
+
+_status_set() {
+  local id="$1"
+  local value="$2"
+  local i
+  for i in "${!STATUS_IDS[@]}"; do
+    if [[ "${STATUS_IDS[$i]}" == "$id" ]]; then
+      STATUS_VALUES[$i]="$value"
+      return
+    fi
+  done
+  STATUS_IDS+=("$id")
+  STATUS_VALUES+=("$value")
+}
+
+_status_get() {
+  local id="$1"
+  local i
+  for i in "${!STATUS_IDS[@]}"; do
+    if [[ "${STATUS_IDS[$i]}" == "$id" ]]; then
+      printf '%s' "${STATUS_VALUES[$i]}"
+      return
+    fi
+  done
+  printf 'UNKNOWN'
+}
 
 # Helper: check if an MCP name is already registered
 _mcp_already_registered() {
@@ -332,23 +361,25 @@ _mcp_already_registered() {
   claude mcp list 2>/dev/null | grep -q "${mcp_name}"
 }
 
-# Collect unique marketplaces for plugin/skill_bundle items
-declare -A MARKETPLACE_SEEN=()
+# Collect unique marketplaces for plugin/skill_bundle items.
+# Use a newline-delimited string + grep because bash 3.2 lacks associative arrays.
+MARKETPLACE_SEEN=""
 
 for id in "${INSTALL_IDS[@]}"; do
   item_kind="$(catalog_kind "$id" "claude_code")"
   if [[ "$item_kind" == "plugin" || "$item_kind" == "skill_bundle" ]]; then
     mp="$(catalog_get_field "$id" "claude_code.marketplace")"
-    if [[ -n "$mp" ]]; then
-      MARKETPLACE_SEEN["$mp"]=1
+    if [[ -n "$mp" ]] && ! printf '%s\n' "$MARKETPLACE_SEEN" | grep -qx "$mp"; then
+      MARKETPLACE_SEEN="${MARKETPLACE_SEEN}${mp}"$'\n'
     fi
   fi
 done
 
 # Register marketplaces first (deduplicated)
-if [[ "${#MARKETPLACE_SEEN[@]}" -gt 0 ]]; then
+if [[ -n "$(printf '%s' "$MARKETPLACE_SEEN" | tr -d '[:space:]')" ]]; then
   log "Registering marketplaces..."
-  for mp in "${!MARKETPLACE_SEEN[@]}"; do
+  while IFS= read -r mp; do
+    [[ -z "$mp" ]] && continue
     if [[ "$DRY_RUN" -eq 1 ]]; then
       dry_run_cmd env CLAUDE_CODE_SYNC_PLUGIN_INSTALL=1 claude -p --bare "/plugin marketplace add $mp"
     else
@@ -358,7 +389,7 @@ if [[ "${#MARKETPLACE_SEEN[@]}" -gt 0 ]]; then
         log "  Note: marketplace add returned non-zero (may already be registered): $mp_stderr"
       }
     fi
-  done
+  done < <(printf '%s\n' "$MARKETPLACE_SEEN")
 fi
 
 # Now install each item
@@ -376,26 +407,26 @@ for id in "${INSTALL_IDS[@]}"; do
       url="$(catalog_get_field "$id" "claude_code.url")"
 
       if [[ -z "$mcp_name" || -z "$transport" || -z "$url" ]]; then
-        ITEM_STATUS["$id"]="FAILED: missing mcp_name/transport/url in catalog"
+        _status_set "$id" "FAILED: missing mcp_name/transport/url in catalog"
         log "  FAILED: incomplete mcp_remote config for $id"
         continue
       fi
 
       if [[ "$DRY_RUN" -eq 0 ]] && _mcp_already_registered "$mcp_name"; then
-        ITEM_STATUS["$id"]="SKIPPED"
+        _status_set "$id" "SKIPPED"
         log "  SKIPPED: '$mcp_name' already registered in claude mcp list"
         continue
       fi
 
       if [[ "$DRY_RUN" -eq 1 ]]; then
         dry_run_cmd claude mcp add --transport "$transport" "$mcp_name" "$url" --scope user
-        ITEM_STATUS["$id"]="OK (dry-run)"
+        _status_set "$id" "OK (dry-run)"
       else
         if claude mcp add --transport "$transport" "$mcp_name" "$url" --scope user 2>&1; then
-          ITEM_STATUS["$id"]="OK"
+          _status_set "$id" "OK"
           log "  OK: registered MCP '$mcp_name'"
         else
-          ITEM_STATUS["$id"]="FAILED: claude mcp add exited non-zero"
+          _status_set "$id" "FAILED: claude mcp add exited non-zero"
           log "  FAILED: could not register MCP '$mcp_name'"
         fi
       fi
@@ -406,7 +437,7 @@ for id in "${INSTALL_IDS[@]}"; do
       command_bin="$(catalog_get_field "$id" "claude_code.command")"
 
       if [[ -z "$mcp_name" || -z "$command_bin" ]]; then
-        ITEM_STATUS["$id"]="FAILED: missing mcp_name/command in catalog"
+        _status_set "$id" "FAILED: missing mcp_name/command in catalog"
         log "  FAILED: incomplete mcp_stdio config for $id"
         continue
       fi
@@ -417,7 +448,7 @@ for id in "${INSTALL_IDS[@]}"; do
       args_raw="$(catalog_get_field "$id" "claude_code.args")" || true
 
       if [[ "$DRY_RUN" -eq 0 ]] && _mcp_already_registered "$mcp_name"; then
-        ITEM_STATUS["$id"]="SKIPPED"
+        _status_set "$id" "SKIPPED"
         log "  SKIPPED: '$mcp_name' already registered in claude mcp list"
         continue
       fi
@@ -437,13 +468,13 @@ for id in "${INSTALL_IDS[@]}"; do
 
       if [[ "$DRY_RUN" -eq 1 ]]; then
         dry_run_cmd claude mcp add "$mcp_name" --scope user -- "$command_bin" "${stdio_args[@]+"${stdio_args[@]}"}"
-        ITEM_STATUS["$id"]="OK (dry-run)"
+        _status_set "$id" "OK (dry-run)"
       else
         if claude mcp add "$mcp_name" --scope user -- "$command_bin" "${stdio_args[@]+"${stdio_args[@]}"}" 2>&1; then
-          ITEM_STATUS["$id"]="OK"
+          _status_set "$id" "OK"
           log "  OK: registered stdio MCP '$mcp_name'"
         else
-          ITEM_STATUS["$id"]="FAILED: claude mcp add (stdio) exited non-zero"
+          _status_set "$id" "FAILED: claude mcp add (stdio) exited non-zero"
           log "  FAILED: could not register stdio MCP '$mcp_name'"
         fi
       fi
@@ -454,22 +485,22 @@ for id in "${INSTALL_IDS[@]}"; do
       plugin_slug="$(catalog_get_field "$id" "claude_code.plugin")"
 
       if [[ -z "$mp" || -z "$plugin_slug" ]]; then
-        ITEM_STATUS["$id"]="FAILED: missing marketplace/plugin in catalog"
+        _status_set "$id" "FAILED: missing marketplace/plugin in catalog"
         log "  FAILED: incomplete plugin config for $id"
         continue
       fi
 
       if [[ "$DRY_RUN" -eq 1 ]]; then
         dry_run_cmd env CLAUDE_CODE_SYNC_PLUGIN_INSTALL=1 claude -p --bare "/plugin install ${plugin_slug}@${mp}"
-        ITEM_STATUS["$id"]="OK (dry-run)"
+        _status_set "$id" "OK (dry-run)"
       else
         plugin_exit=0
         plugin_out="$(CLAUDE_CODE_SYNC_PLUGIN_INSTALL=1 claude -p --bare "/plugin install ${plugin_slug}@${mp}" 2>&1)" || plugin_exit=$?
         if [[ "$plugin_exit" -eq 0 ]]; then
-          ITEM_STATUS["$id"]="OK"
+          _status_set "$id" "OK"
           log "  OK: installed plugin '${plugin_slug}@${mp}'"
         else
-          ITEM_STATUS["$id"]="FAILED: plugin install exited $plugin_exit"
+          _status_set "$id" "FAILED: plugin install exited $plugin_exit"
           log "  FAILED: could not install plugin '${plugin_slug}@${mp}'"
           log "  Output: $plugin_out"
         fi
@@ -477,12 +508,12 @@ for id in "${INSTALL_IDS[@]}"; do
       ;;
 
     "")
-      ITEM_STATUS["$id"]="FAILED: kind is empty (item may lack claude_code block)"
+      _status_set "$id" "FAILED: kind is empty (item may lack claude_code block)"
       log "  FAILED: no claude_code.kind found for $id"
       ;;
 
     *)
-      ITEM_STATUS["$id"]="FAILED: unknown kind '$item_kind'"
+      _status_set "$id" "FAILED: unknown kind '$item_kind'"
       log "  FAILED: unknown kind '$item_kind' for $id"
       ;;
   esac
@@ -497,7 +528,7 @@ printf '%-30s %s\n' "------------------------------" "--------------------------
 
 overall_exit=0
 for id in "${INSTALL_IDS[@]}"; do
-  status="${ITEM_STATUS[$id]:-UNKNOWN}"
+  status="$(_status_get "$id")"
   printf '%-30s %s\n' "$id" "$status"
   if [[ "$status" == FAILED* ]]; then
     overall_exit=1
@@ -511,7 +542,7 @@ log_header "Next steps (OAuth)"
 
 oauth_list=""
 for id in "${INSTALL_IDS[@]}"; do
-  status="${ITEM_STATUS[$id]:-UNKNOWN}"
+  status="$(_status_get "$id")"
   # Show OAuth steps for items that were installed or would be installed
   if [[ "$status" == "OK" || "$status" == "OK (dry-run)" ]]; then
     oauth_val="$(catalog_get_field "$id" "oauth")"

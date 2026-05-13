@@ -21,7 +21,7 @@ Options:
   --products LIST         Comma-separated products: claude-cowork,claude-code,codex,all
   --json                  Print compact JSON instead of human-readable output
   --deep                  Run slower product CLI MCP checks
-  --check-bundle           Compare installed plugins/connectors against the preset declared in the bundle state files
+  --check-bundle          Compare installed plugins/connectors against the preset declared in the bundle state files
   --strict                Exit non-zero if any required check fails
   -h, --help              Show this help
 EOF

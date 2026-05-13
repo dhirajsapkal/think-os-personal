@@ -180,6 +180,9 @@ copy_templates() {
     run mkdir -p "$OS_HOME/$rel"
   done < <(cd "$TEMPLATE_DIR" && find . -type d -print0)
 
+  local created_verb="Created"
+  [[ "$DRY_RUN" -eq 1 ]] && created_verb="Would create"
+
   while IFS= read -r -d '' file; do
     local rel="${file#./}"
     local dest="$OS_HOME/$rel"
@@ -188,7 +191,7 @@ copy_templates() {
     else
       run mkdir -p "$(dirname "$dest")"
       run cp "$TEMPLATE_DIR/$rel" "$dest"
-      log "Created: $rel"
+      log "$created_verb: $rel"
     fi
   done < <(cd "$TEMPLATE_DIR" && find . -type f -print0)
 }

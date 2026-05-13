@@ -1,0 +1,601 @@
+{
+  "catalog": [
+    {
+      "id": "slack",
+      "name": "Slack",
+      "category": "communication",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "slack"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.slack.com/mcp",
+        "mcp_name": "slack"
+      },
+      "notes": "User completes OAuth in-app on first Slack tool call."
+    },
+    {
+      "id": "gmail",
+      "name": "Gmail",
+      "category": "communication",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "gmail"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.googleapis.com/gmail",
+        "mcp_name": "gmail"
+      },
+      "notes": "Requires Google OAuth. Provides read/search/send over Gmail threads."
+    },
+    {
+      "id": "ms365",
+      "name": "Microsoft 365 (Outlook + Teams)",
+      "category": "communication",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://graph.microsoft.com/mcp",
+        "mcp_name": "ms365"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Covers Outlook mail, Teams messages, and OneDrive files via MS Graph."
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "category": "docs",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "notion"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.notion.com/mcp",
+        "mcp_name": "notion"
+      },
+      "notes": "Full read/write access to pages, databases, and comments."
+    },
+    {
+      "id": "google-drive",
+      "name": "Google Drive",
+      "category": "docs",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "google-drive"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.googleapis.com/drive",
+        "mcp_name": "google-drive"
+      },
+      "notes": "Read/search/write files across My Drive and Shared Drives."
+    },
+    {
+      "id": "airtable",
+      "name": "Airtable",
+      "category": "docs",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "airtable"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.airtable.com/mcp",
+        "mcp_name": "airtable"
+      },
+      "notes": "Access bases, tables, and records; supports filtered views."
+    },
+    {
+      "id": "atlassian-rovo",
+      "name": "Atlassian Rovo (Jira + Confluence)",
+      "category": "tracker",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "atlassian-rovo"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.atlassian.com/mcp",
+        "mcp_name": "atlassian-rovo"
+      },
+      "notes": "Covers Jira issues and Confluence pages via Atlassian Rovo connector."
+    },
+    {
+      "id": "linear",
+      "name": "Linear",
+      "category": "tracker",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.linear.app/mcp",
+        "mcp_name": "linear"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Covers issues, cycles, projects, and roadmaps."
+    },
+    {
+      "id": "clickup",
+      "name": "ClickUp",
+      "category": "tracker",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "clickup"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.clickup.com/mcp",
+        "mcp_name": "clickup"
+      },
+      "notes": "Tasks, lists, folders, spaces, docs, and time tracking."
+    },
+    {
+      "id": "asana",
+      "name": "Asana",
+      "category": "tracker",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.asana.com/mcp",
+        "mcp_name": "asana"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Covers tasks, projects, goals, and portfolios."
+    },
+    {
+      "id": "monday",
+      "name": "Monday.com",
+      "category": "tracker",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.monday.com/mcp",
+        "mcp_name": "monday"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Boards, items, subitems, and automations."
+    },
+    {
+      "id": "granola",
+      "name": "Granola",
+      "category": "meetings",
+      "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "granola"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_stdio",
+        "command": "uvx",
+        "args": [
+          "granola-mcp"
+        ],
+        "mcp_name": "granola"
+      },
+      "notes": "Local meeting note access via Granola's stdio MCP server."
+    },
+    {
+      "id": "zoom-claude",
+      "name": "Zoom for Claude",
+      "category": "meetings",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "zoom-claude"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.zoom.us/mcp",
+        "mcp_name": "zoom-claude"
+      },
+      "notes": "Meeting scheduling, recordings, and transcript access via Zoom."
+    },
+    {
+      "id": "fireflies",
+      "name": "Fireflies.ai",
+      "category": "meetings",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.fireflies.ai/mcp",
+        "mcp_name": "fireflies"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Meeting transcripts, action items, and search."
+    },
+    {
+      "id": "otter",
+      "name": "Otter.ai",
+      "category": "meetings",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.otter.ai/mcp",
+        "mcp_name": "otter"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Meeting transcripts and summaries."
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "category": "design",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "figma"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.figma.com/mcp",
+        "mcp_name": "figma"
+      },
+      "notes": "Read/write Figma files, components, variables, and prototypes."
+    },
+    {
+      "id": "canva",
+      "name": "Canva",
+      "category": "design",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "canva"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.canva.com/mcp",
+        "mcp_name": "canva"
+      },
+      "notes": "Create and edit Canva designs; export assets."
+    },
+    {
+      "id": "hubspot",
+      "name": "HubSpot",
+      "category": "crm_analytics",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "hubspot"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.hubspot.com/mcp",
+        "mcp_name": "hubspot"
+      },
+      "notes": "Contacts, companies, deals, tasks, and pipeline management."
+    },
+    {
+      "id": "zoominfo",
+      "name": "ZoomInfo",
+      "category": "crm_analytics",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "zoominfo"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.zoominfo.com/mcp",
+        "mcp_name": "zoominfo"
+      },
+      "notes": "B2B contact and company intelligence enrichment."
+    },
+    {
+      "id": "amplitude",
+      "name": "Amplitude",
+      "category": "crm_analytics",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.amplitude.com/mcp",
+        "mcp_name": "amplitude"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Product analytics, funnels, and user behavior."
+    },
+    {
+      "id": "pendo",
+      "name": "Pendo",
+      "category": "crm_analytics",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.pendo.io/mcp",
+        "mcp_name": "pendo"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Product analytics, NPS, and in-app guides."
+    },
+    {
+      "id": "similarweb",
+      "name": "Similarweb",
+      "category": "crm_analytics",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.similarweb.com/mcp",
+        "mcp_name": "similarweb"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Web traffic, market intelligence, and competitor analysis."
+    },
+    {
+      "id": "intercom",
+      "name": "Intercom",
+      "category": "crm_analytics",
+      "oauth": true,
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.intercom.com/mcp",
+        "mcp_name": "intercom"
+      },
+      "notes": "No Cowork connector available yet; CC-only. Customer messaging, tickets, and conversation analytics."
+    },
+    {
+      "id": "quickbooks",
+      "name": "Intuit QuickBooks",
+      "category": "finance",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "quickbooks"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.intuit.com/quickbooks/mcp",
+        "mcp_name": "quickbooks"
+      },
+      "notes": "P&L, balance sheet, invoices, payroll, and cash flow via QBO."
+    },
+    {
+      "id": "google-calendar",
+      "name": "Google Calendar",
+      "category": "calendar",
+      "oauth": true,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "google-calendar"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.googleapis.com/calendar",
+        "mcp_name": "google-calendar"
+      },
+      "notes": "Read/write calendar events, availability, and scheduling across calendars."
+    },
+    {
+      "id": "pubmed",
+      "name": "PubMed",
+      "category": "crm_analytics",
+      "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "connector",
+        "registry_id": "pubmed"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "mcp_remote",
+        "transport": "http",
+        "url": "https://mcp.ncbi.nlm.nih.gov/mcp",
+        "mcp_name": "pubmed"
+      },
+      "notes": "Biomedical literature search and full-text retrieval via NCBI PubMed."
+    },
+    {
+      "id": "productivity",
+      "name": "Productivity Skills",
+      "category": "skills_bundle",
+      "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "productivity"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "skill_bundle",
+        "marketplace": "anthropics/knowledge-work-plugins",
+        "plugin": "productivity"
+      },
+      "notes": "Memory management and task management skills. Includes memory-management, task-management, start, and update skills."
+    },
+    {
+      "id": "product-management",
+      "name": "Product Management Skills",
+      "category": "skills_bundle",
+      "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "product-management"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "skill_bundle",
+        "marketplace": "anthropics/knowledge-work-plugins",
+        "plugin": "product-management"
+      },
+      "notes": "Write-spec, brainstorm, metrics-review, roadmap-update, competitive-brief, sprint-planning, and stakeholder-update skills."
+    },
+    {
+      "id": "engineering",
+      "name": "Engineering Skills",
+      "category": "skills_bundle",
+      "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "engineering"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "skill_bundle",
+        "marketplace": "anthropics/knowledge-work-plugins",
+        "plugin": "engineering"
+      },
+      "notes": "Code-review, debug, system-design, architecture, testing-strategy, incident-response, and deploy-checklist skills."
+    },
+    {
+      "id": "design",
+      "name": "Design Skills",
+      "category": "skills_bundle",
+      "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "design"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "skill_bundle",
+        "marketplace": "anthropics/knowledge-work-plugins",
+        "plugin": "design"
+      },
+      "notes": "Design-critique, ux-copy, accessibility-review, design-system, design-handoff, and research-synthesis skills."
+    },
+    {
+      "id": "operations",
+      "name": "Operations Skills",
+      "category": "skills_bundle",
+      "oauth": false,
+      "notes": "Operations skill bundle not confirmed in any known marketplace. Skipped for both targets until confirmed."
+    },
+    {
+      "id": "anthropic-skills",
+      "name": "Anthropic Core Skills",
+      "category": "skills_bundle",
+      "oauth": false,
+      "cowork": {
+        "available": true,
+        "kind": "plugin",
+        "registry_id": "anthropic-skills"
+      },
+      "claude_code": {
+        "available": true,
+        "kind": "skill_bundle",
+        "marketplace": "anthropics/claude-plugins-official",
+        "plugin": "anthropic-skills"
+      },
+      "notes": "pptx, docx, xlsx, pdf, canvas-design, and web-artifacts-builder skills from the official Anthropic plugin."
+    }
+  ],
+  "presets": {
+    "pm": {
+      "description": "Product management stack",
+      "items": [
+        "slack",
+        "gmail",
+        "notion",
+        "linear",
+        "granola",
+        "figma",
+        "productivity",
+        "product-management",
+        "anthropic-skills"
+      ]
+    },
+    "eng": {
+      "description": "Engineering stack",
+      "items": [
+        "slack",
+        "gmail",
+        "atlassian-rovo",
+        "linear",
+        "productivity",
+        "engineering",
+        "anthropic-skills"
+      ]
+    },
+    "design": {
+      "description": "Design stack",
+      "items": [
+        "slack",
+        "gmail",
+        "notion",
+        "figma",
+        "granola",
+        "productivity",
+        "design",
+        "anthropic-skills"
+      ]
+    },
+    "ops": {
+      "description": "Operations stack",
+      "items": [
+        "slack",
+        "gmail",
+        "ms365",
+        "notion",
+        "quickbooks",
+        "productivity",
+        "operations",
+        "anthropic-skills"
+      ]
+    }
+  }
+}
