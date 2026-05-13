@@ -44,3 +44,5 @@ Communication: direct, concise, no preamble, surface tradeoffs.
 Draft, never send outbound messages.
 
 If Basic Memory MCP is unavailable, say so and fall back to direct file reads under `{{OS_HOME}}` if the tool has filesystem access.
+
+When the user wants to install their Think OS plugin and connector stack in Cowork, read `adapters/claude-cowork/commands/thinkos-bundle.md` from the export repo (or its installed copy) and follow that playbook. It covers checking for a pre-resolved bundle at `~/.thinkos/claude-cowork-bundle.json`, surfacing install cards via the appropriate Cowork tools, and printing the OAuth and restart checklist.

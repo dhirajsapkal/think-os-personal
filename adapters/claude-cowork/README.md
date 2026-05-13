@@ -65,6 +65,17 @@ Agent check:
 scripts/thinkos-doctor.sh --products claude-cowork
 ```
 
+## 4. Install Your Plugin / Connector Bundle
+
+After the MCP and instructions are configured, install your tool stack via the bundle wizard. In Cowork, run the `/thinkos-bundle` slash command or ask the agent to follow the playbook at [`commands/thinkos-bundle.md`](commands/thinkos-bundle.md).
+
+The wizard will:
+1. Pick up a pre-resolved bundle from `~/.thinkos/claude-cowork-bundle.json` if the setup script was run with `--bundle`, or ask you to choose a preset/custom list interactively.
+2. Surface install cards for each connector and plugin via Cowork's native tools.
+3. Print an OAuth checklist and remind you to restart Cowork.
+
+Available presets: `pm` (product management), `eng` (engineering), `design`, `ops` (operations), or `custom`.
+
 ## Troubleshooting
 
 - `command not found`: use the full `which basic-memory` path in the MCP config.

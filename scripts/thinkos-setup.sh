@@ -302,9 +302,13 @@ install_claude_cowork() {
   local out_dir="$HOME/.thinkos"
   local instructions="$out_dir/claude-cowork-instructions.md"
   local mcp_config="$out_dir/claude-cowork-mcp.txt"
+  local bundle_json="$out_dir/claude-cowork-bundle.json"
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
     log "Would write Cowork instructions to $instructions"
+    if [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
+      log "Would write Cowork bundle handoff to $bundle_json"
+    fi
     return 0
   fi
 
@@ -316,6 +320,38 @@ Command: basic-memory
 Args: mcp --project $PROJECT_NAME
 Working directory: $HOME
 EOF
+
+  # Write bundle handoff JSON if a bundle or custom item list was given.
+  # The Cowork agent reads this file so it doesn't have to re-ask the user.
+  if [[ -n "$BUNDLE" ]]; then
+    # Resolve preset to Cowork-available ids via the catalog lib.
+    local resolved_items=""
+    if source "$REPO_ROOT/scripts/lib/catalog.sh" 2>/dev/null; then
+      resolved_items=$(catalog_resolve_preset "$BUNDLE" 2>/dev/null \
+        | catalog_filter_by_target cowork \
+        | tr '\n' ',' \
+        | sed 's/,$//')
+    fi
+    local preset_label="$BUNDLE"
+    cat > "$bundle_json" <<EOF
+{
+  "preset": "$preset_label",
+  "items": [$(echo "$resolved_items" | sed 's/\([^,][^,]*\)/"\1"/g')]
+}
+EOF
+    log "Cowork bundle handoff written to: $bundle_json (preset: $BUNDLE)"
+  elif [[ -n "$BUNDLE_ITEMS" ]]; then
+    # Custom item list passed directly — no preset resolution needed.
+    local quoted_items
+    quoted_items=$(echo "$BUNDLE_ITEMS" | tr ',' '\n' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//' | sed 's/\(.*\)/"\1"/' | tr '\n' ',' | sed 's/,$//')
+    cat > "$bundle_json" <<EOF
+{
+  "preset": "custom",
+  "items": [$quoted_items]
+}
+EOF
+    log "Cowork bundle handoff written to: $bundle_json (custom items)"
+  fi
 
   log "Claude Cowork uses UI-managed MCP setup."
   log "MCP config saved to: $mcp_config"
@@ -380,5 +416,14 @@ if has_product "claude-cowork"; then
   log "     $HOME/.thinkos/claude-cowork-instructions.md"
   log "   (already on your clipboard if pbcopy ran above)"
   log "4. Restart Cowork (quit and reopen — not just close the window)"
+  log
+  log "5. Install your plugin/connector bundle:"
+  log "   In Cowork, run the /thinkos-bundle slash command (or ask the"
+  log "   agent to follow adapters/claude-cowork/commands/thinkos-bundle.md)."
+  if [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
+    log "   Your bundle selection has been saved to:"
+    log "     $HOME/.thinkos/claude-cowork-bundle.json"
+    log "   The Cowork agent will read that file and skip re-asking you."
+  fi
   log "============================================================"
 fi
