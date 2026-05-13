@@ -126,20 +126,51 @@ Display the install manifest:
 cat ~/.thinkos/install-manifest.json | python3 -m json.tool
 ```
 
-Then present the post-install checklist as a clear numbered list:
+Then present the post-install checklist as a clear numbered list. Emphasize these are not optional fluff — Phase 2 in particular is where Think OS actually becomes useful.
 
-> **What's left for you to do** (Think OS can't do these automatically):
+> ## ✦ INSTALL COMPLETE — 3 STEPS REMAIN
 >
-> 1. **Restart Claude Code** so the new MCPs and slash commands load.
+> ### Step A — Restart Claude Code right now
 >
-> 2. **OAuth each connector you installed** (only if you picked a bundle):
->    - Open `claude`, type `/mcp`, and authorize each one one at a time.
->    - Items needing OAuth: [list from the bundle's `oauth: true` items in `data/plugin-catalog.yaml`]
+> Quit Claude Code (Cmd+Q) and reopen it. The new MCPs and slash commands won't load until you do.
 >
-> 3. **Phase 2 — Context Seeding** (when you're ready, no rush):
->    - Open a fresh Claude Code session
->    - Type `/thinkos-continue`
->    - The agent will read from your connected tools (Granola, Calendar, Slack, Gmail, etc.) and draft your Identity, Project Index, Current Focus, and People files — with citations, asking consent per source.
+> ### Step B — OAuth your connectors (only if you installed a plugin bundle)
+>
+> Open `claude`, type `/mcp`, and authorize each one. Items needing OAuth from your bundle:
+>
+> [list each item from the bundle's `oauth: true` entries in `data/plugin-catalog.yaml`]
+>
+> Without OAuth, those connectors are installed but can't read data.
+>
+> ### Step C — Run Phase 2 (context seeding) — DO THIS NEXT
+>
+> **This is the step that makes Think OS useful.** Without Phase 2, your vault is empty markdown templates and the agent has nothing personalized to read.
+>
+> In a fresh Claude Code session (after the restart in Step A), type:
+>
+> ```
+> /thinkos-continue
+> ```
+>
+> The agent will:
+> - Ask you which project folders to scan (filesystem indexing — pure local, no LLM cost)
+> - Ask permission per connector (Granola, Calendar, Slack, Gmail, Linear/Jira/ClickUp)
+> - Pull data from consented sources, cache to disk, synthesize draft Identity / Project Index / Current Focus / People files
+> - Show you each draft for review and edits before committing
+>
+> Plan ~15-30 minutes. You can pause and resume anytime — state is saved.
+>
+> ### Step D — (Optional but recommended) Set up automations
+>
+> After Phase 2, run:
+>
+> ```
+> /thinkos-automate
+> ```
+>
+> The agent will offer to set up scheduled triggers that keep your OS fresh: daily reindex, weekly Current Focus refresh, quarterly archive rotation, optional daily morning brief. These run remotely on Anthropic's infrastructure — your machine doesn't need to stay on.
+>
+> Total cost across all four triggers: ~$5-15/month in API tokens.
 
 ---
 

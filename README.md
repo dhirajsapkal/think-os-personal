@@ -10,7 +10,9 @@ Early alpha — v0.3.0. Poke at it, break it, [tell me what's confusing](https:/
 
 ---
 
-## Install in ~5 minutes
+## Setup is three steps. Plan ~30 minutes total.
+
+### Step 1 — Install (5 min)
 
 Open a new Claude Code session in any folder. Paste this one line:
 
@@ -18,27 +20,51 @@ Open a new Claude Code session in any folder. Paste this one line:
 Install Think OS for me from https://github.com/dhirajsapkal/think-os
 ```
 
-That's it. The agent will:
+The agent clones the repo, finds [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md), and follows it: asks you 5 short questions (vault path, Basic Memory, plugin bundle, vault id, display label), runs the install, shows you what landed.
 
-1. Clone the repo to `~/code/think-os/`
-2. Find and follow [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md) — the agent-facing install playbook in this repo
-3. Ask you 5 short questions (vault path, Basic Memory, plugin bundle, vault id, display label) — one at a time, with bracketed defaults you can accept by pressing ENTER
-4. Run the install with your answers
-5. Show you the install manifest and a clear post-install checklist (OAuth, restart, Phase 2)
+Then **quit Claude Code (Cmd+Q) and reopen it** — MCPs and new slash commands only load on startup. If you installed a plugin bundle, also `/mcp` → authorize each connector.
 
-You should be done in ~5 minutes (plus OAuth time per connector if you picked a plugin bundle).
+### Step 2 — Continue setup (~15-30 min) — DO NOT SKIP THIS
 
-**Why the prompt is one line:** the repo contains its own install playbook for AI agents at [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md). When the agent clones the repo, it finds that file and follows it — no need to spell out the steps in your prompt.
+After the restart, in a fresh Claude Code session, type:
 
-After install:
+```
+/thinkos-continue
+```
 
-- **Restart Claude Code** so MCPs and slash commands load fresh.
-- **Per-connector OAuth**: in Claude Code, run `/mcp` and authorize each one.
-- **Phase 2 (context seeding)**: in a fresh Claude Code session, type `/thinkos-continue`. The agent will draft your Identity, Project Index, Current Focus, and People files from your connected tools — with citations, asking consent per source.
+This is Phase 2 — **the step that makes Think OS actually useful.** Without it, your vault is empty markdown templates and the agent has nothing personalized to read.
 
-## Install manually (the terminal way)
+The agent will:
+- Ask which project folders to scan (filesystem indexing; cheap, local, no LLM cost)
+- Ask permission per connector (Granola, Calendar, Slack, Gmail, Linear/Jira/ClickUp)
+- Pull and cache data from consented sources, then synthesize drafts of your Identity, Project Index, Current Focus, and People files
+- Show you each draft for review before committing
 
-If you'd rather drive from a terminal:
+You can pause and resume anytime — state is saved.
+
+### Step 3 — Set up automations (~5 min, optional but recommended)
+
+In any Claude Code session:
+
+```
+/thinkos-automate
+```
+
+The agent will offer scheduled triggers that keep your OS fresh on its own: daily reindex, weekly Current Focus refresh, quarterly archive rotation, optional daily morning brief.
+
+**Important — Claude Code triggers run remotely.** They fire on Anthropic's infrastructure on a cron schedule. You do NOT need to keep Claude Code or any app open or any terminal running. Your machine can be asleep. (This is different from Cowork's scheduled tasks, which require the app to be running. Claude Code's path is strictly better for "set and forget" maintenance.)
+
+Cost: ~$5-15/month in API tokens for all four triggers combined.
+
+### Why the install prompt is one line
+
+The repo contains its own install playbook for AI agents at [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md). When the agent clones the repo, it finds that file and follows it. The README is for you (the human); INSTALL.md is for the agent. You don't have to spell out steps in your prompt.
+
+---
+
+## Alternative: install from a terminal
+
+If you'd rather drive from a terminal instead of pasting a prompt:
 
 ```bash
 mkdir -p ~/code && cd ~/code
@@ -46,6 +72,8 @@ git clone https://github.com/dhirajsapkal/think-os.git
 cd think-os
 bash scripts/thinkos-setup.sh --install-basic-memory --yes
 ```
+
+Then continue with Steps 2 + 3 above from a Claude Code session.
 
 ## Uninstall cleanly
 
@@ -126,6 +154,7 @@ See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for t
 | `/thinkos-decide / -capture` | Record a decision / cross-project learning |
 | `/thinkos-vault` | Manage vaults — list, switch, create-project, clone |
 | `/thinkos-continue` | Resume setup after restart (Phase 2 context seeding) |
+| `/thinkos-automate` | Set up scheduled triggers (Phase 3 automations) |
 | `/thinkos-help` | Show all commands |
 | `/thinkos-mcp-help` | How to query your context MCP |
 

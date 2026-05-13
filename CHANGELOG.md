@@ -2,6 +2,31 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [0.3.3] — 2026-05-13
+
+### Added
+
+- **`/thinkos-automate` slash command** + canonical playbook at `docs/phase-3-automations-playbook.md`. Offers 4 pre-built scheduled triggers (daily reindex, weekly Current Focus review, quarterly archive rotation, optional daily morning brief) via Claude Code's remote-trigger infrastructure (`schedule` skill / `CronCreate` tool). Each opt-in Y/N. Triggers run on Anthropic's infrastructure — no local app needs to stay open. Cost transparency built in (~$5-15/month for all four combined).
+
+### Changed
+
+- **README setup section restructured** into three explicit numbered steps:
+  - Step 1: Install (paste the one-line prompt)
+  - Step 2: Continue setup (`/thinkos-continue` after restart — DO NOT SKIP, flagged emphatically)
+  - Step 3: Set up automations (`/thinkos-automate`, optional but recommended)
+  
+  Previously Phase 2 was a tucked-away bullet under "After install" that users could easily miss. Now it's a top-level numbered step with explicit DO-THIS-NEXT framing.
+
+- **`adapters/claude-code/INSTALL.md` post-install checklist** rewritten with the same 3-step framing (Restart, OAuth, Phase 2, Phase 3). Agents now surface Phase 2 + Phase 3 prominently after install completes, rather than burying them.
+
+### Rationale
+
+The user feedback was that the previous README structure made it too easy to think "install complete = done." It's not — Phase 2 is where Think OS actually becomes useful, and Phase 3 is where it stays useful over time. Both now get unmissable real estate.
+
+On the scheduled-tasks question: Claude Code's remote-trigger model (cloud-side, cron-driven, runs without a local instance) is actually a better fit for "set and forget" maintenance than Cowork's locally-scheduled tasks (which require the app to be running). The phase-3 playbook makes this trade-off explicit.
+
+---
+
 ## [0.3.2] — 2026-05-13
 
 ### Added
