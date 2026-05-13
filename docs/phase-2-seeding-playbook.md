@@ -98,25 +98,95 @@ Run `claude mcp list` silently. Parse the output for any MCP showing "Needs auth
 
 If everything is authed, skip this step entirely.
 
-### 1c. File picker
+### 1c. Import from existing markdown vault (optional)
+
+Before auto-populating, give the user the chance to import from a pre-existing markdown vault (Obsidian, an older Think OS install, hand-written notes). Anything they import counts as already-seeded — auto-populate only fills the rest.
+
+`AskUserQuestion`:
+- Header: "Existing vault?"
+- Question: "Do you have an existing markdown vault you'd like to import from first?"
+- multiSelect: false
+- Options:
+  | label | description |
+  |---|---|
+  | "Yes, I have one" | "I'll point you to it; you map filenames to slots and copy content over." |
+  | "Start fresh" | "Skip import. Auto-populate everything from my tools." |
+
+If "Start fresh": skip to 1d.
+
+If "Yes, I have one":
+
+**1c.i — Source path (free text):** Ask "Path to the existing vault?" Verify it exists with `Read` or `Glob`. Re-ask if not.
+
+**1c.ii — Build mapping:** Walk the source folder with `Glob` for `**/*.md`. For each file (case-insensitive), apply this mapping table:
+
+| Source filename pattern | Destination in new vault | State key (if HOT-tier) |
+|---|---|---|
+| `identity.md` | `05 Profile/Identity.md` | `identity` |
+| `current-focus.md`, `current focus.md` | `01 Now/Current Focus.md` | `current_focus` |
+| `active-projects.md`, `project index.md`, `projects.md` | `02 Projects/Project Index.md` | `project_index` |
+| `decisions.md` | `04 Knowledge/Decisions.md` | — |
+| `learnings.md` | `04 Knowledge/Learnings.md` | — |
+| `people.md` | `03 People/People.md` | `people` |
+| `work-log.md`, `work log.md` | `01 Now/Work Log.md` | — |
+| `business-brain.md`, `business brain.md` | `05 Profile/Business Brain.md` | — |
+| `voice-profile.md`, `voice profile.md`, `Voice Profile.md` | `05 Profile/Voice Profile.md` | — |
+| `os-instructions.md` | `90 System/OS Instructions.md` | — |
+| `tasks.md`, `TASKS.md` | `01 Now/Tasks.md` | — |
+| `connectors.md` | `90 System/Connectors.md` | — |
+| `active-projects/<slug>.md` | `02 Projects/<slug>.md` | — |
+| `archive/<anything>` | `99 Archive/<anything>` (preserve structure) | — |
+| Anything else | Flag as unknown — show separately, skip by default |
+
+**1c.iii — Show proposed mapping:** Present the proposed copies in a tight markdown table (source → destination, ~one line each). Group unknowns at the bottom labeled "Skipped (no mapping)."
+
+**1c.iv — Approve:** `AskUserQuestion`:
+- Header: "Import plan"
+- Question: "Import these files?"
+- multiSelect: false
+- Options:
+  | label | description |
+  |---|---|
+  | "Looks good, import" | "Copy them in. I'll skip the unknowns." |
+  | "Skip import" | "Don't import; just auto-populate from connectors." |
+
+**1c.v — Copy + mark seeded:** For each mapped file:
+- Read the source content.
+- Check destination: if it has only template content (matches the file in `templates/`), REPLACE via `mcp__basic-memory__write_note`. If it has user-added content, ASK once whether to overwrite or skip just that file.
+- For HOT-tier state keys in the table above, run `bash scripts/thinkos-state.sh mark-seeded <key>` after the file lands.
+
+After import, tell the user in one line: "Imported N files. <list of seeded keys> are seeded."
+
+### 1d. File picker
+
+Read which files are already seeded:
+
+```bash
+bash scripts/thinkos-state.sh get files_seeded
+```
 
 `AskUserQuestion`:
 - Header: "Where to start?"
 - Question: "Which file should I draft first?"
 - multiSelect: false
-- Options:
-  | label | description |
-  |---|---|
-  | "Project Index" | "Recommended. Pulls candidate projects from your folders + tools." |
-  | "Current Focus" | "This week's priorities from meetings + tickets." |
-  | "Identity" | "Role, working style, tool stack." |
-  | "People" | "Frequent collaborators." |
-  | "All four in order" | "Draft them sequentially: Project Index → Current Focus → Identity → People." |
-  | "Pause for now" | "I'll come back later. (Sets state to `complete`; you can re-run /thinkos-continue anytime.)" |
+- Options (build dynamically — only include un-seeded files as primary options):
+  | label | description | when to include |
+  |---|---|---|
+  | "Project Index" | "Recommended. Pulls candidate projects from your folders + tools." | if `project_index` not seeded |
+  | "Current Focus" | "This week's priorities from meetings + tickets." | if `current_focus` not seeded |
+  | "Identity" | "Role, working style, tool stack." | if `identity` not seeded |
+  | "People" | "Frequent collaborators." | if `people` not seeded |
+  | "All remaining, in order" | "Draft un-seeded files sequentially." | if 2+ un-seeded |
+  | "Re-seed a completed file" | "Pick one that's already seeded and start over." | if any are seeded |
+  | "Pause for now" | "Come back later. Progress is saved." | always |
 
-If "Pause for now": run `bash scripts/thinkos-state.sh set-phase complete`. Stop.
+If everything is already seeded (e.g., after a full import): the picker just offers "Re-seed a completed file" or "Pause." Tell the user up front: "All four HOT-tier files are seeded from the import. Run me anytime to re-seed."
 
-Otherwise proceed to Section 2 with the chosen file (or all four in order).
+If "Pause for now": `bash scripts/thinkos-state.sh set-phase complete`. Stop.
+
+If "Re-seed a completed file": `AskUserQuestion` again with only the seeded files as options, then mark that one un-seeded and proceed to Section 2.
+
+Otherwise proceed to Section 2 with the chosen file.
 
 ---
 
