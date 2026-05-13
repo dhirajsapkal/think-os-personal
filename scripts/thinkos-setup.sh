@@ -127,6 +127,44 @@ render_template() {
   awk -v os_home="$OS_HOME" '{ gsub(/\{\{OS_HOME\}\}/, os_home); print }' "$source"
 }
 
+# Returns the ordered list of curated always-on instruction files (one per line).
+# The setup + update scripts concatenate these on top of the adapter-specific
+# instructions when rendering the BEGIN/END THINK OS block.
+curated_instruction_files() {
+  local dir="$REPO_ROOT/templates/instructions"
+  printf '%s\n' \
+    "$dir/00-think-os-priority.md" \
+    "$dir/10-token-efficiency.md" \
+    "$dir/20-skill-routing.md" \
+    "$dir/30-think-os-write-targets.md"
+}
+
+# Render the full Think OS block to stdout: curated files (in order) followed
+# by the adapter-specific instructions, each with `{{OS_HOME}}` substitution and
+# separated by a section divider so the result reads as one document.
+render_think_os_block() {
+  local adapter_source="$1"
+  local first=1
+  while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    if [[ ! -f "$f" ]]; then
+      continue
+    fi
+    if [[ "$first" -eq 0 ]]; then
+      printf '\n---\n\n'
+    fi
+    render_template "$f"
+    first=0
+  done < <(curated_instruction_files)
+
+  if [[ -n "$adapter_source" && -f "$adapter_source" ]]; then
+    if [[ "$first" -eq 0 ]]; then
+      printf '\n---\n\n'
+    fi
+    render_template "$adapter_source"
+  fi
+}
+
 install_marked_block() {
   local target="$1"
   local begin="$2"
@@ -152,7 +190,7 @@ install_marked_block() {
   {
     cat "$tmp"
     printf '\n%s\n' "$begin"
-    render_template "$source"
+    render_think_os_block "$source"
     printf '%s\n' "$end"
   } > "$target"
 
@@ -174,9 +212,16 @@ copy_templates() {
   log "Copying missing vault templates into $OS_HOME"
   run mkdir -p "$OS_HOME"
 
+  # Subdirectories of templates/ that are NOT personal-vault content:
+  #   instructions/ — curated agent-instruction stack (rendered into the
+  #                   BEGIN/END THINK OS block, never copied into a vault)
+  #   team/         — project-vault template skeleton (copied by
+  #                   thinkos-vault.sh create-project, never into personal hubs)
   while IFS= read -r -d '' dir; do
     local rel="${dir#./}"
     [[ "$rel" == "." ]] && continue
+    [[ "$rel" == "instructions" || "$rel" == instructions/* ]] && continue
+    [[ "$rel" == "team" || "$rel" == team/* ]] && continue
     run mkdir -p "$OS_HOME/$rel"
   done < <(cd "$TEMPLATE_DIR" && find . -type d -print0)
 
@@ -185,6 +230,8 @@ copy_templates() {
 
   while IFS= read -r -d '' file; do
     local rel="${file#./}"
+    [[ "$rel" == instructions/* ]] && continue
+    [[ "$rel" == team/* ]] && continue
     local dest="$OS_HOME/$rel"
     if [[ -f "$dest" ]]; then
       log "Skip existing: $rel"
@@ -300,6 +347,163 @@ install_codex() {
   fi
 }
 
+# ---------------------------------------------------------------------------
+# Install manifest writer
+# ---------------------------------------------------------------------------
+# Records what this run installed so `thinkos-uninstall.sh` has a precise list
+# to undo. Written at ~/.thinkos/install-manifest.json after a successful apply.
+#
+# The manifest is best-effort: it records intent based on the products/flags
+# that this invocation acted on. The uninstaller still falls back to repo
+# enumeration when fields are missing (e.g. for installs done before this
+# was added).
+_write_install_manifest() {
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "Would write install manifest to $HOME/.thinkos/install-manifest.json"
+    return 0
+  fi
+
+  local manifest="$HOME/.thinkos/install-manifest.json"
+  mkdir -p "$HOME/.thinkos"
+
+  # Build the lists in env vars; python3 reads them and writes JSON atomically.
+  local files_list=""
+  local cc_mcps=""
+  local codex_mcps=""
+
+  if has_product "claude-code"; then
+    files_list+="$HOME/.claude/CLAUDE.md (block injected)"$'\n'
+    if [[ -d "$REPO_ROOT/adapters/claude-code/commands" ]]; then
+      while IFS= read -r -d '' command_file; do
+        local base
+        base="$(basename "$command_file")"
+        [[ "$base" == "README.md" ]] && continue
+        files_list+="$HOME/.claude/commands/$base"$'\n'
+      done < <(find "$REPO_ROOT/adapters/claude-code/commands" -maxdepth 1 -name '*.md' -type f -print0)
+    fi
+    if [[ "$REGISTER_MCP" -eq 1 ]]; then
+      cc_mcps+="basic-memory"$'\n'
+    fi
+    # Bundle-added MCPs (best-effort: enumerate the resolved list).
+    if [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
+      local resolved=""
+      if source "$REPO_ROOT/scripts/lib/catalog.sh" 2>/dev/null; then
+        if [[ -n "$BUNDLE" ]]; then
+          resolved="$(catalog_resolve_preset "$BUNDLE" 2>/dev/null | catalog_filter_by_target claude_code)"
+        elif [[ -n "$BUNDLE_ITEMS" ]]; then
+          resolved="$(printf '%s' "$BUNDLE_ITEMS" | tr ',' '\n' | catalog_filter_by_target claude_code)"
+        fi
+        while IFS= read -r bundle_id; do
+          [[ -z "$bundle_id" ]] && continue
+          local mcp_name
+          mcp_name="$(catalog_get_field "$bundle_id" "claude_code.mcp_name" 2>/dev/null)"
+          [[ -n "$mcp_name" ]] && cc_mcps+="$mcp_name"$'\n'
+        done < <(printf '%s\n' "$resolved")
+      fi
+    fi
+  fi
+
+  if has_product "codex"; then
+    files_list+="$HOME/.codex/AGENTS.md (block injected)"$'\n'
+    if [[ "$REGISTER_MCP" -eq 1 ]]; then
+      codex_mcps+="basic-memory"$'\n'
+    fi
+  fi
+
+  if has_product "claude-cowork"; then
+    files_list+="$HOME/.thinkos/claude-cowork-instructions.md"$'\n'
+    files_list+="$HOME/.thinkos/claude-cowork-mcp.txt"$'\n'
+    if [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
+      files_list+="$HOME/.thinkos/claude-cowork-bundle.json"$'\n'
+    fi
+  fi
+
+  # Plugins list (bundle-installed) — for display in uninstaller, since plugin
+  # removal requires interactive Claude Code anyway.
+  local plugins_list=""
+  if has_product "claude-code" && [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
+    if source "$REPO_ROOT/scripts/lib/catalog.sh" 2>/dev/null; then
+      local plugin_resolved=""
+      if [[ -n "$BUNDLE" ]]; then
+        plugin_resolved="$(catalog_resolve_preset "$BUNDLE" 2>/dev/null | catalog_filter_by_target claude_code)"
+      elif [[ -n "$BUNDLE_ITEMS" ]]; then
+        plugin_resolved="$(printf '%s' "$BUNDLE_ITEMS" | tr ',' '\n' | catalog_filter_by_target claude_code)"
+      fi
+      while IFS= read -r p_id; do
+        [[ -z "$p_id" ]] && continue
+        local p_kind p_slug p_mp
+        p_kind="$(catalog_kind "$p_id" "claude_code" 2>/dev/null)"
+        if [[ "$p_kind" == "plugin" || "$p_kind" == "skill_bundle" ]]; then
+          p_slug="$(catalog_get_field "$p_id" "claude_code.plugin" 2>/dev/null)"
+          p_mp="$(catalog_get_field "$p_id" "claude_code.marketplace" 2>/dev/null)"
+          if [[ -n "$p_slug" && -n "$p_mp" ]]; then
+            plugins_list+="${p_slug}|${p_mp}"$'\n'
+          fi
+        fi
+      done < <(printf '%s\n' "$plugin_resolved")
+    fi
+  fi
+
+  FILES_LIST="$files_list" \
+  CC_MCPS="$cc_mcps" \
+  CODEX_MCPS="$codex_mcps" \
+  PLUGINS_LIST="$plugins_list" \
+  VAULT_PATH="$OS_HOME" \
+  BM_PROJECT="$PROJECT_NAME" \
+  PRODUCTS_ENV="$PRODUCTS" \
+  BUNDLE_ENV="$BUNDLE" \
+  MANIFEST_FILE="$manifest" \
+  python3 - <<'PYEOF'
+import json, os, sys, tempfile, datetime
+
+def split_lines(s):
+    return [ln.strip() for ln in (s or "").splitlines() if ln.strip()]
+
+manifest_path = os.environ["MANIFEST_FILE"]
+files = split_lines(os.environ.get("FILES_LIST", ""))
+cc_mcps = split_lines(os.environ.get("CC_MCPS", ""))
+codex_mcps = split_lines(os.environ.get("CODEX_MCPS", ""))
+plugins_raw = split_lines(os.environ.get("PLUGINS_LIST", ""))
+plugins = []
+for line in plugins_raw:
+    if "|" in line:
+        slug, mp = line.split("|", 1)
+        plugins.append({"plugin": slug, "marketplace": mp})
+
+products = [p for p in (os.environ.get("PRODUCTS_ENV") or "").split(",") if p]
+
+manifest = {
+    "version": 1,
+    "installed_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    "vault_path": os.environ.get("VAULT_PATH", ""),
+    "bm_project": os.environ.get("BM_PROJECT", ""),
+    "bundle": os.environ.get("BUNDLE_ENV", "") or None,
+    "products": products,
+    "files": files,
+    "mcps": {
+        "claude-code": cc_mcps,
+        "codex": codex_mcps,
+    },
+    "plugins": plugins,
+}
+
+os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(manifest_path),
+                            prefix=".install-manifest-", suffix=".tmp")
+try:
+    with os.fdopen(fd, "w") as fh:
+        json.dump(manifest, fh, indent=2, sort_keys=False)
+        fh.write("\n")
+    os.replace(tmp, manifest_path)
+except Exception:
+    try: os.unlink(tmp)
+    except OSError: pass
+    raise
+
+print("Wrote install manifest: " + manifest_path)
+PYEOF
+}
+
 install_claude_cowork() {
   log "Preparing Claude Cowork adapter"
   local out_dir="$HOME/.thinkos"
@@ -316,7 +520,10 @@ install_claude_cowork() {
   fi
 
   mkdir -p "$out_dir"
-  render_template "$REPO_ROOT/adapters/claude-cowork/instructions.md" > "$instructions"
+  # Cowork doesn't have BEGIN/END markers in a global file — the user pastes the
+  # whole block into Cowork's personalization UI. Still render the full curated
+  # stack + Cowork adapter so the user gets the same always-on guidance.
+  render_think_os_block "$REPO_ROOT/adapters/claude-cowork/instructions.md" > "$instructions"
   cat > "$mcp_config" <<EOF
 Name: Basic Memory
 Command: basic-memory
@@ -400,6 +607,8 @@ fi
 
 has_product "codex" && install_codex
 has_product "claude-cowork" && install_claude_cowork
+
+_write_install_manifest
 
 log
 log "Setup steps complete. Run this next:"

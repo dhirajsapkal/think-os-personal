@@ -35,6 +35,7 @@ TEMPLATE_TEAM_DIR="$REPO_ROOT/templates/team"
 # Flags that subcommands may consume
 YES=0
 REMOTE_URL=""
+MIGRATE_PATH=""
 
 usage() {
   cat <<'EOF'
@@ -256,14 +257,14 @@ cmd_list() {
     active_id="$(cat "$ACTIVE_FILE" 2>/dev/null | head -1 | tr -d '[:space:]')"
   fi
 
-  printf '%-20s  %-10s  %-8s  %-22s  %s\n' "ID" "TYPE" "DEFAULT" "BM PROJECT" "PATH"
-  printf '%-20s  %-10s  %-8s  %-22s  %s\n' "--" "----" "-------" "----------" "----"
+  printf '%-20s  %-10s  %-7s  %-22s  %s\n' "ID" "TYPE" "DEFAULT" "BM PROJECT" "PATH"
+  printf '%-20s  %-10s  %-7s  %-22s  %s\n' "--" "----" "-------" "----------" "----"
   printf '%s\n' "$rows" | while IFS=$'\t' read -r id type def bm path; do
     local marker=" "
     if [ "$id" = "$active_id" ]; then
       marker="*"
     fi
-    printf '%s%-19s  %-10s  %-8s  %-22s  %s\n' "$marker" "$id" "$type" "$def" "$bm" "$path"
+    printf '%s%-19s  %-10s  %-7s  %-22s  %s\n' "$marker" "$id" "$type" "$def" "$bm" "$path"
   done
 
   log ""
@@ -819,29 +820,159 @@ cmd_remove() {
 
 # -----------------------------------------------------------------------------
 # `migrate` — auto-register an existing v0 single-vault setup as 'personal'
+# Accepts:  --path PATH   explicit vault path (skip auto-detection)
+# Auto-detect order:
+#   1. $THINKOS_HOME env var
+#   2. ~/ThinkOS/vault (legacy default)
+#   3. basic-memory project list --json (finds project whose path has Think OS markers)
 # -----------------------------------------------------------------------------
+
+# _bm_detect_vault: probe basic-memory for a Think OS vault path.
+# Prints two lines: <bm-project-name>\n<vault-path>  on success, nothing on failure.
+_bm_detect_vault() {
+  # Requires basic-memory on PATH
+  command -v basic-memory >/dev/null 2>&1 || return 1
+
+  local bm_json
+  bm_json="$(basic-memory project list --json 2>/dev/null)" || return 1
+  [ -z "$bm_json" ] && return 1
+
+  # Use Python to parse JSON and probe for marker files.
+  # Pass JSON via env var to avoid heredoc/pipe stdin conflict.
+  # Marker files (cheap, non-recursive):
+  #   <root>/Identity.md
+  #   <root>/identity.md
+  #   <root>/current-focus.md
+  #   <root>/05 Profile/Identity.md
+  #   <root>/01 Now/Current Focus.md
+  # Preference order: name contains "claude-os" or "think-os" first,
+  #   then path contains "Think" or "Claude OS" or "ThinkOS",
+  #   then first match found.
+  BM_JSON="$bm_json" python3 - <<'PYEOF'
+import json, os, sys
+
+raw = os.environ.get("BM_JSON", "").strip()
+try:
+    data = json.loads(raw)
+except Exception:
+    sys.exit(1)
+
+projects = data.get("projects", [])
+if not projects:
+    sys.exit(1)
+
+MARKERS = [
+    "Identity.md",
+    "identity.md",
+    "current-focus.md",
+    os.path.join("05 Profile", "Identity.md"),
+    os.path.join("01 Now", "Current Focus.md"),
+]
+
+def expand(p):
+    if p.startswith("~/"):
+        return os.path.join(os.path.expanduser("~"), p[2:])
+    return os.path.expanduser(p)
+
+def has_marker(path):
+    root = expand(path)
+    for m in MARKERS:
+        if os.path.isfile(os.path.join(root, m)):
+            return True
+    return False
+
+candidates = [(p["name"], p["local_path"]) for p in projects
+              if p.get("local_path") and has_marker(p["local_path"])]
+
+if not candidates:
+    sys.exit(1)
+
+def score(item):
+    name, path = item
+    n = name.lower()
+    p = path.lower()
+    # Prefer names/paths that look most like a Think OS personal vault
+    s = 0
+    if "claude-os" in n or "think-os" in n:
+        s += 10
+    if "think" in p or "claude os" in p or "thinkos" in p:
+        s += 5
+    return s
+
+candidates.sort(key=score, reverse=True)
+best_name, best_path = candidates[0]
+# Print name and expanded path, one per line
+print(best_name)
+print(expand(best_path))
+if len(candidates) > 1:
+    others = ", ".join(n for n, _ in candidates[1:])
+    print("WARN: multiple candidates: " + others, file=sys.stderr)
+PYEOF
+}
+
 cmd_migrate() {
   mkdir -p "$THINKOS_DIR"
 
-  # Locate the v0 vault
-  local v0=""
-  if [ -n "${THINKOS_HOME:-}" ] && [ -d "$THINKOS_HOME" ]; then
-    v0="$THINKOS_HOME"
-  elif [ -d "$HOME/ThinkOS/vault" ]; then
-    v0="$HOME/ThinkOS/vault"
-  fi
-
-  if [ -z "$v0" ]; then
-    log "migrate: no v0 vault found."
-    log "  Checked: \$THINKOS_HOME (env) and ~/ThinkOS/vault."
-    log "  Nothing to do."
-    return 0
-  fi
-
-  # Idempotency: if a 'personal' id is already registered, skip
+  # Idempotency: if a 'personal' id is already registered, skip early
   if [ -f "$REGISTRY" ] && [ "$(_registry_py exists-id personal)" = "yes" ]; then
     log "migrate: 'personal' is already registered. Nothing to do."
     return 0
+  fi
+
+  local v0=""
+  local bm=""
+  local detect_source=""
+
+  # --- (0) Explicit --path override ---
+  if [ -n "${MIGRATE_PATH:-}" ]; then
+    case "$MIGRATE_PATH" in
+      "~"|"~/"*) MIGRATE_PATH="$HOME${MIGRATE_PATH#~}" ;;
+    esac
+    if [ ! -d "$MIGRATE_PATH" ]; then
+      err "migrate: --path '$MIGRATE_PATH' does not exist or is not a directory."
+      return 1
+    fi
+    v0="$(cd "$MIGRATE_PATH" && pwd)"
+    detect_source="--path flag"
+
+  # --- (1) $THINKOS_HOME env var ---
+  elif [ -n "${THINKOS_HOME:-}" ] && [ -d "$THINKOS_HOME" ]; then
+    v0="$(cd "$THINKOS_HOME" && pwd)"
+    detect_source="\$THINKOS_HOME"
+
+  # --- (2) Legacy default path ---
+  elif [ -d "$HOME/ThinkOS/vault" ]; then
+    v0="$(cd "$HOME/ThinkOS/vault" && pwd)"
+    detect_source="~/ThinkOS/vault"
+
+  # --- (3) basic-memory project list ---
+  else
+    local bm_out
+    bm_out="$(_bm_detect_vault 2>/tmp/thinkos-migrate-bm-warn)" || true
+    if [ -n "$bm_out" ]; then
+      bm="$(printf '%s\n' "$bm_out" | sed -n '1p')"
+      v0="$(printf '%s\n' "$bm_out" | sed -n '2p')"
+      detect_source="basic-memory project '$bm'"
+      # Surface any multi-candidate warning
+      local warn_msg
+      warn_msg="$(cat /tmp/thinkos-migrate-bm-warn 2>/dev/null || true)"
+      if [ -n "$warn_msg" ]; then
+        log "migrate: $warn_msg"
+        log "  Using: $bm ($v0)"
+      fi
+    fi
+    rm -f /tmp/thinkos-migrate-bm-warn
+  fi
+
+  # --- Nothing found ---
+  if [ -z "$v0" ]; then
+    err "migrate: no vault found."
+    err "  Checked: \$THINKOS_HOME, ~/ThinkOS/vault, and basic-memory project list."
+    err ""
+    err "  To fix, either:"
+    err "    export THINKOS_HOME=/path/to/your/vault"
+    err "    scripts/thinkos-vault.sh migrate --path /path/to/your/vault"
+    return 1
   fi
 
   # Idempotency: if some vault already points at this path, skip
@@ -850,16 +981,27 @@ cmd_migrate() {
     return 0
   fi
 
+  # Derive label from directory name if not already known
+  local dir_name
+  dir_name="$(basename "$v0")"
   local username
   username="$(id -un 2>/dev/null || whoami 2>/dev/null || echo user)"
-  local label="${username}'s Think OS"
-  local bm="think-os"
+  local label="${username}'s ${dir_name}"
+
+  # Derive BM project name: use the one detected from basic-memory, or derive
+  # from the directory name (sanitized), or fall back to "think-os"
+  if [ -z "$bm" ]; then
+    # sanitize dir_name to lowercase with hyphens
+    bm="$(printf '%s' "$dir_name" | tr 'A-Z' 'a-z' | sed -E 's/[^a-z0-9-]+/-/g; s/^-+//; s/-+$//')"
+    [ -z "$bm" ] && bm="think-os"
+  fi
 
   log "Migrating v0 vault → multi-vault registry"
-  log "  Path:        $v0"
+  log "  Detected via:  $detect_source"
+  log "  Path:          $v0"
   log "  Registering as id:  personal"
-  log "  Label:       $label"
-  log "  BM project:  $bm  (kept from v0 default)"
+  log "  Label:         $label"
+  log "  BM project:    $bm"
 
   local entry
   entry="$(VAULT_LABEL="$label" VAULT_PATH_ENV="$v0" VAULT_BM="$bm" python3 - <<'PYEOF'
@@ -919,6 +1061,14 @@ while [ $# -gt 0 ]; do
       REMOTE_URL="${2:-}"
       if [ -z "$REMOTE_URL" ]; then
         err "--remote requires a URL"
+        exit 2
+      fi
+      shift 2
+      ;;
+    --path)
+      MIGRATE_PATH="${2:-}"
+      if [ -z "$MIGRATE_PATH" ]; then
+        err "--path requires a PATH argument"
         exit 2
       fi
       shift 2

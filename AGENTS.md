@@ -26,9 +26,23 @@ Be a guided installer, not a scavenger hunt.
 - Run scripts for checks and setup. Avoid manually scraping the user's home folder or reading their vault contents.
 - Never overwrite a user's existing knowledge files. The setup script copies missing templates only.
 
+## Curated Always-On Instructions
+
+The agent instruction block installed into `~/.claude/CLAUDE.md` (and equivalents) is assembled from two layers:
+
+1. **Curated, product-independent guidance** in `templates/instructions/`:
+   - `00-think-os-priority.md` — "this user has Think OS, query Basic Memory first, core rules"
+   - `10-token-efficiency.md` — tool-use defaults (Grep over Read+grep, Edit over Write, batching, etc.)
+   - `20-skill-routing.md` — topic → skill mapping (design → `frontend-design`, etc.)
+   - `30-think-os-write-targets.md` — content type → vault destination
+2. **Adapter-specific instructions** in `adapters/<product>/instructions.md` (or `AGENTS.md` for Codex).
+
+`scripts/thinkos-setup.sh` concatenates layer 1 then layer 2 between `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` markers. `scripts/thinkos-update.sh` re-applies the same block (use after editing curated content or pulling new content from this repo). Update mechanism is intentionally cheap so we can iterate on the curated guidance often.
+
+When working on Think OS itself, prefer editing the curated files over duplicating their content in adapter instructions — anything that should apply across all products belongs in `templates/instructions/`.
+
 ## Token Efficiency
 
-- Always run `scripts/thinkos-preview.sh --products <list> [--bundle <preset>]` first and relay the plan to the user for approval before mutating anything.
 - Prefer `scripts/thinkos-doctor.sh --json --products <list>` over exploratory shell commands.
 - Prefer `scripts/thinkos-setup.sh --products <list> --yes` over hand-running each step.
 - Do not load the live vault content during Phase 1 setup unless the user asks you to inspect their actual notes.

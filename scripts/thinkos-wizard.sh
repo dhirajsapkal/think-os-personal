@@ -88,7 +88,7 @@ welcome() {
 ╔════════════════════════════════════════════════════════════════════╗
 ║                                                                    ║
 ║                  T H I N K   O S   S E T U P                       ║
-║                       Early Alpha · v0.1                           ║
+║                      Early Alpha · v0.2.0                          ║
 ║                                                                    ║
 ╚════════════════════════════════════════════════════════════════════╝
 
@@ -326,14 +326,32 @@ step_review() {
     Bundle:            ${BUNDLE:-skip}
 
 ──────────────────────────────────────────────────────────────────────
-  Detailed plan (what would happen on apply):
+  What will happen on apply:
 ──────────────────────────────────────────────────────────────────────
 EOF
-  local preview_args=(--os-home "$VAULT_PATH" --products "$PRODUCTS_LIST")
-  [[ -n "$BUNDLE" ]] && preview_args+=(--bundle "$BUNDLE")
-  bash "$SCRIPT_DIR/thinkos-preview.sh" "${preview_args[@]}" 2>&1 \
-    | sed 's/^/  /' \
-    | awk '!/^[[:space:]]*=+$/ && !/^[[:space:]]*Think OS — onboarding preview/ && !/^[[:space:]]*Nothing on this run/ && !/^[[:space:]]*This is what would happen/ && !/^[[:space:]]*To actually apply this plan/ && !/^[[:space:]]*Or, if you want one more confirmation/ && !/scripts\/thinkos-setup.sh --os-home/'
+  printf '  1. Vault — create %s if it does not exist;\n' "$VAULT_PATH"
+  printf '             copy missing template files (identity, current-focus,\n'
+  printf '             active-projects, decisions, people, work-log).\n\n'
+  if [[ "$INSTALL_BM" -eq 1 ]]; then
+    printf '  2. Basic Memory — install via uv tool install basic-memory;\n'
+  else
+    printf '  2. Basic Memory — already installed;\n'
+  fi
+  printf '             register a "think-os" project pointing at the vault;\n'
+  printf '             run basic-memory sync to build the initial index.\n\n'
+  printf '  3. Adapters — for each selected product (%s):\n' "$PRODUCTS_LIST"
+  printf '             write global instructions so the agent reads the vault;\n'
+  printf '             register the Basic Memory MCP server where automatable;\n'
+  printf '             install adapter-specific slash commands / playbooks.\n\n'
+  if [[ -n "$BUNDLE" ]]; then
+    printf '  4. Bundle  — install the "%s" preset via thinkos-install-bundle.sh;\n' "$BUNDLE"
+    printf '             writes connector configs and skill files for the selected\n'
+    printf '             products; OAuth steps are listed post-apply.\n\n'
+  else
+    printf '  4. Bundle  — skipped (no preset selected).\n\n'
+  fi
+  printf '  5. Verify  — run thinkos-doctor.sh --deep to report any remaining\n'
+  printf '             gaps (MCP registration, OAuth pending, etc.).\n'
   printf '\n══════════════════════════════════════════════════════════════════════\n'
 
   if [[ "$MODE_PREVIEW" -eq 1 ]]; then

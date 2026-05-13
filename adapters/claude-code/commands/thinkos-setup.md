@@ -38,13 +38,7 @@ Set up Think OS end-to-end. Two paths — let the user pick:
    - **Basic Memory** — if `command -v basic-memory` succeeds, tell the user it's already there. Otherwise offer to install via `uv tool install basic-memory`.
    - **Bundle preset** — present the four named presets (pm / eng / design / ops) plus "skip", with a one-line summary of what each contains.
 
-5. **Preview before applying.** Run the preview script and show its output to the user:
-
-```bash
-scripts/thinkos-preview.sh --os-home "<vault-path>" --products "<products>" [--bundle <preset>]
-```
-
-   Then ask: "Apply this plan? (yes / change something / abort)" — wait for an explicit yes.
+5. Summarize the choices and ask: "Apply this plan? (yes / change something / abort)" — wait for an explicit yes.
 
 6. After approval, run the apply pipeline:
 

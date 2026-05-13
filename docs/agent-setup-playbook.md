@@ -58,20 +58,7 @@ scripts/thinkos-doctor.sh --json --products <selected-products>
 
 Use the JSON summary to decide what is missing. Do not manually probe the same things unless the script output is unclear.
 
-### 2. Preview The Plan
-
-Before writing anything, show the user the full plan with the read-only preview script:
-
-```bash
-scripts/thinkos-preview.sh \
-  --os-home "<vault-path>" \
-  --products "<selected-products>" \
-  [--bundle <preset>]
-```
-
-Relay the output verbatim — it's a numbered plan with phases for vault, Basic Memory, each adapter, the bundle, and post-apply verification. The user reads it, decides if anything needs changing, and gives explicit approval before you proceed.
-
-### 3. Confirm Choices
+### 2. Confirm Choices
 
 Summarize:
 
@@ -83,7 +70,7 @@ Summarize:
 
 Then ask for approval before writing outside the repo.
 
-### 4. Run Setup
+### 3. Run Setup
 
 Run:
 
@@ -97,7 +84,7 @@ scripts/thinkos-setup.sh \
 
 Use `--skip-mcp` if the user wants manual product registration.
 
-### 5. Verify
+### 4. Verify
 
 Run doctor again:
 
@@ -116,7 +103,7 @@ Use Basic Memory to answer: who am I and what am I working on?
 
 Expected: a specific answer from `05 Profile/Identity.md` and `01 Now/Current Focus.md`. If those files still have placeholders, the agent should say setup is connected but the user still needs to fill in the HOT tier.
 
-### 6. Install your stack
+### 5. Install your stack
 
 Think OS includes a curated plugin/connector bundle wizard. After the basic MCP setup, offer the user a preset:
 

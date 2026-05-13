@@ -1,8 +1,10 @@
-# Think OS — early alpha
+# Think OS — early alpha (v0.2.0)
 
 A markdown-first personal context OS that gives an agentic tool durable memory of who you are, what you're working on, and how you like to work — across projects and tools.
 
 This is an early alpha — a testable starter kit. Please poke at it, break it, tell me what's confusing. We'll iterate.
+
+> **v0.2.0** — adds interactive wizard, Phase 2 context seeding, multi-vault architecture, curated always-on agent instructions, and a clean uninstaller. See [CHANGELOG.md](CHANGELOG.md) for the full diff.
 
 ---
 
@@ -94,6 +96,17 @@ Then in your agent: type `/thinkos-continue` (or just say "continue Think OS set
 
 Sources Phase 2 can draw from (only with your per-source consent): filesystem folder names, Granola meetings, Calendar events, Slack DMs, Gmail signatures and contacts, Notion pages, Drive recent files, Linear/Jira tickets, HubSpot/ZoomInfo relationship metadata.
 
+### Staying current
+
+Think OS evolves. The curated always-on guidance (priority preamble, token-efficiency rules, skill-routing hints, write targets) and adapter instructions all live in this repo under `templates/instructions/` and `adapters/<product>/`. To pull the latest and reapply them without re-running the wizard:
+
+```bash
+cd <path-to-export-repo>
+bash scripts/thinkos-update.sh --pull
+```
+
+This refreshes the `BEGIN/END THINK OS` block in your global agent instructions (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, and `~/.thinkos/claude-cowork-instructions.md`) and re-copies the Claude Code slash commands. It does NOT touch your vault, your registered MCPs, or your installed bundles — those stay put. Safe to run anytime. Drop `--pull` if you've already pulled or are editing the curated files locally.
+
 ### Agent-Assisted Setup
 
 If you'd rather drive from inside an agent, open this repo with Claude Code (or Cowork) and ask:
@@ -102,13 +115,7 @@ If you'd rather drive from inside an agent, open this repo with Claude Code (or 
 Help me set up Think OS end to end.
 ```
 
-Agents should read [`AGENTS.md`](AGENTS.md), then either point you at the wizard or walk you through the same questions in chat. Either way, the read-only preview runs first:
-
-```bash
-scripts/thinkos-preview.sh --products claude-code,codex --bundle pm
-```
-
-`thinkos-preview.sh` shows every phase (vault layout, Basic Memory install/registration, each adapter, the bundle, the verify step) so you can feel the wizard before committing. After you approve:
+Agents should read [`AGENTS.md`](AGENTS.md), then either point you at the wizard or walk you through the same questions in chat. The wizard's review step shows a full plan before anything is written. After you approve:
 
 ```bash
 scripts/thinkos-doctor.sh --json --products claude-code,codex
