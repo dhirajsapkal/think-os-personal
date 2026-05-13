@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "roster-entry.schema.json",
+  "title": "Roster Entry",
+  "description": "Schema for a single team member record. Used to validate rows if Roster.md is split into per-person files in future. Also used as the logical schema for roster table rows.",
+  "type": "object",
+  "required": ["uid", "name", "role", "joined"],
+  "additionalProperties": true,
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "ULID identifier.",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the team member."
+    },
+    "role": {
+      "type": "string",
+      "description": "Their role on this project (not their company title)."
+    },
+    "github_handle": {
+      "type": "string",
+      "description": "GitHub handle, without the @ prefix. Optional but strongly recommended."
+    },
+    "joined": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date the person joined the project (YYYY-MM-DD)."
+    }
+  }
+}

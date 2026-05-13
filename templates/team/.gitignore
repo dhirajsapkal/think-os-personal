@@ -1,0 +1,31 @@
+# Think OS — project vault .gitignore
+
+# Personal privacy tiers — never share
+.private/
+.vault/
+
+# Think OS runtime state — machine-local, not shared
+.thinkos/state*
+.thinkos/cache/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor swap and backup files
+*.swp
+*.swo
+*~
+\#*#
+.#*
+
+# JetBrains IDE
+.idea/
+
+# VS Code workspace settings (keep .vscode/extensions.json if desired)
+.vscode/settings.json
+.vscode/launch.json
+
+# Node / npm (if any tooling is added)
+node_modules/

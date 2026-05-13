@@ -1,0 +1,25 @@
+# Project vault ownership
+# Edit this file to assign reviewers per directory.
+# Pattern: <path> @<github-handle>
+#
+# Changes to this file require @{{TEAM_LEAD}} approval (see last rule below).
+
+# Single-file slots: high-churn but owner-gated
+/00\ Project\ Home.md  @{{TEAM_LEAD}}
+/04\ Roster.md         @{{TEAM_LEAD}}
+
+# Schema and config — high-stakes, lead-gated
+/.thinkos/             @{{TEAM_LEAD}}
+
+# This file itself
+/CODEOWNERS            @{{TEAM_LEAD}}
+
+# Append-only directories: anyone on the team can merge their own entries.
+# Remove these lines if you want lead review on every work/decision/learning PR.
+# /01\ Work/
+# /02\ Decisions/
+# /05\ Learnings/
+
+# Specs are owned by individual contributors; reviewer is listed per file in frontmatter.
+# Add per-file rules here as your spec library grows, e.g.:
+# /03\ Specs/api-contract.md  @maya

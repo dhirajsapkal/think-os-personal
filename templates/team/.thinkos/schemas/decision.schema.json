@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "decision.schema.json",
+  "title": "Decision",
+  "description": "Frontmatter schema for files in 02 Decisions/. ADR-style, immutable after acceptance.",
+  "type": "object",
+  "required": ["uid", "type", "date", "status", "deciders"],
+  "additionalProperties": true,
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "ULID identifier. Unique across all vault entries.",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "type": {
+      "type": "string",
+      "const": "decision",
+      "description": "Must be the literal string 'decision'."
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date the decision was made (YYYY-MM-DD)."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["proposed", "accepted", "superseded", "rejected"],
+      "description": "Current status of the decision. Only 'accepted' decisions are binding."
+    },
+    "deciders": {
+      "type": "array",
+      "description": "GitHub handles of everyone who had decision authority.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "supersedes": {
+      "type": ["string", "null"],
+      "description": "UID of an earlier decision this one replaces. Null if this is the first decision on the topic.",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  }
+}

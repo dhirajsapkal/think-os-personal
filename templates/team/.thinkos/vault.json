@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "type": "project",
+  "label": "{{PROJECT_LABEL}}",
+  "bm_project": "{{BM_PROJECT_NAME}}",
+  "schema_map": {
+    "01 Work/*.md": "work-entry.schema.json",
+    "02 Decisions/*.md": "decision.schema.json",
+    "03 Specs/*.md": "spec.schema.json",
+    "05 Learnings/*.md": "learning.schema.json"
+  },
+  "created_at": "{{CREATED_AT}}"
+}

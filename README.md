@@ -118,6 +118,38 @@ scripts/thinkos-doctor.sh --deep --products claude-code,codex
 
 The scripts copy missing templates, register the Basic Memory project, install product instructions, and verify MCP registration where the product CLI supports it. See [`docs/agent-setup-playbook.md`](docs/agent-setup-playbook.md).
 
+## Multi-Vault: personal + project vaults
+
+Think OS supports multiple vaults: one **personal hub** (always local, never shared) plus zero-or-more **project vaults** (shared with teammates via git) and **reference vaults** (read-only imports).
+
+Privacy is enforced *structurally*: project vault schemas have no slot for personal content (no work log, no personal people notes). The agent physically cannot write your personal log into a shared repo because there is no destination.
+
+### Common workflows
+
+Create a new project vault for your team:
+
+```bash
+scripts/thinkos-vault.sh create-project <name>
+```
+
+Join an existing team vault from a git URL:
+
+```bash
+scripts/thinkos-vault.sh clone <git-url>
+```
+
+List, switch, or remove vaults:
+
+```bash
+scripts/thinkos-vault.sh list
+scripts/thinkos-vault.sh use <id>
+scripts/thinkos-vault.sh remove <id> --yes
+```
+
+Or from inside your agent, run `/thinkos-vault` for an interactive walkthrough.
+
+See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for the full design — privacy tiers, schema enforcement, git integration, and project vault layout.
+
 ## Vault structure
 
 Think OS is now organized around the way someone naturally opens a knowledge vault:

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "spec.schema.json",
+  "title": "Spec",
+  "description": "Frontmatter schema for files in 03 Specs/. Owned documents edited via PR.",
+  "type": "object",
+  "required": ["uid", "type", "owner", "status", "last_reviewed"],
+  "additionalProperties": true,
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "ULID identifier. Unique across all vault entries.",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "type": {
+      "type": "string",
+      "const": "spec",
+      "description": "Must be the literal string 'spec'."
+    },
+    "owner": {
+      "type": "string",
+      "description": "GitHub handle of the person who owns and maintains this spec."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "under-review", "approved", "deprecated"],
+      "description": "Lifecycle status. Only 'approved' specs are considered stable contracts."
+    },
+    "last_reviewed": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date this spec was last reviewed for accuracy (YYYY-MM-DD)."
+    }
+  }
+}

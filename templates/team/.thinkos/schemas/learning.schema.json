@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "learning.schema.json",
+  "title": "Learning",
+  "description": "Frontmatter schema for files in 05 Learnings/. Reusable patterns and lessons from the project.",
+  "type": "object",
+  "required": ["uid", "type", "date", "author", "tags"],
+  "additionalProperties": true,
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "ULID identifier. Unique across all vault entries.",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "type": {
+      "type": "string",
+      "const": "learning",
+      "description": "Must be the literal string 'learning'."
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date the learning was captured (YYYY-MM-DD)."
+    },
+    "author": {
+      "type": "string",
+      "description": "GitHub handle of the person who wrote this entry."
+    },
+    "tags": {
+      "type": "array",
+      "description": "Topic tags for discovery. Use lowercase-hyphenated strings (e.g. 'rate-limiting', 'auth', 'postgres').",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  }
+}

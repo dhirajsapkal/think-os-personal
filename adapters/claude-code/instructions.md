@@ -16,6 +16,45 @@ If the file exists and its `phase` is **not** `complete`, mention it once at the
 
 Do not interrupt the user's actual question to deliver this — surface it as a one-line note before answering whatever they asked. If they pick up the thread, follow the playbook at `adapters/claude-code/commands/thinkos-continue.md`.
 
+## Multi-Vault Awareness
+
+See `docs/multi-vault-architecture.md` for the canonical design (§2 registry, §3 resolution, §8 agent integration).
+
+**On session start:**
+
+```bash
+test -f ~/.thinkos/vaults.json && cat ~/.thinkos/vaults.json
+```
+
+If absent, treat as single-vault legacy mode (current behavior — no change).
+
+**Active vault resolution (in order):**
+
+1. `cat ~/.thinkos/active-vault` — sticky override (one-line vault id); if present and non-empty, use it.
+2. Otherwise check CWD: if `pwd` is under a registered vault's `path`, that vault is active.
+3. Otherwise use the vault with `"default": true` (the personal hub).
+
+**First response of every session** — surface one line before answering:
+
+> Active vault: `<id>` (`<label>`). Personal hub (`<personal-id>`) always loaded.
+
+**HOT-tier loading:**
+
+- Always load from personal hub: Identity, Current Focus, OS Instructions.
+- If active vault is `type: project`: also load that vault's `00 Project Home.md` and `04 Roster.md`.
+
+**Write routing rules:**
+
+- Active vault is `project` type AND content has personal markers (first-person reflection, or keywords: comp, salary, HR, health, family) → write to personal hub instead. Tell the user: `"This sounds personal — routing to your personal hub instead of the project vault."`
+- Content type has no slot in the active vault's schema → write to personal hub.
+- Ambiguous → ask before writing.
+- If `<vault>/.thinkos/schemas/` exists, validate writes against the destination vault's schema for that content type.
+
+**Basic Memory scoping:**
+
+- Each vault has a `bm_project` field in `vaults.json`. Pass `--project <bm_project>` (or equivalent BM tool scope) to target a specific vault.
+- Cross-vault search: query personal hub first; if active vault is a project vault, also query it. Never silently merge results — prefix each vault's results with `[<id>]`.
+
 ## Always Available: Basic Memory MCP
 
 Before answering anything substantive, use Basic Memory tools selectively:

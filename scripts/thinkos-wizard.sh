@@ -428,6 +428,7 @@ apply() {
     [[ -n "$BUNDLE" ]] && state_args+=(--bundle "$BUNDLE")
     [[ -n "$oauth_pending" ]] && state_args+=(--oauth-pending "$oauth_pending")
     bash "$SCRIPT_DIR/thinkos-state.sh" "${state_args[@]}" >/dev/null 2>&1 || true
+    bash "$SCRIPT_DIR/thinkos-vault.sh" migrate >/dev/null 2>&1 || true
   fi
 
   # ---------------------------------------------------------------------------
@@ -490,11 +491,28 @@ apply() {
   printf '      · In Claude Code or Cowork, type: /thinkos-continue\n'
   printf '      · Or from a terminal:           scripts/thinkos-continue.sh\n\n'
 
+  # Optional: multi-vault project creation
+  n=$((n + 1))
+  printf '  [%d] Optional: add a project or team vault\n' "$n"
+  printf '      Personal Think OS setup is now complete. If you also want to\n'
+  printf '      collaborate with a team on a shared knowledge base (project\n'
+  printf '      decisions, specs, team activity log), you can add a project\n'
+  printf '      vault anytime. It is a separate git-backed vault that lives\n'
+  printf '      alongside your personal one — your personal log, identity,\n'
+  printf '      and people notes stay strictly local.\n\n'
+  printf '      To create a new project vault:\n'
+  printf '        scripts/thinkos-vault.sh create-project <name>\n\n'
+  printf '      To join an existing team vault from a git URL:\n'
+  printf '        scripts/thinkos-vault.sh clone <git-url>\n\n'
+  printf '      Or in your agent, run: /thinkos-vault\n\n'
+  printf '      See docs/multi-vault-architecture.md for the full design.\n\n'
+
   printf '══════════════════════════════════════════════════════════════════════\n'
   printf '  At any point you can check progress with:\n'
   printf '    scripts/thinkos-state.sh where-am-i\n'
-  printf '    scripts/thinkos-doctor.sh --deep --os-home %q --products %q\n\n' \
+  printf '    scripts/thinkos-doctor.sh --deep --os-home %q --products %q\n' \
     "$VAULT_PATH" "$PRODUCTS_LIST"
+  printf '    bash scripts/thinkos-vault.sh list\n\n'
 }
 
 # Helper: count how many manual steps will be shown to the user.
@@ -508,6 +526,7 @@ _count_manual_steps() {
   fi
   n=$((n + 1))  # restart
   n=$((n + 1))  # Phase 2 continue
+  n=$((n + 1))  # Optional: multi-vault project creation
   printf '%d' "$n"
 }
 

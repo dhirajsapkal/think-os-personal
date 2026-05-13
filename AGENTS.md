@@ -7,8 +7,9 @@ Use this file when you are an agent helping someone install, inspect, or improve
 1. `README.md` for the product overview.
 2. `docs/agent-setup-playbook.md` for first-run setup behavior (Phase 1).
 3. `docs/phase-2-seeding-playbook.md` for Phase 2 (drafting HOT-tier files from connected tools).
-4. `adapters/README.md` to pick the user's tool path.
-5. The selected adapter only:
+4. `docs/multi-vault-architecture.md` for the multi-vault design (privacy tiers, schema enforcement, git integration).
+5. `adapters/README.md` to pick the user's tool path.
+6. The selected adapter only:
    - `adapters/claude-cowork/README.md`
    - `adapters/claude-code/README.md`
    - `adapters/codex/README.md`
@@ -85,3 +86,15 @@ Add `claude-cowork` to `--products` when the user uses Claude Cowork. Its MCP re
 - If the user chooses Documents, Desktop, Downloads, or an external/cloud folder, explain that macOS permissions may require Files/Folders or Full Disk Access.
 - Draft instructions and config changes for user approval when a product cannot be automated.
 - If a command fails, run the doctor script again and report the smallest actionable next step.
+
+## Multi-vault awareness
+
+Think OS supports multiple vaults: one personal hub plus zero-or-more project vaults (shared via git) plus reference vaults (read-only). When operating in any session:
+
+1. Check `~/.thinkos/vaults.json` for the registry. If absent, single-vault legacy mode.
+2. Determine active vault (sticky override at `~/.thinkos/active-vault`, else CWD-derived, else default).
+3. Mention the active vault in your first response: `Active vault: <id>. Personal hub always loaded.`
+4. Always load personal hub HOT-tier (Identity, Current Focus). Layer in project HOT (Project Home, Roster) if a project vault is active.
+5. Route writes per design doc §8: personal markers → personal hub regardless; schema mismatch → personal hub; team activity → project vault; ambiguous → ask.
+
+The full design is at `docs/multi-vault-architecture.md`. Use `scripts/thinkos-vault.sh` to manage the registry; never edit `~/.thinkos/vaults.json` by hand.

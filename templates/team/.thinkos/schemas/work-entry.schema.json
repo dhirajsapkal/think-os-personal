@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "work-entry.schema.json",
+  "title": "Work Entry",
+  "description": "Frontmatter schema for files in 01 Work/. One file per entry, append-only.",
+  "type": "object",
+  "required": ["uid", "type", "date", "author"],
+  "additionalProperties": true,
+  "properties": {
+    "uid": {
+      "type": "string",
+      "description": "ULID identifier. Unique across all vault entries.",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "type": {
+      "type": "string",
+      "const": "work-entry",
+      "description": "Must be the literal string 'work-entry'."
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 date the entry was recorded (YYYY-MM-DD)."
+    },
+    "author": {
+      "type": "string",
+      "description": "GitHub handle of the person who wrote this entry (e.g. '@maya')."
+    },
+    "participants": {
+      "type": "array",
+      "description": "Additional people who contributed to or were present for this work.",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    }
+  }
+}
