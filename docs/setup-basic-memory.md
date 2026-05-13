@@ -215,7 +215,7 @@ Obsidian Mobile needs a sync layer to see the same vault on a phone. Use Obsidia
 - [ ] (Optional) Obsidian opens the vault and shows the graph view
 - [ ] (Optional) Obsidian Mobile opens the same vault from your phone
 
-Diagnostic order if anything fails: (a) Basic Memory binary works at the CLI? (b) desktop agent sees the MCP? (c) The MCP tools appear ina desktop agent session? (d) The agent uses them when prompted?
+Diagnostic order if anything fails: (a) Basic Memory binary works at the CLI? (b) desktop agent sees the MCP? (c) The MCP tools appear in a desktop agent session? (d) The agent uses them when prompted?
 
 ---
 

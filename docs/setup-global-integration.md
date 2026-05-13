@@ -2,7 +2,7 @@
 type: setup-guide
 tags:
 - setup
-- claude-code
+- adapters
 - desktop-agent
 - mcp
 - global
@@ -12,7 +12,15 @@ permalink: think-os/setup-global-integration
 
 # Setup — Global Integration
 
-One-time setup to make your OS the durable memory layer for the agentic tools you use. The examples below include a Claude Code adapter because it has a well-known user-level MCP config and slash-command path. Other tools should follow the same pattern: register the Basic Memory MCP globally, then add global instructions that explain when and how to use it.
+One-time setup to make your OS the durable memory layer for the agentic tools you use.
+
+Prefer the product-specific adapters first:
+
+- [`../adapters/claude-cowork/README.md`](../adapters/claude-cowork/README.md)
+- [`../adapters/claude-code/README.md`](../adapters/claude-code/README.md)
+- [`../adapters/codex/README.md`](../adapters/codex/README.md)
+
+Use this guide for the shared pattern behind those adapters and for scheduled maintenance ideas.
 
 **Time**: ~20 minutes total
 **Prereqs**: Basic Memory installed and working (see `setup-basic-memory.md`); at least one MCP-aware tool you want to wire in

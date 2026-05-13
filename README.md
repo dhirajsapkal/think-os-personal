@@ -40,9 +40,11 @@ export/think-os-alpha/
 ├── docs/
 │   ├── setup-basic-memory.md    ← install Basic Memory MCP + Obsidian
 │   └── setup-global-integration.md  ← wire CLI agent + desktop agent + scheduled cadence
-└── adapters/claude-code/commands/
-    ├── README.md                ← install + usage
-    └── *.md                     ← 13 slash commands (/whoami, /plate, /log, etc.)
+└── adapters/
+    ├── README.md                ← product adapter index
+    ├── claude-cowork/           ← Claude Cowork MCP + instructions
+    ├── claude-code/             ← Claude Code MCP + instructions + slash commands
+    └── codex/                   ← Codex MCP + AGENTS.md instructions
 ```
 
 ## How to use it
@@ -51,11 +53,24 @@ export/think-os-alpha/
 2. **Copy `templates/` into `{{OS_HOME}}`.** That's your starting OS.
 3. **Fill in the HOT tier first.** `identity.md`, `active-projects.md`, `current-focus.md`. Skip placeholders you're not sure about — you can add later.
 4. **Follow `docs/setup-basic-memory.md`** (15 min). Installs the MCP server that exposes your OS to MCP-aware tools.
-5. **Follow `docs/setup-global-integration.md`** (20 min). Wires MCP-aware tools and scheduled maintenance.
-6. **Install the slash commands.** `cp adapters/claude-code/commands/*.md ~/.claude/commands/`.
-7. **Verify.** Open a new desktop agent or CLI agent session anywhere on your machine. Ask "who am I and what am I working on?" You should get a specific answer.
+5. **Choose your product adapter.** Start with one of:
+   - `adapters/claude-cowork/` for Claude Cowork
+   - `adapters/claude-code/` for Claude Code CLI
+   - `adapters/codex/` for OpenAI Codex
+6. **Optionally follow `docs/setup-global-integration.md`** for scheduled maintenance and broader integration patterns.
+7. **Verify.** Open a new agent session anywhere on your machine. Ask "who am I and what am I working on?" You should get a specific answer.
 
 Total time to "it works": about an hour, most of which is filling in your identity / projects, not technical setup.
+
+## Product support
+
+Think OS core is one vault plus one MCP server. Product support lives in adapters so each tool can keep its own install steps, global instruction format, and verification path.
+
+| Product | Status | Entry point |
+|---|---|---|
+| Claude Cowork | Early alpha adapter | [`adapters/claude-cowork/README.md`](adapters/claude-cowork/README.md) |
+| Claude Code CLI | Early alpha adapter | [`adapters/claude-code/README.md`](adapters/claude-code/README.md) |
+| Codex | Early alpha adapter | [`adapters/codex/README.md`](adapters/codex/README.md) |
 
 ## The three rules (the architecture in one screen)
 
