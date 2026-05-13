@@ -13,6 +13,13 @@ permalink: think-os/setup-basic-memory
 
 One-time setup to make your personal context OS reachable from any desktop agent session (and any other MCP-aware agentic tool), and editable from a real markdown editor.
 
+Agent-assisted setup can run the safe parts for you:
+
+```bash
+scripts/thinkos-setup.sh --products claude-code,codex --install-basic-memory --yes
+scripts/thinkos-doctor.sh --deep --products claude-code,codex
+```
+
 **Time**: ~15 minutes for Basic Memory · +10 minutes for Obsidian (optional)
 **Prereqs**: Homebrew on macOS (Linux / Windows users — adapt as needed)
 

@@ -23,6 +23,11 @@ This OS makes a small, deliberate bet: **plain markdown files on disk are the so
 ```
 export/think-os-alpha/
 ├── README.md                    ← you are here
+├── AGENTS.md                    ← first file agents should read
+├── CLAUDE.md                    ← Claude-specific pointer to AGENTS.md
+├── scripts/
+│   ├── thinkos-doctor.sh        ← compact setup/status checks
+│   └── thinkos-setup.sh         ← safe first-run automation
 ├── templates/                   ← copy this folder into your live vault
 │   ├── 00 Home.md              ← Obsidian dashboard + portal
 │   ├── 01 Now/                 ← current week, inbox, work log
@@ -33,6 +38,7 @@ export/think-os-alpha/
 │   ├── 90 System/              ← agent instructions + connector inventory
 │   └── 99 Archive/             ← rotated logs and dormant notes
 ├── docs/
+│   ├── agent-setup-playbook.md  ← first-run behavior for agents
 │   ├── setup-basic-memory.md    ← install Basic Memory MCP + Obsidian
 │   ├── setup-global-integration.md  ← wire CLI agent + desktop agent + scheduled cadence
 │   └── vault-architecture.md    ← why the Obsidian vault is organized this way
@@ -56,7 +62,25 @@ export/think-os-alpha/
 6. **Optionally follow `docs/setup-global-integration.md`** for scheduled maintenance and broader integration patterns.
 7. **Verify.** Open a new agent session anywhere on your machine. Ask "who am I and what am I working on?" You should get a specific answer.
 
-Total time to "it works": about an hour, most of which is filling in your identity / projects, not technical setup.
+Total time to "it works": about an hour by hand, or faster with an agent running the setup scripts. Most of the real work is filling in your identity / projects, not technical setup.
+
+## Agent-Assisted Setup
+
+If you open this repo with an agent, ask:
+
+```text
+Help me set up Think OS end to end.
+```
+
+Agents should read [`AGENTS.md`](AGENTS.md), then use the setup scripts instead of manually inspecting your machine:
+
+```bash
+scripts/thinkos-doctor.sh --json --products claude-code,codex
+scripts/thinkos-setup.sh --products claude-code,codex --install-basic-memory --yes
+scripts/thinkos-doctor.sh --deep --products claude-code,codex
+```
+
+The scripts copy missing templates, register the Basic Memory project, install product instructions, and verify MCP registration where the product CLI supports it. See [`docs/agent-setup-playbook.md`](docs/agent-setup-playbook.md).
 
 ## Vault structure
 

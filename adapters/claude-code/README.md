@@ -11,6 +11,14 @@ Use this adapter when Claude Code CLI is one of your primary tools. It wires Bas
 
 ## 1. Register Basic Memory MCP At User Scope
 
+Agent-assisted path:
+
+```bash
+scripts/thinkos-setup.sh --products claude-code --install-basic-memory --yes
+```
+
+Manual path:
+
 ```bash
 claude mcp add basic-memory --scope user -- basic-memory mcp --project think-os
 ```
@@ -47,14 +55,14 @@ Optional but useful:
 
 ```bash
 mkdir -p ~/.claude/commands
-cp adapters/claude-code/commands/*.md ~/.claude/commands/
+find adapters/claude-code/commands -maxdepth 1 -name "*.md" ! -name "README.md" -exec cp {} ~/.claude/commands/ \;
 ```
 
 From this adapter folder, the same command is:
 
 ```bash
 mkdir -p ~/.claude/commands
-cp commands/*.md ~/.claude/commands/
+find commands -maxdepth 1 -name "*.md" ! -name "README.md" -exec cp {} ~/.claude/commands/ \;
 ```
 
 ## 4. Verify
@@ -77,6 +85,12 @@ Expected:
 - Claude Code can call Basic Memory tools.
 - The answer references `05 Profile/Identity.md` and `01 Now/Current Focus.md`.
 - Slash commands appear when you type `/`, if installed.
+
+Agent check:
+
+```bash
+scripts/thinkos-doctor.sh --deep --products claude-code
+```
 
 ## Troubleshooting
 

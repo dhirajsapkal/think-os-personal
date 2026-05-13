@@ -4,6 +4,8 @@ Think OS core is tool-agnostic: markdown files in `{{OS_HOME}}`, indexed and edi
 
 Adapters explain how to wire that core into specific agentic products.
 
+For first-run setup, agents should follow [`../docs/agent-setup-playbook.md`](../docs/agent-setup-playbook.md) and use `scripts/thinkos-doctor.sh` / `scripts/thinkos-setup.sh` instead of manually probing the machine.
+
 | Adapter | Use when | Setup |
 |---|---|---|
 | Claude Cowork | You use Claude's desktop Cowork environment and want Think OS available in every Cowork task. | [`claude-cowork/README.md`](claude-cowork/README.md) |

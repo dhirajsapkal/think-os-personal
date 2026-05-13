@@ -11,6 +11,14 @@ Use this adapter when OpenAI Codex is one of your primary tools. It wires Basic 
 
 ## 1. Register Basic Memory MCP Globally
 
+Agent-assisted path:
+
+```bash
+scripts/thinkos-setup.sh --products codex --install-basic-memory --yes
+```
+
+Manual path:
+
 ```bash
 codex mcp add basic-memory -- basic-memory mcp --project think-os
 ```
@@ -66,6 +74,12 @@ Expected:
 - Codex can see the `basic-memory` MCP server.
 - The answer references `05 Profile/Identity.md` and `01 Now/Current Focus.md`.
 - Codex does not need the vault manually attached as a project.
+
+Agent check:
+
+```bash
+scripts/thinkos-doctor.sh --deep --products codex
+```
 
 ## Troubleshooting
 

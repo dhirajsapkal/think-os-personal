@@ -10,6 +10,16 @@ Use this adapter when Claude Cowork is your desktop agent. Cowork should use Bas
 
 ## 1. Register Basic Memory MCP
 
+Agent-assisted path:
+
+```bash
+scripts/thinkos-setup.sh --products claude-cowork --install-basic-memory --yes
+```
+
+This prepares generated copy/paste files at `~/.thinkos/claude-cowork-mcp.txt` and `~/.thinkos/claude-cowork-instructions.md`. Cowork still needs the MCP added through its settings UI.
+
+Manual path:
+
 Cowork manages MCPs through its UI.
 
 Open Cowork settings and add a custom MCP server:
@@ -48,6 +58,12 @@ Expected:
 - Cowork can see Basic Memory tools.
 - The answer references `05 Profile/Identity.md` and `01 Now/Current Focus.md`.
 - The answer is specific, not generic.
+
+Agent check:
+
+```bash
+scripts/thinkos-doctor.sh --products claude-cowork
+```
 
 ## Troubleshooting
 

@@ -9,13 +9,13 @@ permalink: think-os/adapters/claude-code/commands/readme
 
 # CLI agent custom slash commands
 
-Thirteen slash commands for using your personal context OS from any CLI agent session, regardless of cwd. They wrap Basic Memory MCP calls plus a few file ops so common workflows are one keystroke instead of a sentence.
+Fourteen slash commands for using your personal context OS from any CLI agent session, regardless of cwd. They wrap Basic Memory MCP calls plus a few file ops so common workflows are one keystroke instead of a sentence.
 
 ## Install (one time, ~5 sec)
 
 ```bash
 mkdir -p ~/.claude/commands
-cp /path/to/this/export/think-os-alpha/adapters/claude-code/commands/*.md ~/.claude/commands/
+find /path/to/this/export/think-os-alpha/adapters/claude-code/commands -maxdepth 1 -name "*.md" ! -name "README.md" -exec cp {} ~/.claude/commands/ \;
 ```
 
 After that, every new CLI agent session will autocomplete these as you type `/`.
@@ -39,6 +39,7 @@ To verify: `cd ~ && claude`, then type `/` — you should see the list.
 | `/stale` | Walk frontmatter dates, report stale files |
 | `/update` | Refresh Basic Memory's index from disk |
 | `/voice-rewrite <before \| after>` | Capture an AI draft vs my rewrite into `05 Profile/Voice Profile.md` |
+| `/thinkos-setup` | Run the first-time setup wizard from the export repo |
 
 ## What's NOT here (and why)
 
