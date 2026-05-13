@@ -120,22 +120,92 @@ Otherwise proceed to Section 2 with the chosen file (or all four in order).
 
 ---
 
-## Section 2 — Per-file seeding flow
+## Section 2 — Per-file seeding flow (use AskUserQuestion throughout)
 
-The general pattern for every file in this section:
+For every file in this section, follow this pattern. **All user choices use `AskUserQuestion`** — never free-text "Y/N for each" or "reply with the numbers."
 
-1. **Tell the user which sources you'd like to use**, with one short line per source explaining what you'll read and why.
-2. **Per-source consent.** Ask Y/N for each. Default is no — the user has to opt in.
-3. **Probe each consented source.** Make the minimum read necessary. Track what you read and the URL/identifier.
-4. **Synthesize a draft.** Plain markdown matching the template structure already in the user's vault (read `templates/<file>` from this repo for the format).
-5. **Show the draft + citations.** Citations are a separate section at the bottom of the message, mapping each claim to its source.
-6. **Iterate.** Ask "good as-is, edit something, or scrap and try different sources?". Apply edits in chat until the user approves.
-7. **Commit.** Use `mcp__basic-memory__edit_note` (operation: `replace` for files that have only template content, `append` otherwise — check the file first).
-8. **Mark seeded.** `bash scripts/thinkos-state.sh mark-seeded <file-key>`.
+### Step 1 — Source picker (multi-select chips)
 
-The file-key values are: `project_index`, `current_focus`, `identity`, `people`, `decisions`.
+For the target file, pick the relevant sources from its per-file recipe (sections 2.1–2.4 below). Filter to only those the user actually has authed and connected. Show a one-line description per source.
 
-If a section's consented sources all turn up empty (e.g. user said yes to Granola but has no recent meetings), tell the user and ask whether to skip this file or fall back to a simpler approach (manual prompt-based seeding from chat conversation).
+`AskUserQuestion`:
+- Header: "Which sources?"
+- Question: "Which tools should I read from for <File Name>? Check any you want me to use — I'll only touch what you check."
+- **multiSelect: true**
+- Options: one chip per available source, each with:
+  - `label`: source name (e.g., "Granola", "Google Calendar", "Filesystem")
+  - `description`: one-line what-and-why (e.g., "Meeting titles only from the last ~60 days. Best signal for active projects.")
+
+Always include a "None — just ask me directly" option as the last chip — lets the user seed the file from conversation if they don't want any connector reads.
+
+If the user picks zero sources AND skips "None": ask once more, then skip the file.
+
+### Step 2 — Pull and cache
+
+For each consented source, make ONE call (MCP or script) and dump to `<vault>/.index/<source>.json`. Show the user a one-line per-source status:
+
+> Pulled 47 meetings from Granola, 12 ClickUp lists, 18 calendar events. Done.
+
+If a source returns empty: say so, move on.
+
+### Step 3 — Synthesize draft
+
+Read the cached `.index/*.json` files. Synthesize a draft matching the template at `templates/<vault file path>`. Show the draft directly in the chat — render the markdown so the user sees what'll land in the vault.
+
+Below the draft, in a fenced code block, show a short citations list: which source backed which claim. Two columns max — don't sprawl.
+
+### Step 4 — Review choice (chip picker)
+
+`AskUserQuestion`:
+- Header: "<File Name> draft"
+- Question: "How does this look?"
+- multiSelect: false
+- Options:
+  | label | description |
+  |---|---|
+  | "Looks good — write it" | "Commit to the vault as-is." |
+  | "Edit something" | "Tell me what to change; I'll revise without re-fetching." |
+  | "Redo with different sources" | "Back to source picker." |
+  | "Skip this file for now" | "Move on; you can re-seed later." |
+
+If "Edit something": free-text follow-up. Revise the draft locally (no re-fetching). Loop back to Step 4 with the revised draft.
+
+If "Redo with different sources": loop to Step 1.
+
+If "Skip this file for now": don't mark seeded; move to Step 6.
+
+### Step 5 — Commit
+
+`mcp__basic-memory__edit_note` (operation: `replace` if the file still has template content, `append` otherwise — check first). Then:
+
+```bash
+bash scripts/thinkos-state.sh mark-seeded <file-key>
+```
+
+File-key values: `project_index`, `current_focus`, `identity`, `people`.
+
+### Step 6 — Move on or pause (chip picker)
+
+If there are more files to do (e.g. user picked "All four"), `AskUserQuestion`:
+- Header: "Next?"
+- Question: "<File> is done. What's next?"
+- multiSelect: false
+- Options:
+  | label | description |
+  |---|---|
+  | "Continue to <next-file>" | "Draft <next-file> now." |
+  | "Pick a different next file" | "I'll let you choose." |
+  | "Pause for now" | "I'll come back later. Progress is saved." |
+
+If only one file was picked (not "All four"), just say "Done with <file>. Run `/thinkos-continue` anytime to do another."
+
+When all 4 are seeded: `bash scripts/thinkos-state.sh set-phase complete`. Show a one-line completion message.
+
+### Common edge cases
+
+- **All consented sources return empty** for a file → tell the user, offer to seed from conversation instead (Step 4 with empty draft → user describes; you draft from their description).
+- **MCP call fails mid-pull** → surface the error in one line, skip that source, proceed with the rest. Don't retry more than once.
+- **User wants to edit a draft heavily** → keep iterating in Step 4 with text-only revisions. Don't re-fetch unless they pick "Redo with different sources."
 
 ---
 
