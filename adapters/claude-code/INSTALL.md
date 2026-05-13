@@ -111,14 +111,14 @@ If basic-memory is missing, use `AskUserQuestion`:
 
 `AskUserQuestion`:
 
-- Header: "Vault id"
-- Question: "What should I call this vault in commands? (e.g., `thinkos vault use <id>`)"
+- Header: "Name for your vault"
+- Question: "What should I call this vault in commands? This is YOUR-OWN vault — the one only you can see — as opposed to a shared team vault. The name here is just an id used in commands like `thinkos vault use <name>`."
 - multiSelect: false
 - Options:
   | label | description | maps to |
   |---|---|---|
-  | "personal (default)" | "Use 'personal' as the id." | `personal` |
-  | "Custom id" | "I want a different name." | (follow-up free-text prompt, validate `[a-z0-9-]+`) |
+  | "personal" | "Default. 'personal' here means 'your own instance' (vs a shared team vault) — it has nothing to do with personal-life content. You can use this vault for work, side projects, anything." | `personal` |
+  | "Custom id" | "I want a different name (e.g., 'me', 'mine', or your first name). Must be lowercase letters, digits, or hyphens." | (follow-up free-text prompt, validate `[a-z0-9-]+`) |
 
 ### Question 5 of 5 — Display label
 
