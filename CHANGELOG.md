@@ -10,20 +10,8 @@ All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-M
 
 ### Changed
 
-- **README setup section restructured** into three explicit numbered steps:
-  - Step 1: Install (paste the one-line prompt)
-  - Step 2: Continue setup (`/thinkos-continue` after restart — DO NOT SKIP, flagged emphatically)
-  - Step 3: Set up automations (`/thinkos-automate`, optional but recommended)
-  
-  Previously Phase 2 was a tucked-away bullet under "After install" that users could easily miss. Now it's a top-level numbered step with explicit DO-THIS-NEXT framing.
-
-- **`adapters/claude-code/INSTALL.md` post-install checklist** rewritten with the same 3-step framing (Restart, OAuth, Phase 2, Phase 3). Agents now surface Phase 2 + Phase 3 prominently after install completes, rather than burying them.
-
-### Rationale
-
-The user feedback was that the previous README structure made it too easy to think "install complete = done." It's not — Phase 2 is where Think OS actually becomes useful, and Phase 3 is where it stays useful over time. Both now get unmissable real estate.
-
-On the scheduled-tasks question: Claude Code's remote-trigger model (cloud-side, cron-driven, runs without a local instance) is actually a better fit for "set and forget" maintenance than Cowork's locally-scheduled tasks (which require the app to be running). The phase-3 playbook makes this trade-off explicit.
+- **README setup section restructured** into three explicit numbered steps: Install, Continue setup (`/thinkos-continue`), Set up automations (`/thinkos-automate`).
+- **`adapters/claude-code/INSTALL.md` post-install checklist** rewritten with the same 3-step framing (Restart, OAuth, Phase 2, Phase 3).
 
 ---
 
@@ -35,12 +23,8 @@ On the scheduled-tasks question: Claude Code's remote-trigger model (cloud-side,
 
 ### Changed
 
-- **README install prompt simplified to one line.** Users now paste only `Install Think OS for me from https://github.com/dhirajsapkal/think-os` — the agent clones the repo, finds `adapters/claude-code/INSTALL.md`, and follows it. No more 6-step prompt template.
-- **AGENTS.md** leads with "If you're installing, read INSTALL.md and stop reading other docs." Maintenance-focused docs are listed separately.
-
-### Rationale
-
-The previous install prompt was 6 steps long because the prompt itself had to spell out the install procedure. With a canonical playbook checked into the repo, the prompt collapses to the user's intent ("install this") + the repo URL. The agent's first move (clone + read) leads it to the playbook. Less for the user to copy; less to keep in sync between README and reality.
+- **README install prompt simplified to one line.** Users now paste only `Install Think OS for me from https://github.com/dhirajsapkal/think-os` — the agent clones the repo, finds `adapters/claude-code/INSTALL.md`, and follows it.
+- **AGENTS.md** leads with "If you're installing, read INSTALL.md and stop reading other docs."
 
 ---
 
@@ -80,14 +64,8 @@ The previous install prompt was 6 steps long because the prompt itself had to sp
 
 ## [0.3.0] — 2026-05-13
 
-The "ship a polished Claude Code experience" release. Focus narrows to Claude Code; Cowork and Codex remain scaffolded for future versions.
-
 ### Removed
-- **Interactive wizard** (`scripts/thinkos-wizard.sh`). The agent-driven install
-  via the chat-based prompt is now the canonical path. Manual terminal users
-  can still call `scripts/thinkos-setup.sh` directly with flags. The wizard's
-  interactive read-prompts couldn't be driven from Claude Code's Bash tool, so
-  the agent-driven install in chat is strictly better UX.
+- **Interactive wizard** (`scripts/thinkos-wizard.sh`). The agent-driven install via the chat-based prompt is now the canonical path. Manual terminal users can still call `scripts/thinkos-setup.sh` directly with flags.
 
 ### Tool support roadmap
 - **v0.3 (now)**: Claude Code only. Install flow asks only Claude-Code questions.
@@ -114,8 +92,8 @@ default install prompt. A developer can still invoke them with
 
 ### Added
 
-- **`templates/instructions/05-global-rules.md`** — non-negotiable NEVER / ALWAYS behavioral rules curated from a survey of well-regarded CLAUDE.md files (Anthropic docs, HumanLayer, ctoth, Glen Rhodes, Joe Cotellese, et al.). Inserted between the priority preamble and token-efficiency rules in the BEGIN/END THINK OS block. Covers destructive ops, scope creep, secrets, drafts-never-send, plan-before-edit, file:line citations, freshness checks, disagreement protocol, and more.
-- **Strengthened MCP-first directive** in `00-think-os-priority.md`. New explicit `IMPORTANT: First-action protocol` section with the exact tool calls the agent must make before answering substantive questions. Clear exception list (trivial syntax, generic facts, same-session continuation). The forceful language (MUST, BEFORE, IMPORTANT:) follows documented patterns that measurably improve compliance.
+- **`templates/instructions/05-global-rules.md`** — non-negotiable NEVER / ALWAYS behavioral rules. Covers destructive ops, scope creep, secrets, drafts-never-send, plan-before-edit, file:line citations, freshness checks, disagreement protocol, and more.
+- **Strengthened MCP-first directive** in `00-think-os-priority.md`. New explicit `IMPORTANT: First-action protocol` section with the exact tool calls the agent must make before answering substantive questions. Clear exception list (trivial syntax, generic facts, same-session continuation).
 
 ### Changed
 
@@ -125,8 +103,6 @@ default install prompt. A developer can still invoke them with
 ---
 
 ## [0.2.0] — 2026-05-13
-
-The "ready to install on yourself" release. Major expansion across three axes: onboarding UX, multi-vault architecture, and curated always-on agent guidance.
 
 ### Added
 

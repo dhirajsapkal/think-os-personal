@@ -30,7 +30,7 @@ These aren't notifications — they're maintenance. Your vault gets healthier ov
 
 ---
 
-## How Claude Code scheduling works (and why it's better than you might expect)
+## How Claude Code scheduling works
 
 Claude Code supports **remote scheduled triggers** through the `schedule` skill and the `CronCreate` / `CronList` / `CronDelete` tools. Key properties:
 
@@ -39,16 +39,7 @@ Claude Code supports **remote scheduled triggers** through the `schedule` skill 
 - **They run a small Claude session** with whatever prompt you defined, with access to your MCPs and tools.
 - **They write to your filesystem and vault** the same way an in-session agent would.
 
-This is materially better than locally-scheduled tasks (cron, launchd, or Cowork's scheduled tasks) because:
-
-| | Cowork scheduled tasks | Local cron / launchd | Claude Code remote triggers |
-|---|---|---|---|
-| App must be running | ✓ Yes | ✗ No, but no LLM | ✗ No |
-| Has LLM context | ✓ Yes | ✗ No | ✓ Yes |
-| Survives machine sleep | Partially | Re-fires on wake | ✓ Yes (cloud) |
-| Costs | Free (with subscription) | Free | Token usage per fire |
-
-The trade-off is cost (each fire uses tokens), but for low-frequency maintenance tasks the cost is negligible — a daily 4am reindex agent task takes ~500-2000 tokens.
+Each fire uses Anthropic API tokens. For low-frequency maintenance tasks, token usage is low — a daily 4am reindex takes ~500-2000 tokens.
 
 ---
 
@@ -65,7 +56,7 @@ When the user runs `/thinkos-automate`, the agent offers these by default. Each 
 basic-memory reindex --project think-os
 ```
 
-**Cost**: each fire spawns a tiny Claude session (one Bash call). Token usage is minimal. Whether you're billed for it depends on your Claude plan; we have no published per-trigger pricing yet — measure on your own account if it matters.
+**Cost**: each fire spawns a tiny Claude session (one Bash call). Token usage is minimal. Whether you're billed depends on your Claude plan.
 
 ### 2. Weekly review — `0 20 * * 0` (Sunday 8pm)
 
@@ -77,7 +68,7 @@ basic-memory reindex --project think-os
 3. Drafts an updated `01 Now/Current Focus.md` covering next week.
 4. Writes the draft to `01 Now/Current Focus.md.draft` (NOT the live file) for the user to review and approve on Monday morning.
 
-**Cost**: each fire spawns a Claude session that reads ~7 days of vault content and drafts an updated focus file. Larger Work Logs = more tokens. Whether you're billed depends on your Claude plan.
+**Cost**: reads ~7 days of vault content and drafts an updated focus file. Whether you're billed depends on your Claude plan.
 
 ### 3. Quarterly archive — `0 21 1-7 1,4,7,10 0` (first Sunday of Jan/Apr/Jul/Oct, 9pm)
 
@@ -90,7 +81,7 @@ basic-memory reindex --project think-os
 4. Prunes stale entries from `02 Projects/Project Index.md` (projects with no activity in 6+ months get marked dormant).
 5. Writes a quarterly summary to `99 Archive/quarterly-summary-YYYY-QN.md`.
 
-**Cost**: fires 4 times a year. Per-fire token usage scales with vault size at end of quarter.
+**Cost**: fires 4 times a year. Token usage scales with vault size.
 
 ### 4. Daily morning brief — `0 7 * * 1-5` (7am Mon-Fri) — *optional*
 
@@ -101,7 +92,7 @@ basic-memory reindex --project think-os
 2. Reads Calendar events for today (via MCP if `Granola` / `Google Calendar` MCPs are installed).
 3. Writes a brief markdown summary to `01 Now/briefs/YYYY-MM-DD-brief.md`.
 
-**Cost**: each fire reads several HOT-tier files + (optionally) today's calendar events. Whether you're billed depends on your Claude plan.
+**Cost**: reads HOT-tier files + today's calendar events (if MCP connected). Whether you're billed depends on your Claude plan.
 
 **Skip if**: You already use `/thinkos-morning` interactively each day. Then there's no benefit to scheduling.
 
@@ -239,7 +230,7 @@ No. Triggers run on Anthropic's infrastructure. Your laptop can be asleep.
 The next run will retry. If it fails repeatedly, you'll see warnings in `/thinkos-doctor` output.
 
 **"How much will this cost?"**
-We have no published per-trigger pricing or benchmarks. Token usage depends on vault size, bundle contents, and how chatty each trigger's prompt is. Whether that token usage is free under your Claude plan or pay-as-you-go depends on your account.
+Token usage depends on vault size and how much each trigger reads/writes. Whether that usage counts against your Claude plan or pay-as-you-go depends on your account.
 
 **"Can I add my own?"**
 Yes — use the `schedule` skill directly or `CronCreate` tool. Anything you can prompt an agent to do, you can schedule. Common candidates:
@@ -261,8 +252,8 @@ When the user runs `/thinkos-automate remove <name>`, use `CronDelete` after con
 
 ---
 
-## What's NOT shipped here
+## Scope notes
 
-- **No native Slack / email delivery.** Briefs go to vault files. If the user wants Slack delivery, they can write a follow-up agent prompt that reads the latest brief and sends it (but they have to OAuth Slack first via the plugin bundle).
-- **No machine-local cron.** We deliberately use remote triggers because they don't require the user to keep anything open or manage cron syntax.
-- **No alerting on stale data.** A future version could add a trigger that nags the user if their HOT files haven't been touched in N days. For v0.3, that's manual via `/thinkos-stale`.
+- **Briefs go to vault files, not Slack/email.** If you want Slack delivery, write a follow-up agent prompt that reads the brief file and sends it (requires Slack OAuth via your plugin bundle).
+- **Triggers run remotely.** There is no machine-local cron option.
+- **Stale-data alerting** is manual via `/thinkos-stale`.

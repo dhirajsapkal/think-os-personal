@@ -45,13 +45,12 @@ To verify: `cd ~ && claude`, then type `/` — you should see the list.
 | `/thinkos-help` | Show all Think OS commands and what they do |
 | `/thinkos-mcp-help` | How to query and update your personal context MCP |
 
-## What's NOT here (and why)
+## Connector sync
 
-The connector-sync workflow (`/productivity:update` in desktop agent — pulls from Gmail / Slack / project tracker / etc.) is **deliberately not** in CLI agent. The connector MCPs are registered in desktop agent, not CLI agent. Run that in desktop agent; use these commands here for read / write against the OS files themselves.
+The connector-sync workflow (`/productivity:update` — pulls from Gmail / Slack / project tracker / etc.) runs in desktop agent, where the connector MCPs are registered. Use these commands for read/write against the OS files themselves.
 
-The two surfaces are complementary, not parallel:
-- **desktop agent** = where `01 Now/Tasks.md` gets refreshed FROM connectors
-- **CLI agent** = where you READ `01 Now/Tasks.md` and WRITE to the OS while doing project work
+- **desktop agent** — refreshes `01 Now/Tasks.md` from connectors
+- **CLI agent** — reads `01 Now/Tasks.md` and writes to the OS during project work
 
 ## Maintenance
 
@@ -61,4 +60,4 @@ If you want new commands, add a markdown file here following the same pattern, t
 
 ---
 
-*The slash commands assume Basic Memory MCP is wired in (the wizard does this automatically; for manual setup see the adapter README). They use `mcp__basic-memory__*` tools. If MCP is unavailable, they degrade to direct file reads.*
+Commands require Basic Memory MCP (installed by the setup wizard; manual path: see the adapter README). If MCP is unavailable, commands degrade to direct file reads.

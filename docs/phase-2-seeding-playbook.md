@@ -37,7 +37,7 @@ This playbook is invoked from `adapters/claude-code/commands/thinkos-continue.md
 
 Phase 2 should **dump deterministic data to disk first, then synthesize**. Scripts handle the cheap stuff (filesystem scans, git logs, README extraction). MCPs are called exactly once per consented source. The agent reads cached JSON during synthesis, not paginated tool responses.
 
-See `docs/automation-roadmap.md` for the source matrix and the structural rationale. Concretely:
+See `docs/automation-roadmap.md` for the full source matrix. Concretely:
 
 1. **Filesystem first.** Ask the user which project root folders to scan (default suggestions: `~/Documents/Think/`, `~/code/`, `~/Projects/` — only suggest paths that exist). Then run:
    ```bash
@@ -92,7 +92,7 @@ Branch:
 - **Pick one** → Ask which, run that section only.
 - **Skip** → `scripts/thinkos-state.sh set-phase complete`. Tell the user they can run `/thinkos-continue` anytime to come back.
 
-Recommended order if "all four": **Project Index → Current Focus → Identity → People.** Reason: Project Index is the most deterministic (mostly folder/system scans, low PII), so it builds confidence. Current Focus depends on having a project list. Identity and People involve more sensitive sources and benefit from the user being warmed up to the consent flow.
+Recommended order if "all four": **Project Index → Current Focus → Identity → People.**
 
 ---
 
@@ -416,4 +416,3 @@ When all consented files are seeded:
 
 The state file lives at `~/.thinkos/wizard-state.json`. Read it with `scripts/thinkos-state.sh show`. Don't edit it by hand — use the subcommands (`set`, `set-phase`, `mark-seeded`) so updates stay atomic and timestamped.
 
-Note: the filename is `wizard-state.json` for historical reasons; it tracks Phase 2 onboarding state regardless of how setup was performed.

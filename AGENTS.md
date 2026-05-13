@@ -40,7 +40,7 @@ The agent instruction block installed into `~/.claude/CLAUDE.md` is assembled fr
    - `30-think-os-write-targets.md` — content type → vault destination
 2. **Adapter-specific instructions** in `adapters/claude-code/instructions.md`.
 
-`scripts/thinkos-setup.sh` concatenates layer 1 then layer 2 between `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` markers. `scripts/thinkos-update.sh` re-applies the same block (use after editing curated content or pulling new content from this repo). Update mechanism is intentionally cheap so we can iterate on the curated guidance often.
+`scripts/thinkos-setup.sh` concatenates layer 1 then layer 2 between `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` markers. `scripts/thinkos-update.sh` re-applies the same block (use after editing curated content or pulling new content from this repo).
 
 When working on Think OS itself, prefer editing the curated files over duplicating their content in adapter instructions — anything that should apply across all products belongs in `templates/instructions/`.
 

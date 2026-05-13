@@ -17,11 +17,11 @@ This document is the authoritative reference for the multi-vault design. Impleme
 
 ---
 
-## 0. TL;DR
+## 0. Summary
 
 Think OS has one **personal hub vault** (always local, never shared), zero-or-more **project vaults** (shared with teammates via git), and zero-or-more **reference vaults** (read-only imports). The personal hub is always loaded into the agent's context; project vaults layer on top when active.
 
-Privacy is enforced *structurally*: project vault schemas have no slot for personal content (no Work Log, no personal People notes, no `.private/`). The agent physically cannot write your personal log into a shared repo because there is no destination. This is novel — no prior PKM tool enforces privacy via structural absence — but it's a clean, observable boundary.
+Privacy is enforced *structurally*: project vault schemas have no slot for personal content (no Work Log, no personal People notes, no `.private/`). The agent cannot write your personal log into a shared repo because there is no destination for it.
 
 Personal vaults also support a true encrypted tier (`.vault/`, an APFS encrypted volume, Touch ID to unlock) for genuinely sensitive content. A middle tier (`.private/`, plain markdown + Time Machine exclusion) covers the everyday "not in backups" case.
 
@@ -166,8 +166,6 @@ The agent surfaces the active vault on its first response in any session:
 
 > Active vault: `argenx-team` (Argenx Team OS). Personal hub `personal` always loaded for identity/focus.
 
-This addresses the #1 multi-vault failure mode in the prior-art research: "which vault am I in?" disorientation. Solved by making the active vault always visible in agent output.
-
 ---
 
 ## 4. Privacy: three layered mechanisms
@@ -190,7 +188,7 @@ The agent never writes a personal-keyword entry to a project vault, even if expl
 - iCloud Documents&Desktop is explicitly *not* used; recommended vault location is outside `~/Documents`
 - Plain markdown — fully readable to apps with full disk access, but invisible to most backup/sync paths
 
-For the curious-but-honest-employer threat model (passive capture by MDM/backup/EDR-light), this is sufficient. Standard MDM enrollment doesn't read file contents without an EDR plugin (validated by the research).
+For passive-capture threat models (MDM backup, EDR-light), this is sufficient. Standard MDM enrollment does not read file contents without an EDR plugin.
 
 ### Layer 3 — Real encryption (personal hub top tier)
 

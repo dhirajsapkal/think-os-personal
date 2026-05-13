@@ -226,13 +226,3 @@ Some things are intentionally manual because they require human judgment:
 - Cross-vault search hub
 - Cowork + Codex install integration
 
----
-
-## Why the indexer pattern matters
-
-Two structural wins, no benchmark numbers attached (we don't have any yet):
-
-- **MCP calls per source happen exactly once.** With an indexer, each connector is queried, the result cached to disk, and re-read locally during iteration. Without it, every draft refresh tends to re-fetch.
-- **Synthesis reads structured JSON, not paginated tool output.** Easier for the LLM to attend to deduped, sorted, schematized input than to a raw tool response.
-
-We can add real measurements once Phase 2 has run on actual installs.
