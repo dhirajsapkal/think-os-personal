@@ -339,3 +339,20 @@ has_product "claude-cowork" && install_claude_cowork
 log
 log "Setup steps complete. Run this next:"
 log "  $REPO_ROOT/scripts/thinkos-doctor.sh --deep --os-home \"$OS_HOME\" --products \"$PRODUCTS\""
+
+if has_product "claude-cowork"; then
+  log
+  log "============================================================"
+  log "  NOW DO THIS IN COWORK"
+  log "============================================================"
+  log "Cowork's MCP is UI-managed — the script can't register it for you."
+  log
+  log "1. Open Claude Cowork → Settings → Connectors / MCP Servers"
+  log "2. Add a custom MCP server using the values in:"
+  log "     $HOME/.thinkos/claude-cowork-mcp.txt"
+  log "3. Paste the personalization block from:"
+  log "     $HOME/.thinkos/claude-cowork-instructions.md"
+  log "   (already on your clipboard if pbcopy ran above)"
+  log "4. Restart Cowork (quit and reopen — not just close the window)"
+  log "============================================================"
+fi
