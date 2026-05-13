@@ -1,0 +1,16 @@
+---
+description: Search people.md for a name (and surrounding project context)
+permalink: think-os/adapters/claude-code/commands/who
+---
+
+Search the personal context OS for the person named in arguments:
+
+```
+mcp__basic-memory__search_notes(query="$ARGUMENTS", page_size=5)
+```
+
+Return their canonical name (matching `people.md` heading), role, organization, current projects with this person, last touched, any "Avoid" flags. If multiple matches, show top 3 with confidence.
+
+If no hit, say so explicitly and offer to add them via `mcp__basic-memory__edit_note(identifier="People", operation="append", ...)` if I want to capture.
+
+User arguments: $ARGUMENTS
