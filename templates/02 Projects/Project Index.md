@@ -4,8 +4,9 @@ aliases:
 - Active Projects
 - active-projects
 - projects
+- think-os/projects
 type: note
-permalink: think-os/projects
+permalink: think-os/project-index
 tier: HOT
 last_reviewed: {{YYYY-MM-DD}}
 ---

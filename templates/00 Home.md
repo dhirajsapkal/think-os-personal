@@ -2,7 +2,6 @@
 title: Home
 type: dashboard
 permalink: think-os/home
-tier: HOT
 last_reviewed: {{YYYY-MM-DD}}
 ---
 

@@ -28,5 +28,3 @@ scripts/thinkos-doctor.sh --deep --os-home "<vault-path>" --products "<products>
 ```
 
 Use the scripts instead of manually probing files. Do not read the user's live vault content during setup unless they explicitly ask.
-
-User arguments: $ARGUMENTS
