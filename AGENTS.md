@@ -31,6 +31,8 @@ Be a guided installer, not a scavenger hunt.
 - Do not load the live vault content during setup unless the user asks you to inspect their actual notes.
 - Do not read connector data, email, calendar, Slack, or project tracker content during installation.
 
+- After basic setup, offer the bundle wizard (`--bundle <preset>`); see `data/plugin-catalog.yaml`.
+
 ## First-Run Command Shape
 
 Recommended default:

@@ -102,6 +102,37 @@ Use Basic Memory to answer: who am I and what am I working on?
 
 Expected: a specific answer from `05 Profile/Identity.md` and `01 Now/Current Focus.md`. If those files still have placeholders, the agent should say setup is connected but the user still needs to fill in the HOT tier.
 
+### 5. Install your stack
+
+Think OS includes a curated plugin/connector bundle wizard. After the basic MCP setup, offer the user a preset:
+
+| Preset | Description |
+|---|---|
+| `pm` | Product management stack |
+| `eng` | Engineering stack |
+| `design` | Design stack |
+| `ops` | Operations stack |
+
+**Claude Code** — run the setup script with a bundle flag:
+
+```bash
+scripts/thinkos-setup.sh --bundle pm
+# or call the installer directly:
+scripts/thinkos-install-bundle.sh --target claude-code --preset pm --yes
+```
+
+Use `--items id1,id2` to pick specific connectors; `--all` to install everything available. Run with `--dry-run` first to preview.
+
+**Cowork** — the bundle flow runs inside Cowork via an agent playbook. Tell the user:
+
+> Open Cowork and say: "set up my Think OS bundle"
+
+The agent will follow `adapters/claude-cowork/commands/thinkos-bundle.md` and walk through the preset picker interactively.
+
+**OAuth** — connectors that need authorization are listed at the end of each install run. The user clicks through the browser flow from inside the product. For Claude Code, opening the MCP tool for the first time also triggers the prompt automatically.
+
+See `data/plugin-catalog.yaml` for the full item list and `scripts/thinkos-install-bundle.sh --help` for all options.
+
 ## Product Paths
 
 ### Claude Cowork

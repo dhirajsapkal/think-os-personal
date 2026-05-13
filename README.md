@@ -61,8 +61,9 @@ export/think-os-alpha/
    - `adapters/claude-cowork/` for Claude Cowork
    - `adapters/claude-code/` for Claude Code CLI
    - `adapters/codex/` for OpenAI Codex
-6. **Optionally follow `docs/setup-global-integration.md`** for scheduled maintenance and broader integration patterns.
-7. **Verify.** Open a new agent session anywhere on your machine. Ask "who am I and what am I working on?" You should get a specific answer.
+6. **Install your stack.** Use the bundle wizard to install plugins/connectors. Claude Code: `scripts/thinkos-setup.sh --bundle pm` (or eng/design/ops). Cowork: open Cowork and ask the agent to set up your Think OS bundle. See [`data/plugin-catalog.yaml`](data/plugin-catalog.yaml) for the full list and [`adapters/claude-cowork/commands/thinkos-bundle.md`](adapters/claude-cowork/commands/thinkos-bundle.md) for the Cowork flow.
+7. **Optionally follow `docs/setup-global-integration.md`** for scheduled maintenance and broader integration patterns.
+8. **Verify.** Open a new agent session anywhere on your machine. Ask "who am I and what am I working on?" You should get a specific answer.
 
 Total time to "it works": about an hour by hand, or faster with an agent running the setup scripts. Most of the real work is filling in your identity / projects, not technical setup.
 

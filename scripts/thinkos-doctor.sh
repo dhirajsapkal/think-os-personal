@@ -7,6 +7,7 @@ PRODUCTS=""
 JSON=0
 STRICT=0
 DEEP=0
+CHECK_BUNDLE=0
 
 usage() {
   cat <<'EOF'
@@ -20,6 +21,7 @@ Options:
   --products LIST         Comma-separated products: claude-cowork,claude-code,codex,all
   --json                  Print compact JSON instead of human-readable output
   --deep                  Run slower product CLI MCP checks
+  --check-bundle           Compare installed plugins/connectors against the preset declared in the bundle state files
   --strict                Exit non-zero if any required check fails
   -h, --help              Show this help
 EOF
@@ -41,6 +43,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --deep)
       DEEP=1
+      shift
+      ;;
+    --check-bundle)
+      CHECK_BUNDLE=1
       shift
       ;;
     --strict)
@@ -256,6 +262,90 @@ fi
 if has_product "claude-cowork"; then
   add_check "claude-cowork:mcp" warn "Cowork MCP registration is UI-managed; use adapters/claude-cowork/README.md"
 fi
+
+# ---------------------------------------------------------------------------
+# Bundle checks — only when --check-bundle is set
+# ---------------------------------------------------------------------------
+if [[ "$CHECK_BUNDLE" -eq 1 ]]; then
+
+  if has_product "claude-code"; then
+    CC_BUNDLE_MARKER="$HOME/.thinkos/claude-code-bundle.txt"
+    if [[ ! -f "$CC_BUNDLE_MARKER" ]]; then
+      add_check "claude-code:bundle" ok "no bundle declared (run with --bundle to install one)"
+    else
+      cc_preset="$(head -n 1 "$CC_BUNDLE_MARKER" | tr -d '[:space:]')"
+      if [[ -z "$cc_preset" ]]; then
+        add_check "claude-code:bundle" warn "marker file exists but is empty: $CC_BUNDLE_MARKER"
+      else
+        # Source catalog and resolve expected MCP names for this preset
+        # shellcheck source=scripts/lib/catalog.sh
+        source "$SCRIPT_DIR/lib/catalog.sh"
+        preset_ids="$(catalog_resolve_preset "$cc_preset" 2>/dev/null)" || preset_ids=""
+        cc_ids="$(printf '%s\n' "$preset_ids" | catalog_filter_by_target claude_code 2>/dev/null)" || cc_ids=""
+
+        # Collect MCP names expected for this preset
+        expected_mcps=""
+        while IFS= read -r pid; do
+          pid="$(printf '%s' "$pid" | tr -d '[:space:]')"
+          [[ -z "$pid" ]] && continue
+          pkind="$(catalog_kind "$pid" "claude_code" 2>/dev/null)" || pkind=""
+          if [[ "$pkind" == "mcp_remote" || "$pkind" == "mcp_stdio" ]]; then
+            pmcp="$(catalog_get_field "$pid" "claude_code.mcp_name" 2>/dev/null)" || pmcp=""
+            [[ -n "$pmcp" ]] && expected_mcps="${expected_mcps}${pmcp}"$'\n'
+          fi
+        done < <(printf '%s\n' "$cc_ids")
+
+        if [[ -z "$(printf '%s' "$expected_mcps" | tr -d '[:space:]')" ]]; then
+          # Preset has no MCP items (only plugins/skill_bundles) — skip MCP check
+          add_check "claude-code:bundle" ok "preset '$cc_preset' declared; no MCP-type items to verify (plugins/skill_bundles cannot be verified from CLI in this version)"
+        else
+          # Run claude mcp list to verify
+          TMP_MCP="$(mktemp)"
+          mcp_list_ok=0
+          if command -v claude >/dev/null 2>&1; then
+            run_limited_to_file 12 "$TMP_MCP" claude mcp list && mcp_list_ok=1 || mcp_list_ok=0
+          fi
+
+          if [[ "$mcp_list_ok" -eq 0 ]]; then
+            add_check "claude-code:bundle" fail "preset '$cc_preset' declared but 'claude mcp list' failed or claude not found"
+          else
+            missing_mcps=""
+            while IFS= read -r mcp_name; do
+              mcp_name="$(printf '%s' "$mcp_name" | tr -d '[:space:]')"
+              [[ -z "$mcp_name" ]] && continue
+              if ! grep -q "$mcp_name" "$TMP_MCP"; then
+                missing_mcps="${missing_mcps}${mcp_name} "
+              fi
+            done < <(printf '%s\n' "$expected_mcps")
+
+            if [[ -n "$(printf '%s' "$missing_mcps" | tr -d '[:space:]')" ]]; then
+              add_check "claude-code:bundle" warn "preset '$cc_preset': missing MCPs: ${missing_mcps% }; run thinkos-install-bundle.sh --preset $cc_preset to re-install"
+            else
+              add_check "claude-code:bundle" ok "preset '$cc_preset': all expected MCPs present (plugins/skill_bundles cannot be verified from CLI in this version)"
+            fi
+          fi
+          rm -f "$TMP_MCP"
+        fi
+      fi
+    fi
+  fi
+
+  if has_product "claude-cowork"; then
+    CW_BUNDLE_FILE="$HOME/.thinkos/claude-cowork-bundle.json"
+    if [[ ! -f "$CW_BUNDLE_FILE" ]]; then
+      add_check "claude-cowork:bundle" ok "no bundle declared (open Cowork and ask the agent to set up your Think OS bundle)"
+    else
+      # Validate it's parseable JSON
+      if python3 -c "import sys,json; json.load(open(sys.argv[1]))" "$CW_BUNDLE_FILE" 2>/dev/null; then
+        add_check "claude-cowork:bundle" ok "handoff file present ($CW_BUNDLE_FILE); verify install state in Cowork directly — Cowork plugin state is not observable from the CLI"
+      else
+        add_check "claude-cowork:bundle" warn "handoff file exists but is not valid JSON: $CW_BUNDLE_FILE; re-run the Cowork bundle playbook to regenerate it"
+      fi
+    fi
+  fi
+
+fi
+# end --check-bundle
 
 if [[ "$JSON" -eq 1 ]]; then
   printf '{"os_home":"%s","project":"%s","checks":[' "$(json_escape "$OS_HOME")" "$(json_escape "$PROJECT_NAME")"

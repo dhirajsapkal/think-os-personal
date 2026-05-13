@@ -12,6 +12,10 @@ For first-run setup, agents should follow [`../docs/agent-setup-playbook.md`](..
 | Claude Code | You use Claude Code CLI and want user-scope MCP access plus slash commands. | [`claude-code/README.md`](claude-code/README.md) |
 | Codex | You use OpenAI Codex and want global MCP access plus AGENTS instructions. | [`codex/README.md`](codex/README.md) |
 
+## Bundle wizard
+
+Think OS includes a plugin/connector bundle wizard. After the basic setup, run `scripts/thinkos-setup.sh --bundle <name>` (Claude Code) or open the Cowork agent playbook at `adapters/claude-cowork/commands/thinkos-bundle.md` to pick from `pm` / `eng` / `design` / `ops` presets or build a custom stack. See [`data/plugin-catalog.yaml`](../data/plugin-catalog.yaml) for the full catalog.
+
 Add more adapters by following the same pattern:
 
 1. Register `basic-memory mcp --project think-os` globally or at the broadest safe scope the tool supports.
