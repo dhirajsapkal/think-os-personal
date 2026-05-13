@@ -8,6 +8,8 @@ INSTALL_BASIC_MEMORY=0
 REGISTER_MCP=1
 YES=0
 DRY_RUN=0
+BUNDLE=""
+BUNDLE_ITEMS=""
 
 usage() {
   cat <<'EOF'
@@ -27,10 +29,14 @@ Options:
   --skip-mcp                  Do not register MCPs in product CLIs
   --yes                       Non-interactive mode; accept safe defaults
   --dry-run                   Show what would happen without changing files
+  --bundle PRESET             Install a curated bundle after product setup (pm|eng|design|ops|all)
+  --bundle-items LIST         Comma-separated catalog ids to install (advanced)
   -h, --help                  Show this help
 
-Example:
+Examples:
   scripts/thinkos-setup.sh --products claude-code,codex --install-basic-memory --yes
+  scripts/thinkos-setup.sh --products claude-code --bundle pm --yes
+  scripts/thinkos-setup.sh --products claude-code --bundle-items slack,notion,granola --yes
 EOF
 }
 
@@ -59,6 +65,14 @@ while [[ $# -gt 0 ]]; do
     --dry-run)
       DRY_RUN=1
       shift
+      ;;
+    --bundle)
+      BUNDLE="$2"
+      shift 2
+      ;;
+    --bundle-items)
+      BUNDLE_ITEMS="$2"
+      shift 2
       ;;
     -h|--help)
       usage
@@ -333,6 +347,18 @@ ensure_basic_memory
 register_basic_memory_project
 
 has_product "claude-code" && install_claude_code
+
+if has_product "claude-code" && [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
+  bundle_args=()
+  [[ -n "$BUNDLE" ]] && bundle_args+=(--preset "$BUNDLE")
+  [[ -n "$BUNDLE_ITEMS" ]] && bundle_args+=(--items "$BUNDLE_ITEMS")
+  [[ "$YES" -eq 1 ]] && bundle_args+=(--yes)
+  [[ "$DRY_RUN" -eq 1 ]] && bundle_args+=(--dry-run)
+  "$REPO_ROOT/scripts/thinkos-install-bundle.sh" --target claude-code "${bundle_args[@]}"
+elif [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
+  log "Warning: --bundle/--bundle-items given but claude-code not in --products; bundle install skipped."
+fi
+
 has_product "codex" && install_codex
 has_product "claude-cowork" && install_claude_cowork
 

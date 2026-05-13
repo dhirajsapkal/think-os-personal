@@ -1,0 +1,548 @@
+#!/usr/bin/env bash
+# =============================================================================
+# scripts/thinkos-install-bundle.sh — Think OS plugin/connector bundle installer
+# =============================================================================
+# Installs a bundle of catalog items for the Claude Code target.
+#
+# Usage:
+#   scripts/thinkos-install-bundle.sh --target claude-code \
+#     [--preset pm|eng|design|ops] \
+#     [--items id1,id2,id3] \
+#     [--all] \
+#     [--dry-run] \
+#     [--yes] \
+#     [--skip-platform-check]
+#
+# Exactly one of --preset, --items, or --all is required.
+# --target claude-code is also required.
+# =============================================================================
+set -uo pipefail
+
+# ---------------------------------------------------------------------------
+# Script globals
+# ---------------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+TARGET=""
+PRESET=""
+ITEMS_RAW=""
+ALL=0
+DRY_RUN=0
+YES=0
+SKIP_PLATFORM_CHECK=0
+
+# ---------------------------------------------------------------------------
+# Usage / help
+# ---------------------------------------------------------------------------
+usage() {
+  cat <<'EOF'
+Usage: scripts/thinkos-install-bundle.sh --target claude-code \
+         [--preset pm|eng|design|ops] \
+         [--items id1,id2,id3] \
+         [--all] \
+         [--dry-run] \
+         [--yes] \
+         [--skip-platform-check]
+
+Installs a bundle of Think OS catalog items for the Claude Code CLI target.
+Cowork installs are handled by a separate agent flow, not this script.
+
+Exactly one of --preset, --items, or --all is required.
+
+Options:
+  --target TARGET          Required. Only 'claude-code' is supported.
+  --preset NAME            Install a named preset: pm | eng | design | ops
+  --items LIST             Comma-separated catalog ids (advanced).
+  --all                    Install every item available on the target.
+  --dry-run                Print commands that would run; do not execute.
+  --yes                    Non-interactive; skip install confirmation prompt.
+  --skip-platform-check    Bypass the macOS-only guard (for testing only).
+  -h, --help               Show this help and exit.
+
+Examples:
+  scripts/thinkos-install-bundle.sh --target claude-code --preset pm --yes
+  scripts/thinkos-install-bundle.sh --target claude-code --items slack,notion --yes
+  scripts/thinkos-install-bundle.sh --target claude-code --all --dry-run --skip-platform-check
+  scripts/thinkos-install-bundle.sh --target claude-code --preset eng --dry-run --yes
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --target)
+      TARGET="$2"
+      shift 2
+      ;;
+    --preset)
+      PRESET="$2"
+      shift 2
+      ;;
+    --items)
+      ITEMS_RAW="$2"
+      shift 2
+      ;;
+    --all)
+      ALL=1
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    --yes)
+      YES=1
+      shift
+      ;;
+    --skip-platform-check)
+      SKIP_PLATFORM_CHECK=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'Unknown option: %s\n' "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+# ---------------------------------------------------------------------------
+# Logging helpers
+# ---------------------------------------------------------------------------
+log() {
+  printf '%s\n' "$*"
+}
+
+log_header() {
+  log ""
+  log "=== $* ==="
+}
+
+dry_run_cmd() {
+  printf '[dry-run]'
+  printf ' %q' "$@"
+  printf '\n'
+}
+
+# ---------------------------------------------------------------------------
+# Platform guard (macOS-only; bypass with --skip-platform-check for testing)
+# ---------------------------------------------------------------------------
+if [[ "$SKIP_PLATFORM_CHECK" -eq 0 ]] && [[ "$(uname -s)" != "Darwin" ]]; then
+  log "Think OS bundle installer is macOS-only for the early alpha."
+  log "Detected: $(uname -s). Linux/Windows support is not yet wired."
+  log "If you need to test intent on a non-Darwin machine, use --skip-platform-check."
+  exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# Validate --target
+# ---------------------------------------------------------------------------
+if [[ -z "$TARGET" ]]; then
+  log "Error: --target is required." >&2
+  usage >&2
+  exit 2
+fi
+
+if [[ "$TARGET" != "claude-code" ]]; then
+  log "Error: --target '$TARGET' is not supported by this script." >&2
+  log "Cowork installs are handled by a separate agent flow." >&2
+  log "Valid value: claude-code" >&2
+  exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# Validate selection mode (exactly one of --preset, --items, --all)
+# ---------------------------------------------------------------------------
+mode_count=0
+[[ -n "$PRESET" ]] && ((mode_count++)) || true
+[[ -n "$ITEMS_RAW" ]] && ((mode_count++)) || true
+[[ "$ALL" -eq 1 ]] && ((mode_count++)) || true
+
+if [[ "$mode_count" -eq 0 ]]; then
+  log "Error: one of --preset, --items, or --all is required." >&2
+  usage >&2
+  exit 2
+fi
+
+if [[ "$mode_count" -gt 1 ]]; then
+  log "Error: only one of --preset, --items, or --all may be specified at a time." >&2
+  usage >&2
+  exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# claude CLI check (skip in dry-run since user may be probing intent)
+# ---------------------------------------------------------------------------
+if [[ "$DRY_RUN" -eq 0 ]] && ! command -v claude >/dev/null 2>&1; then
+  log "Claude Code CLI not found. Install Claude Code first, then re-run."
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Source catalog library
+# ---------------------------------------------------------------------------
+# shellcheck source=scripts/lib/catalog.sh
+source "$SCRIPT_DIR/lib/catalog.sh"
+
+# ---------------------------------------------------------------------------
+# Phase 1: Resolve requested ids
+# ---------------------------------------------------------------------------
+log_header "Resolving items"
+
+RESOLVED_IDS=""
+
+if [[ -n "$PRESET" ]]; then
+  # Validate preset exists by attempting resolution; python will exit 1 on unknown preset
+  valid_presets="pm eng design ops"
+  found=0
+  for p in $valid_presets; do
+    [[ "$p" == "$PRESET" ]] && found=1 && break
+  done
+  if [[ "$found" -eq 0 ]]; then
+    log "Error: unknown preset '$PRESET'. Valid presets: $valid_presets" >&2
+    exit 2
+  fi
+  log "Resolving preset: $PRESET"
+  RESOLVED_IDS="$(catalog_resolve_preset "$PRESET")" || {
+    log "Error resolving preset '$PRESET'." >&2
+    exit 2
+  }
+elif [[ -n "$ITEMS_RAW" ]]; then
+  log "Resolving items: $ITEMS_RAW"
+  # Convert comma-separated to newline-separated; validate each id exists
+  all_ids="$(catalog_list_ids)"
+  bad_ids=""
+  while IFS= read -r id; do
+    id="$(printf '%s' "$id" | tr -d '[:space:]')"
+    [[ -z "$id" ]] && continue
+    if printf '%s\n' "$all_ids" | grep -qx "$id"; then
+      RESOLVED_IDS="${RESOLVED_IDS}${id}"$'\n'
+    else
+      bad_ids="${bad_ids} $id"
+    fi
+  done < <(printf '%s' "$ITEMS_RAW" | tr ',' '\n')
+
+  if [[ -n "$bad_ids" ]]; then
+    log "Error: unknown catalog id(s):$bad_ids" >&2
+    log "Valid ids:" >&2
+    printf '%s\n' "$all_ids" | sed 's/^/  /' >&2
+    exit 2
+  fi
+else
+  # --all
+  log "Resolving all catalog ids"
+  RESOLVED_IDS="$(catalog_list_ids)"
+fi
+
+if [[ -z "$(printf '%s' "$RESOLVED_IDS" | tr -d '[:space:]')" ]]; then
+  log "No items resolved. Exiting."
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# Phase 2: Filter to those available on claude_code target
+# ---------------------------------------------------------------------------
+FILTERED_IDS="$(printf '%s\n' "$RESOLVED_IDS" | catalog_filter_by_target claude_code)"
+
+# Determine skipped items
+SKIPPED_IDS=""
+while IFS= read -r id; do
+  id="$(printf '%s' "$id" | tr -d '[:space:]')"
+  [[ -z "$id" ]] && continue
+  if ! printf '%s\n' "$FILTERED_IDS" | grep -qx "$id"; then
+    SKIPPED_IDS="${SKIPPED_IDS}${id} "
+  fi
+done < <(printf '%s\n' "$RESOLVED_IDS")
+
+if [[ -n "$(printf '%s' "$SKIPPED_IDS" | tr -d '[:space:]')" ]]; then
+  log "Skipped (not available on Claude Code): ${SKIPPED_IDS% }"
+fi
+
+if [[ -z "$(printf '%s' "$FILTERED_IDS" | tr -d '[:space:]')" ]]; then
+  log "No items available for Claude Code target after filtering. Exiting."
+  exit 0
+fi
+
+# Build arrays for display
+declare -a INSTALL_IDS=()
+while IFS= read -r id; do
+  id="$(printf '%s' "$id" | tr -d '[:space:]')"
+  [[ -z "$id" ]] && continue
+  INSTALL_IDS+=("$id")
+done < <(printf '%s\n' "$FILTERED_IDS")
+
+# ---------------------------------------------------------------------------
+# Phase 3: Confirmation table
+# ---------------------------------------------------------------------------
+log_header "Confirmation"
+log "Items to install on target: claude-code"
+log ""
+printf '%-30s %-40s %-16s %s\n' "ID" "NAME" "KIND" "NEEDS OAUTH?"
+printf '%-30s %-40s %-16s %s\n' "------------------------------" "----------------------------------------" "----------------" "------------"
+
+for id in "${INSTALL_IDS[@]}"; do
+  item_name="$(catalog_get_field "$id" "name")"
+  item_kind="$(catalog_kind "$id" "claude_code")"
+  item_oauth="$(catalog_get_field "$id" "oauth")"
+  oauth_label="no"
+  [[ "$item_oauth" == "True" || "$item_oauth" == "true" ]] && oauth_label="YES - browser auth"
+  printf '%-30s %-40s %-16s %s\n' "$id" "${item_name:-?}" "${item_kind:-?}" "$oauth_label"
+done
+
+log ""
+log "Total: ${#INSTALL_IDS[@]} item(s)"
+
+# ---------------------------------------------------------------------------
+# Confirmation prompt
+# ---------------------------------------------------------------------------
+if [[ "$YES" -eq 0 && "$DRY_RUN" -eq 0 ]]; then
+  printf 'Install %d item(s)? [y/N] ' "${#INSTALL_IDS[@]}"
+  read -r answer
+  case "$answer" in
+    [yY]|[yY][eE][sS]) ;;
+    *)
+      log "Aborted."
+      exit 0
+      ;;
+  esac
+fi
+
+# ---------------------------------------------------------------------------
+# Phase 4: Install loop
+# ---------------------------------------------------------------------------
+log_header "Installing"
+
+declare -A ITEM_STATUS=()
+
+# Helper: check if an MCP name is already registered
+_mcp_already_registered() {
+  local mcp_name="$1"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    return 1  # In dry-run, always treat as not registered (show command)
+  fi
+  claude mcp list 2>/dev/null | grep -q "^${mcp_name}\b" || \
+  claude mcp list 2>/dev/null | grep -q "  ${mcp_name} " || \
+  claude mcp list 2>/dev/null | grep -q "${mcp_name}"
+}
+
+# Collect unique marketplaces for plugin/skill_bundle items
+declare -A MARKETPLACE_SEEN=()
+
+for id in "${INSTALL_IDS[@]}"; do
+  item_kind="$(catalog_kind "$id" "claude_code")"
+  if [[ "$item_kind" == "plugin" || "$item_kind" == "skill_bundle" ]]; then
+    mp="$(catalog_get_field "$id" "claude_code.marketplace")"
+    if [[ -n "$mp" ]]; then
+      MARKETPLACE_SEEN["$mp"]=1
+    fi
+  fi
+done
+
+# Register marketplaces first (deduplicated)
+if [[ "${#MARKETPLACE_SEEN[@]}" -gt 0 ]]; then
+  log "Registering marketplaces..."
+  for mp in "${!MARKETPLACE_SEEN[@]}"; do
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      dry_run_cmd env CLAUDE_CODE_SYNC_PLUGIN_INSTALL=1 claude -p --bare "/plugin marketplace add $mp"
+    else
+      log "  Adding marketplace: $mp"
+      mp_stderr="$(CLAUDE_CODE_SYNC_PLUGIN_INSTALL=1 claude -p --bare "/plugin marketplace add $mp" 2>&1 >/dev/null)" || {
+        # Marketplace may already be registered; treat as non-fatal
+        log "  Note: marketplace add returned non-zero (may already be registered): $mp_stderr"
+      }
+    fi
+  done
+fi
+
+# Now install each item
+for id in "${INSTALL_IDS[@]}"; do
+  item_kind="$(catalog_kind "$id" "claude_code")"
+  item_name="$(catalog_get_field "$id" "name")"
+
+  log ""
+  log "Installing: $id ($item_name) [kind: $item_kind]"
+
+  case "$item_kind" in
+    mcp_remote)
+      mcp_name="$(catalog_get_field "$id" "claude_code.mcp_name")"
+      transport="$(catalog_get_field "$id" "claude_code.transport")"
+      url="$(catalog_get_field "$id" "claude_code.url")"
+
+      if [[ -z "$mcp_name" || -z "$transport" || -z "$url" ]]; then
+        ITEM_STATUS["$id"]="FAILED: missing mcp_name/transport/url in catalog"
+        log "  FAILED: incomplete mcp_remote config for $id"
+        continue
+      fi
+
+      if [[ "$DRY_RUN" -eq 0 ]] && _mcp_already_registered "$mcp_name"; then
+        ITEM_STATUS["$id"]="SKIPPED"
+        log "  SKIPPED: '$mcp_name' already registered in claude mcp list"
+        continue
+      fi
+
+      if [[ "$DRY_RUN" -eq 1 ]]; then
+        dry_run_cmd claude mcp add --transport "$transport" "$mcp_name" "$url" --scope user
+        ITEM_STATUS["$id"]="OK (dry-run)"
+      else
+        if claude mcp add --transport "$transport" "$mcp_name" "$url" --scope user 2>&1; then
+          ITEM_STATUS["$id"]="OK"
+          log "  OK: registered MCP '$mcp_name'"
+        else
+          ITEM_STATUS["$id"]="FAILED: claude mcp add exited non-zero"
+          log "  FAILED: could not register MCP '$mcp_name'"
+        fi
+      fi
+      ;;
+
+    mcp_stdio)
+      mcp_name="$(catalog_get_field "$id" "claude_code.mcp_name")"
+      command_bin="$(catalog_get_field "$id" "claude_code.command")"
+
+      if [[ -z "$mcp_name" || -z "$command_bin" ]]; then
+        ITEM_STATUS["$id"]="FAILED: missing mcp_name/command in catalog"
+        log "  FAILED: incomplete mcp_stdio config for $id"
+        continue
+      fi
+
+      # Build args array from catalog
+      args_str=""
+      # Retrieve args as newline-separated list via catalog helper
+      args_raw="$(catalog_get_field "$id" "claude_code.args")" || true
+
+      if [[ "$DRY_RUN" -eq 0 ]] && _mcp_already_registered "$mcp_name"; then
+        ITEM_STATUS["$id"]="SKIPPED"
+        log "  SKIPPED: '$mcp_name' already registered in claude mcp list"
+        continue
+      fi
+
+      # Build the command line; args_raw may be a Python list repr or newline-separated
+      # catalog_get_field for a list returns e.g. "['granola-mcp']" from Python repr
+      # We parse the simple single-item case and multi-item case
+      declare -a stdio_args=()
+      if [[ -n "$args_raw" ]]; then
+        # Strip Python list brackets and quotes, split on commas
+        cleaned="$(printf '%s' "$args_raw" | tr -d "[]'" | tr ',' '\n')"
+        while IFS= read -r arg; do
+          arg="$(printf '%s' "$arg" | tr -d '[:space:]')"
+          [[ -n "$arg" ]] && stdio_args+=("$arg")
+        done < <(printf '%s\n' "$cleaned")
+      fi
+
+      if [[ "$DRY_RUN" -eq 1 ]]; then
+        dry_run_cmd claude mcp add "$mcp_name" --scope user -- "$command_bin" "${stdio_args[@]+"${stdio_args[@]}"}"
+        ITEM_STATUS["$id"]="OK (dry-run)"
+      else
+        if claude mcp add "$mcp_name" --scope user -- "$command_bin" "${stdio_args[@]+"${stdio_args[@]}"}" 2>&1; then
+          ITEM_STATUS["$id"]="OK"
+          log "  OK: registered stdio MCP '$mcp_name'"
+        else
+          ITEM_STATUS["$id"]="FAILED: claude mcp add (stdio) exited non-zero"
+          log "  FAILED: could not register stdio MCP '$mcp_name'"
+        fi
+      fi
+      ;;
+
+    plugin|skill_bundle)
+      mp="$(catalog_get_field "$id" "claude_code.marketplace")"
+      plugin_slug="$(catalog_get_field "$id" "claude_code.plugin")"
+
+      if [[ -z "$mp" || -z "$plugin_slug" ]]; then
+        ITEM_STATUS["$id"]="FAILED: missing marketplace/plugin in catalog"
+        log "  FAILED: incomplete plugin config for $id"
+        continue
+      fi
+
+      if [[ "$DRY_RUN" -eq 1 ]]; then
+        dry_run_cmd env CLAUDE_CODE_SYNC_PLUGIN_INSTALL=1 claude -p --bare "/plugin install ${plugin_slug}@${mp}"
+        ITEM_STATUS["$id"]="OK (dry-run)"
+      else
+        plugin_exit=0
+        plugin_out="$(CLAUDE_CODE_SYNC_PLUGIN_INSTALL=1 claude -p --bare "/plugin install ${plugin_slug}@${mp}" 2>&1)" || plugin_exit=$?
+        if [[ "$plugin_exit" -eq 0 ]]; then
+          ITEM_STATUS["$id"]="OK"
+          log "  OK: installed plugin '${plugin_slug}@${mp}'"
+        else
+          ITEM_STATUS["$id"]="FAILED: plugin install exited $plugin_exit"
+          log "  FAILED: could not install plugin '${plugin_slug}@${mp}'"
+          log "  Output: $plugin_out"
+        fi
+      fi
+      ;;
+
+    "")
+      ITEM_STATUS["$id"]="FAILED: kind is empty (item may lack claude_code block)"
+      log "  FAILED: no claude_code.kind found for $id"
+      ;;
+
+    *)
+      ITEM_STATUS["$id"]="FAILED: unknown kind '$item_kind'"
+      log "  FAILED: unknown kind '$item_kind' for $id"
+      ;;
+  esac
+done
+
+# ---------------------------------------------------------------------------
+# Phase 5: Summary table
+# ---------------------------------------------------------------------------
+log_header "Summary"
+printf '%-30s %s\n' "ID" "STATUS"
+printf '%-30s %s\n' "------------------------------" "-------------------------------"
+
+overall_exit=0
+for id in "${INSTALL_IDS[@]}"; do
+  status="${ITEM_STATUS[$id]:-UNKNOWN}"
+  printf '%-30s %s\n' "$id" "$status"
+  if [[ "$status" == FAILED* ]]; then
+    overall_exit=1
+  fi
+done
+
+# ---------------------------------------------------------------------------
+# Phase 6: OAuth checklist
+# ---------------------------------------------------------------------------
+log_header "Next steps (OAuth)"
+
+oauth_list=""
+for id in "${INSTALL_IDS[@]}"; do
+  status="${ITEM_STATUS[$id]:-UNKNOWN}"
+  # Show OAuth steps for items that were installed or would be installed
+  if [[ "$status" == "OK" || "$status" == "OK (dry-run)" ]]; then
+    oauth_val="$(catalog_get_field "$id" "oauth")"
+    if [[ "$oauth_val" == "True" || "$oauth_val" == "true" ]]; then
+      item_name="$(catalog_get_field "$id" "name")"
+      mcp_name="$(catalog_get_field "$id" "claude_code.mcp_name")" 2>/dev/null || mcp_name="$id"
+      [[ -z "$mcp_name" ]] && mcp_name="$id"
+      oauth_list="${oauth_list}  - ${item_name} (${id}): Run \`claude\`, type \`/mcp\`, select '${mcp_name}', complete browser flow.\n"
+    fi
+  fi
+done
+
+if [[ -n "$oauth_list" ]]; then
+  log "The following items require OAuth authentication after install:"
+  log ""
+  printf '%b' "$oauth_list"
+  log ""
+  log "You can trigger auth at any time by opening Claude Code and calling a tool"
+  log "from that MCP — it will automatically prompt for browser authentication."
+else
+  log "No OAuth steps required for the installed items."
+fi
+
+# ---------------------------------------------------------------------------
+# Phase 7: Write preset marker file (only on full success, only for --preset)
+# ---------------------------------------------------------------------------
+if [[ "$overall_exit" -eq 0 && -n "$PRESET" && "$DRY_RUN" -eq 0 ]]; then
+  mkdir -p "$HOME/.thinkos"
+  printf '%s\n' "$PRESET" > "$HOME/.thinkos/claude-code-bundle.txt"
+  log ""
+  log "Preset marker written to $HOME/.thinkos/claude-code-bundle.txt"
+fi
+
+exit "$overall_exit"
