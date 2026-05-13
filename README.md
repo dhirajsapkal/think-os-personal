@@ -51,6 +51,8 @@ export/think-os-alpha/
 
 ## How to use it
 
+> **Platform**: The setup scripts are macOS-only for the early alpha. Linux/Windows users can follow [`docs/setup-basic-memory.md`](docs/setup-basic-memory.md) and the adapter README for their tool to set up manually.
+
 1. **Pick a home for your live OS files.** Recommended local-only path: `~/ThinkOS/vault/` (or wherever you want). Throughout the docs this is called `{{OS_HOME}}`.
 2. **Copy `templates/` into `{{OS_HOME}}`.** That's your starting OS.
 3. **Fill in the HOT tier first.** `05 Profile/Identity.md`, `01 Now/Current Focus.md`, `02 Projects/Project Index.md`, and `90 System/OS Instructions.md`. Use `00 Home.md` as the Obsidian dashboard once the vault exists.

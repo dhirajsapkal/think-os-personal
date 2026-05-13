@@ -59,6 +59,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  if [[ "$JSON" -eq 1 ]]; then
+    printf '{"os_home":"%s","project":"%s","checks":[{"name":"platform","status":"fail","detail":"Think OS scripts are macOS-only for the early alpha; detected %s"}],"summary":{"ok":0,"warn":0,"fail":1}}\n' "$OS_HOME" "$PROJECT_NAME" "$(uname -s)"
+  else
+    echo "Think OS doctor is macOS-only for the early alpha."
+    echo "Detected: $(uname -s). See docs/setup-basic-memory.md for manual setup on other platforms."
+  fi
+  exit 2
+fi
+
 if [[ "$PRODUCTS" == "all" ]]; then
   PRODUCTS="claude-cowork,claude-code,codex"
 fi

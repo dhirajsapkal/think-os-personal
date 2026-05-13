@@ -312,6 +312,13 @@ EOF
   fi
 }
 
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  log "Think OS setup scripts are macOS-only for the early alpha."
+  log "Detected: $(uname -s). Linux/Windows support is not yet wired."
+  log "If you want to proceed manually, see docs/setup-basic-memory.md and adapters/<your-product>/README.md."
+  exit 2
+fi
+
 log "Think OS setup"
 log "Vault: $OS_HOME"
 log "Products: $PRODUCTS"
