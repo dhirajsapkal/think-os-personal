@@ -1,10 +1,10 @@
-# Think OS — early alpha (v0.2.0)
+# Think OS — early alpha (v0.2.1)
 
 A markdown-first personal context OS that gives an agentic tool durable memory of who you are, what you're working on, and how you like to work — across projects and tools.
 
 This is an early alpha — a testable starter kit. Please poke at it, break it, tell me what's confusing. We'll iterate.
 
-> **v0.2.0** — adds interactive wizard, Phase 2 context seeding, multi-vault architecture, curated always-on agent instructions, and a clean uninstaller. See [CHANGELOG.md](CHANGELOG.md) for the full diff.
+> **v0.2.1** — `/thinkos-*` slash command prefix, two new help commands (`/thinkos-help`, `/thinkos-mcp-help`), curated global rules (NEVER/ALWAYS canon) added to the always-on instruction stack, strengthened MCP-first directive at session start. See [CHANGELOG.md](CHANGELOG.md) for the full diff.
 
 ---
 
