@@ -56,10 +56,6 @@ The agent will offer scheduled triggers that keep your OS fresh on its own: dail
 
 Cost: ~$5-15/month in API tokens for all four triggers combined.
 
-### Why the install prompt is one line
-
-The repo contains its own install playbook for AI agents at [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md). When the agent clones the repo, it finds that file and follows it. The README is for you (the human); INSTALL.md is for the agent. You don't have to spell out steps in your prompt.
-
 ---
 
 ## Alternative: install from a terminal
