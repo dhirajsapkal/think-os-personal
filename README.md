@@ -67,15 +67,48 @@ export/think-os-alpha/
 
 Total time to "it works": about an hour by hand, or faster with an agent running the setup scripts. Most of the real work is filling in your identity / projects, not technical setup.
 
-## Agent-Assisted Setup
+## Guided Setup
 
-If you open this repo with an agent, ask:
+Onboarding runs in two phases. **Phase 1** is the technical install (vault, MCPs, adapters, plugin bundle). **Phase 2** populates your HOT-tier files (Identity, Project Index, Current Focus, People) by drafting them from your connected tools, with citations and per-source consent.
+
+### Phase 1 — the wizard
+
+The fastest way in is the interactive wizard. Open a terminal in this repo and run:
+
+```bash
+bash scripts/thinkos-wizard.sh             # apply at the end
+bash scripts/thinkos-wizard.sh --preview   # walk through, no changes made
+```
+
+`thinkos-wizard.sh` is a guided text installer — one question per screen, clear step-of-5 headers, and a review screen with the full plan before any file is written. The completion screen prints an explicit numbered checklist of manual steps (Cowork MCP setup, OAuth, app restart).
+
+### Phase 2 — context seeding
+
+After Phase 1 and the manual steps, the agent (Claude Code or Cowork) drafts your HOT-tier files from your connected tools. To start it:
+
+```bash
+bash scripts/thinkos-continue.sh           # status + next-step instructions
+```
+
+Then in your agent: type `/thinkos-continue` (or just say "continue Think OS setup"). The agent follows [`docs/phase-2-seeding-playbook.md`](docs/phase-2-seeding-playbook.md): asks consent before reading each source, drafts each file with citations, shows you the draft for review, then commits via Basic Memory MCP. State lives at `~/.thinkos/wizard-state.json` so progress resumes across restarts.
+
+Sources Phase 2 can draw from (only with your per-source consent): filesystem folder names, Granola meetings, Calendar events, Slack DMs, Gmail signatures and contacts, Notion pages, Drive recent files, Linear/Jira tickets, HubSpot/ZoomInfo relationship metadata.
+
+### Agent-Assisted Setup
+
+If you'd rather drive from inside an agent, open this repo with Claude Code (or Cowork) and ask:
 
 ```text
 Help me set up Think OS end to end.
 ```
 
-Agents should read [`AGENTS.md`](AGENTS.md), then use the setup scripts instead of manually inspecting your machine:
+Agents should read [`AGENTS.md`](AGENTS.md), then either point you at the wizard or walk you through the same questions in chat. Either way, the read-only preview runs first:
+
+```bash
+scripts/thinkos-preview.sh --products claude-code,codex --bundle pm
+```
+
+`thinkos-preview.sh` shows every phase (vault layout, Basic Memory install/registration, each adapter, the bundle, the verify step) so you can feel the wizard before committing. After you approve:
 
 ```bash
 scripts/thinkos-doctor.sh --json --products claude-code,codex

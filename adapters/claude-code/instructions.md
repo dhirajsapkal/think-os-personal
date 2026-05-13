@@ -2,6 +2,20 @@
 
 My personal context OS lives at `{{OS_HOME}}` and is accessible through the `basic-memory` MCP server.
 
+## Mid-Setup Detection
+
+At the start of any new conversation, check whether Think OS setup is still in progress:
+
+```bash
+test -f ~/.thinkos/wizard-state.json && cat ~/.thinkos/wizard-state.json
+```
+
+If the file exists and its `phase` is **not** `complete`, mention it once at the top of your first response:
+
+> Heads up — Think OS setup is mid-flight (phase: `<phase>`). Run `/thinkos-continue` (or say "continue Think OS setup") when you're ready to pick it up.
+
+Do not interrupt the user's actual question to deliver this — surface it as a one-line note before answering whatever they asked. If they pick up the thread, follow the playbook at `adapters/claude-code/commands/thinkos-continue.md`.
+
 ## Always Available: Basic Memory MCP
 
 Before answering anything substantive, use Basic Memory tools selectively:
