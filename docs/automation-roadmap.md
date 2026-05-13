@@ -195,15 +195,20 @@ Ongoing connector sync (Granola new meetings, etc.) is handled by `/thinkos-rein
 
 ---
 
-## What's deliberately NOT automated
+## Privacy boundary: personal vs project vault
 
-Some things are intentionally manual because they require human judgment:
+Everything captured goes to a vault automatically. The agent doesn't withhold things "until the human writes them" — that would defeat the point.
 
-- **Decisions.md** — adding to this is a deliberate act. The agent offers to log, the user confirms.
-- **Learnings.md** — same.
-- **People.md depth notes** — the agent can list candidates, but adding "this person is risk-averse, prefers terse comms" requires the user.
-- **Voice Profile.md** — auto-analysis from emails is possible but the resulting voice file is so personal the user should write/edit it themselves. Scripts can surface raw signal; the user phrases the result.
-- **Current Focus.md prioritization** — the agent can list tickets / meetings; the user decides what's primary vs deferred.
+The boundary that matters is **where** content lands:
+
+- **Personal vault** (always local, never shared): work log, private notes about colleagues, half-formed thoughts, salary stuff, anything in `.private/`.
+- **Project vault** (shared with teammates via git): project decisions, team activity, specs, learnings the team can use.
+
+Project vault schemas have no slot for personal content. The agent can't write your work log into a shared repo because there's no destination. You see your own work log; teammates don't.
+
+Capture behavior:
+- New decision, learning, person, or task: agent captures to the appropriate file with a brief confirmation prompt (so you can correct or redirect). It's a quick "saving X to Y, ok?" — not a wait-for-the-human-to-do-it.
+- Content that screams personal (1st-person reflection, comp/HR/health keywords, opinions about coworkers) routes to personal vault regardless of active vault.
 
 ---
 
