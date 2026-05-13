@@ -1,10 +1,66 @@
-# Think OS — early alpha (v0.2.1)
+# Think OS
 
-A markdown-first personal context OS that gives an agentic tool durable memory of who you are, what you're working on, and how you like to work — across projects and tools.
+**Your personal context, available to every agent.**
 
-This is an early alpha — a testable starter kit. Please poke at it, break it, tell me what's confusing. We'll iterate.
+Think OS gives every agentic tool you use — Claude Code, Cowork, Codex — durable memory of who you are, what you're working on, who you work with, and how you like to work. It's a markdown vault plus a context server (Basic Memory MCP) that any modern agent can query and update.
 
-> **v0.2.1** — `/thinkos-*` slash command prefix, two new help commands (`/thinkos-help`, `/thinkos-mcp-help`), curated global rules (NEVER/ALWAYS canon) added to the always-on instruction stack, strengthened MCP-first directive at session start. See [CHANGELOG.md](CHANGELOG.md) for the full diff.
+Early alpha — v0.2.1. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
+
+---
+
+## Install in ~5 minutes (the agent way)
+
+Open a new Claude Code session in any folder. Paste this prompt:
+
+```
+Install Think OS for me from this repo: https://github.com/dhirajsapkal/think-os
+
+Steps:
+1. Run: mkdir -p ~/code && cd ~/code && git clone https://github.com/dhirajsapkal/think-os.git
+2. cd into think-os, read AGENTS.md so you understand the architecture.
+3. Ask me my setup choices one at a time, with bracketed defaults:
+   - Vault path [~/ThinkOS/vault]
+   - Wire up Claude Code? Cowork? Codex? [Y/N each]
+   - Install Basic Memory via uv if missing? [Y]
+   - Plugin bundle: pm / eng / design / ops / skip
+   - Vault id [personal]
+   - Display label [my-name's Think OS]
+4. Run scripts/thinkos-setup.sh with my answers and --yes (non-interactive).
+5. Run scripts/thinkos-vault.sh migrate --id <my-id> --label "<my-label>" to register the vault.
+6. Show me the install manifest contents and the post-install checklist (OAuth steps, restart steps, /thinkos-continue for Phase 2).
+```
+
+The agent will clone the repo, walk you through six questions, run the install, and tell you exactly what manual steps remain. You should be done in ~5 minutes (plus OAuth time per connector if you chose a plugin bundle).
+
+After install:
+
+- **Restart your agent app** so MCPs and slash commands load fresh.
+- **In Cowork** (if selected): paste the MCP config and personalization block from `~/.thinkos/` into Cowork's settings — the agent will tell you exactly what to do.
+- **Per-connector OAuth**: in Claude Code, run `/mcp` and authorize each one. In Cowork, Settings → Connectors → Authorize.
+- **Phase 2 (context seeding)**: in a fresh agent session, type `/thinkos-continue`. The agent will draft your Identity, Project Index, Current Focus, and People files from your connected tools — with citations, asking consent per source.
+
+## Install manually (the terminal way)
+
+If you'd rather drive from a terminal:
+
+```bash
+mkdir -p ~/code && cd ~/code
+git clone https://github.com/dhirajsapkal/think-os.git
+cd think-os
+bash scripts/thinkos-wizard.sh
+```
+
+Five DOS-style screens (vault path → products → Basic Memory → bundle → review). One question per screen. After review, you apply.
+
+## Uninstall cleanly
+
+```bash
+cd ~/code/think-os
+bash scripts/thinkos-uninstall.sh --dry-run    # see what would be removed
+bash scripts/thinkos-uninstall.sh              # actually undo
+```
+
+By default, your vault folder (your actual data) is preserved. Add `--remove-vault` to delete it too. See `bash scripts/thinkos-uninstall.sh --help` for all flags.
 
 ---
 
@@ -13,180 +69,108 @@ This is an early alpha — a testable starter kit. Please poke at it, break it, 
 You probably already have some version of this pain:
 
 - Every new agent session, you re-explain who you are, what you do, who you work with
-- Context lives scattered across Notion / Google Drive / Slack threads — none of it indexed for your agent
+- Context lives scattered across Notion / Drive / Slack threads — none of it indexed for your agent
 - You make the same architectural decision twice because there's no record of the first time
 - "What did I work on last week?" is a question your tools can't answer
 - Your AI drafts always sound like generic AI, never like you
 
-This OS makes a small, deliberate bet: **plain markdown files on disk are the source of truth, and every agentic tool reads them through a context MCP server.** Tool memory becomes a derivative; the files are canonical.
-
-## What's inside
-
-```
-think-os/
-├── README.md                  ← you are here
-├── AGENTS.md                  ← first file agents should read
-├── CLAUDE.md                  ← Claude-specific pointer to AGENTS.md
-├── CHANGELOG.md / VERSION     ← release history
-├── LIMITATIONS.md             ← what's out of scope
-├── MAINTENANCE.md             ← daily/weekly/quarterly cadence
-├── scripts/                   ← wizard, setup, vault, git, doctor, uninstall, update
-├── templates/
-│   ├── (personal vault)       ← 00 Home, 01 Now, 02 Projects, 03 People,
-│   │                              04 Knowledge, 05 Profile, 90 System, 99 Archive
-│   ├── instructions/          ← curated always-on agent guidance
-│   └── team/                  ← project vault skeleton (one-file-per-entry)
-├── docs/
-│   ├── agent-setup-playbook.md       ← first-run behavior for agents
-│   ├── multi-vault-architecture.md   ← personal + project + reference vault design
-│   ├── phase-2-seeding-playbook.md   ← seeding HOT-tier from connected tools
-│   ├── setup-basic-memory.md         ← manual install (non-Mac fallback)
-│   └── vault-architecture.md         ← Obsidian-facing layout rationale
-├── adapters/
-│   ├── claude-cowork/         ← Cowork MCP + instructions + slash commands
-│   ├── claude-code/           ← Claude Code MCP + instructions + slash commands
-│   └── codex/                 ← Codex MCP + AGENTS.md
-└── data/plugin-catalog.yaml   ← plugins/connectors per role bundle
-```
-
-## Guided Setup
-
-Onboarding runs in two phases. **Phase 1** is the technical install (vault, MCPs, adapters, plugin bundle). **Phase 2** populates your HOT-tier files (Identity, Project Index, Current Focus, People) by drafting them from your connected tools, with citations and per-source consent.
-
-### Phase 1 — the wizard
-
-The fastest way in is the interactive wizard. Open a terminal in this repo and run:
-
-```bash
-bash scripts/thinkos-wizard.sh             # apply at the end
-bash scripts/thinkos-wizard.sh --preview   # walk through, no changes made
-```
-
-`thinkos-wizard.sh` is a guided text installer — one question per screen, clear step-of-5 headers, and a review screen with the full plan before any file is written. The completion screen prints an explicit numbered checklist of manual steps (Cowork MCP setup, OAuth, app restart).
-
-### Phase 2 — context seeding
-
-After Phase 1 and the manual steps, the agent (Claude Code or Cowork) drafts your HOT-tier files from your connected tools. To start it:
-
-```bash
-bash scripts/thinkos-continue.sh           # status + next-step instructions
-```
-
-Then in your agent: type `/thinkos-continue` (or just say "continue Think OS setup"). The agent follows [`docs/phase-2-seeding-playbook.md`](docs/phase-2-seeding-playbook.md): asks consent before reading each source, drafts each file with citations, shows you the draft for review, then commits via Basic Memory MCP. State lives at `~/.thinkos/wizard-state.json` so progress resumes across restarts.
-
-Sources Phase 2 can draw from (only with your per-source consent): filesystem folder names, Granola meetings, Calendar events, Slack DMs, Gmail signatures and contacts, Notion pages, Drive recent files, Linear/Jira tickets, HubSpot/ZoomInfo relationship metadata.
-
-### Staying current
-
-Think OS evolves. The curated always-on guidance (priority preamble, token-efficiency rules, skill-routing hints, write targets) and adapter instructions all live in this repo under `templates/instructions/` and `adapters/<product>/`. To pull the latest and reapply them without re-running the wizard:
-
-```bash
-cd <path-to-export-repo>
-bash scripts/thinkos-update.sh --pull
-```
-
-This refreshes the `BEGIN/END THINK OS` block in your global agent instructions (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, and `~/.thinkos/claude-cowork-instructions.md`) and re-copies the Claude Code slash commands. It does NOT touch your vault, your registered MCPs, or your installed bundles — those stay put. Safe to run anytime. Drop `--pull` if you've already pulled or are editing the curated files locally.
-
-### Agent-Assisted Setup
-
-If you'd rather drive from inside an agent, open this repo with Claude Code (or Cowork) and ask:
-
-```text
-Help me set up Think OS end to end.
-```
-
-Agents should read [`AGENTS.md`](AGENTS.md), then either point you at the wizard or walk you through the same questions in chat. The wizard's review step shows a full plan before anything is written. After you approve:
-
-```bash
-scripts/thinkos-doctor.sh --json --products claude-code,codex
-scripts/thinkos-setup.sh --products claude-code,codex --install-basic-memory --yes
-scripts/thinkos-doctor.sh --deep --products claude-code,codex
-```
-
-The scripts copy missing templates, register the Basic Memory project, install product instructions, and verify MCP registration where the product CLI supports it. See [`docs/agent-setup-playbook.md`](docs/agent-setup-playbook.md).
-
-## Multi-Vault: personal + project vaults
-
-Think OS supports multiple vaults: one **personal hub** (always local, never shared) plus zero-or-more **project vaults** (shared with teammates via git) and **reference vaults** (read-only imports).
-
-Privacy is enforced *structurally*: project vault schemas have no slot for personal content (no work log, no personal people notes). The agent physically cannot write your personal log into a shared repo because there is no destination.
-
-### Common workflows
-
-Create a new project vault for your team:
-
-```bash
-scripts/thinkos-vault.sh create-project <name>
-```
-
-Join an existing team vault from a git URL:
-
-```bash
-scripts/thinkos-vault.sh clone <git-url>
-```
-
-List, switch, or remove vaults:
-
-```bash
-scripts/thinkos-vault.sh list
-scripts/thinkos-vault.sh use <id>
-scripts/thinkos-vault.sh remove <id> --yes
-```
-
-Or from inside your agent, run `/thinkos-vault` for an interactive walkthrough.
-
-See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for the full design — privacy tiers, schema enforcement, git integration, and project vault layout.
-
-## Vault structure
-
-Think OS is now organized around the way someone naturally opens a knowledge vault:
-
-- `00 Home.md` is the dashboard and portal into the vault.
-- `01 Now/` is what they check most often.
-- `02 Projects/Project Index.md` replaces the old active-projects file/folder split with one clear map plus project notes beside it.
-- `90 System/` keeps agent rules out of the daily workspace.
-
-See [`docs/vault-architecture.md`](docs/vault-architecture.md) for the rationale.
-
-## Product support
-
-Think OS core is one vault plus one MCP server. Product support lives in adapters so each tool can keep its own install steps, global instruction format, and verification path.
-
-| Product | Status | Entry point |
-|---|---|---|
-| Claude Cowork | Early alpha adapter | [`adapters/claude-cowork/README.md`](adapters/claude-cowork/README.md) |
-| Claude Code CLI | Early alpha adapter | [`adapters/claude-code/README.md`](adapters/claude-code/README.md) |
-| Codex | Early alpha adapter | [`adapters/codex/README.md`](adapters/codex/README.md) |
-
-## The three rules (the architecture in one screen)
-
-1. **Files are the source of truth.** Tool memory, Basic Memory's index, and tool-specific global instruction files are caches over the files.
-2. **HOT tier stays small.** Identity, Project Index, Current Focus, OS Instructions — together ~280 lines. Pushed any further and the agent starts ignoring half of it. Detail lives in the WARM tier, loaded on demand.
-3. **Default write targets are explicit.** Memory / notes → `{{OS_HOME}}`. Project work → that project's subfolder. Never write to your Documents root.
+Think OS makes a small, deliberate bet: **plain markdown files on disk are the source of truth, and every agent reads them through a context MCP server.** Tool memory becomes a derivative; the files are canonical.
 
 ## What you'll get
 
-- **Continuity.** Every new agent session loads who you are without you typing it.
-- **Cross-project recall.** "What did I learn about X that applies to Y" actually works.
-- **A capture habit.** When you make a decision or share a learning, the agent offers to log it. You confirm. Six months later, search finds it.
-- **Self-maintenance.** A daily desktop agent task refreshes your inbox from connectors. Sundays roll over Current Focus. Quarterly archives the Work Log. You don't remember to do this; it happens.
+- **Continuity** — every new agent session loads who you are without you typing it
+- **Cross-project recall** — "what did I learn about X that applies to Y" actually works
+- **A capture habit** — when you make a decision or share a learning, the agent offers to log it; six months later, search finds it
+- **Self-maintenance** — daily/weekly/quarterly cadences keep the OS fresh without you remembering to
 
-See [LIMITATIONS.md](LIMITATIONS.md) for what's deliberately out of scope.
+---
 
-Maintenance is light — see [MAINTENANCE.md](MAINTENANCE.md) for cadence and what's automated.
+## What's inside (the repo)
+
+```
+think-os/
+├── scripts/                    ← wizard, setup, vault, git, doctor, uninstall, update
+├── templates/
+│   ├── (personal vault)        ← 00 Home, 01 Now, 02 Projects, 03 People, 04 Knowledge,
+│   │                              05 Profile, 90 System, 99 Archive
+│   ├── instructions/           ← curated always-on agent guidance (loaded into CLAUDE.md)
+│   └── team/                   ← project vault skeleton (one-file-per-entry, git-friendly)
+├── adapters/
+│   ├── claude-code/            ← Claude Code MCP + global instructions + slash commands
+│   ├── claude-cowork/          ← Cowork MCP + personalization + agent playbooks
+│   └── codex/                  ← Codex MCP + AGENTS.md
+├── docs/
+│   ├── multi-vault-architecture.md   ← personal + project + reference vault design
+│   ├── phase-2-seeding-playbook.md   ← how Phase 2 drafts HOT-tier from connectors
+│   └── agent-setup-playbook.md       ← first-run behavior for agents
+└── data/plugin-catalog.yaml    ← plugins/connectors per role bundle
+```
+
+## How it's organized
+
+**Three vault types:**
+
+- **Personal hub** (always local, never shared) — your identity, daily work log, current focus, people notes, decisions, learnings.
+- **Project vaults** (shared via git) — team activity log, project decisions, specs, learnings. Privacy enforced *structurally*: project vault schemas have no slot for personal content, so personal observations can't accidentally leak into a shared repo.
+- **Reference vaults** (read-only imports) — folders of markdown you read from but don't own.
+
+See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for the full design.
+
+**Slash commands** (Claude Code, all `thinkos-` prefixed):
+
+| Command | What it does |
+|---|---|
+| `/thinkos-whoami` | Quick identity + role + current focus |
+| `/thinkos-morning` | Daily brief — focus, plate, recent log |
+| `/thinkos-plate` | What's on your plate today |
+| `/thinkos-log <message>` | Capture a timestamped note to your work log |
+| `/thinkos-who <name>` | What you know about a specific person |
+| `/thinkos-project <slug>` | Load deep context for a project |
+| `/thinkos-decisions [topic]` | Search your standing decisions |
+| `/thinkos-learnings [topic]` | Search reusable learnings |
+| `/thinkos-decide / -capture` | Record a decision / cross-project learning |
+| `/thinkos-vault` | Manage vaults — list, switch, create-project, clone |
+| `/thinkos-continue` | Resume setup after restart (Phase 2 context seeding) |
+| `/thinkos-help` | Show all commands |
+| `/thinkos-mcp-help` | How to query your context MCP |
+
+## The three rules (the architecture in one screen)
+
+1. **Files are the source of truth.** Tool memory and indexes are caches.
+2. **HOT tier stays small** (~280 lines of always-loaded context). Detail lives in WARM tier, loaded on demand.
+3. **Default write targets are explicit.** Memory → personal hub. Project work → that project's vault. Never write to your `~/Documents/` root.
+
+## Staying current
+
+Think OS evolves. To pull the latest curated rules and skill-routing hints:
+
+```bash
+cd ~/code/think-os
+bash scripts/thinkos-update.sh --pull
+```
+
+This refreshes the BEGIN/END THINK OS block in `~/.claude/CLAUDE.md` (and equivalents) without touching your vault, your bundles, or your registered MCPs. Safe to run anytime.
+
+## Product support
+
+| Product | Status | Setup |
+|---|---|---|
+| Claude Code CLI | Early alpha | [`adapters/claude-code/README.md`](adapters/claude-code/README.md) |
+| Claude Cowork | Early alpha | [`adapters/claude-cowork/README.md`](adapters/claude-cowork/README.md) |
+| Codex | Early alpha | [`adapters/codex/README.md`](adapters/codex/README.md) |
 
 ## Feedback I'm looking for
 
 If you're testing the early alpha:
 
-1. **Where did you get stuck?** Specific step in the setup that confused you.
+1. **Where did you get stuck?** Specific step.
 2. **What's missing for your workflow?** A file type, a command, a cadence I didn't think of.
-3. **What's noise?** A file or command you'd never use — let me cut it from a later release.
-4. **What broke?** Stack trace, error message, or screenshot if you can.
+3. **What's noise?** A file or command you'd never use.
+4. **What broke?** Stack trace, error message, or screenshot.
 5. **What surprised you?** Positively or negatively.
 
-Drop notes wherever's easiest — Slack DM, a doc, an email. I'll consolidate before a later release.
+Open an issue at https://github.com/dhirajsapkal/think-os/issues or DM me wherever's easiest.
 
 ---
 
-*Early alpha — private preview. Iterate from here.*
+*Early alpha. Iterate from here.*
