@@ -10,28 +10,25 @@ Early alpha — v0.3.0. Poke at it, break it, [tell me what's confusing](https:/
 
 ---
 
-## Install in ~5 minutes (the agent way)
+## Install in ~5 minutes
 
-Open a new Claude Code session in any folder. Paste this prompt:
+Open a new Claude Code session in any folder. Paste this one line:
 
 ```
-Install Think OS for me from this repo: https://github.com/dhirajsapkal/think-os
-
-Steps:
-1. Run: mkdir -p ~/code && cd ~/code && git clone https://github.com/dhirajsapkal/think-os.git
-2. cd into think-os, read AGENTS.md so you understand the architecture.
-3. Ask me my setup choices one at a time, with bracketed defaults:
-   - Vault path [~/ThinkOS/vault]
-   - Install Basic Memory via uv if missing? [Y]
-   - Plugin bundle: pm / eng / design / ops / skip
-   - Vault id [personal]
-   - Display label [my-name's Think OS]
-4. Run scripts/thinkos-setup.sh with my answers and --yes (non-interactive).
-5. Run scripts/thinkos-vault.sh migrate --id <my-id> --label "<my-label>" to register the vault.
-6. Show me the install manifest contents and the post-install checklist (OAuth steps, restart steps, /thinkos-continue for Phase 2).
+Install Think OS for me from https://github.com/dhirajsapkal/think-os
 ```
 
-The agent will clone the repo, walk you through five questions, run the install, and tell you exactly what manual steps remain. You should be done in ~5 minutes (plus OAuth time per connector if you chose a plugin bundle).
+That's it. The agent will:
+
+1. Clone the repo to `~/code/think-os/`
+2. Find and follow [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md) — the agent-facing install playbook in this repo
+3. Ask you 5 short questions (vault path, Basic Memory, plugin bundle, vault id, display label) — one at a time, with bracketed defaults you can accept by pressing ENTER
+4. Run the install with your answers
+5. Show you the install manifest and a clear post-install checklist (OAuth, restart, Phase 2)
+
+You should be done in ~5 minutes (plus OAuth time per connector if you picked a plugin bundle).
+
+**Why the prompt is one line:** the repo contains its own install playbook for AI agents at [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md). When the agent clones the repo, it finds that file and follows it — no need to spell out the steps in your prompt.
 
 After install:
 

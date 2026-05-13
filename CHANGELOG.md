@@ -2,6 +2,23 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [0.3.2] — 2026-05-13
+
+### Added
+
+- **`adapters/claude-code/INSTALL.md`** — agent-facing install playbook. Single self-contained file that any AI agent can read and follow to install Think OS for a user. Contains all 5 setup questions (with bracketed defaults), the exact bash commands, and the post-install checklist.
+
+### Changed
+
+- **README install prompt simplified to one line.** Users now paste only `Install Think OS for me from https://github.com/dhirajsapkal/think-os` — the agent clones the repo, finds `adapters/claude-code/INSTALL.md`, and follows it. No more 6-step prompt template.
+- **AGENTS.md** leads with "If you're installing, read INSTALL.md and stop reading other docs." Maintenance-focused docs are listed separately.
+
+### Rationale
+
+The previous install prompt was 6 steps long because the prompt itself had to spell out the install procedure. With a canonical playbook checked into the repo, the prompt collapses to the user's intent ("install this") + the repo URL. The agent's first move (clone + read) leads it to the playbook. Less for the user to copy; less to keep in sync between README and reality.
+
+---
+
 ## [0.3.1] — 2026-05-13
 
 ### Added
