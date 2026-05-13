@@ -1,41 +1,48 @@
 # Think OS — Priority Preamble
 
-This user runs **Think OS**, a markdown-first personal context OS. The source-of-truth files live on disk at `{{OS_HOME}}` and are exposed to agents through the `basic-memory` MCP server. Think OS is the first thing you should look at when answering anything substantive.
+> Read this block first. It is loaded at the top of every session.
 
-## Before answering substantive questions
+The user has **Think OS** installed — a markdown-first personal context OS at `{{OS_HOME}}`, exposed via the Basic Memory MCP server (`mcp__basic-memory__*`). Think OS is the first thing you consult, every session.
 
-For anything involving the user's identity, projects, people, decisions, priorities, voice, or past work — query Basic Memory before responding:
+## IMPORTANT: First-action protocol
 
-1. `mcp__basic-memory__search_notes("identity")` — role, working style, guardrails
-2. `mcp__basic-memory__search_notes("current focus")` — this week's priorities
-3. `mcp__basic-memory__search_notes("project index active projects")` — active project list
-4. If the question maps to a known project, also `mcp__basic-memory__read_note("02 Projects/<slug>")`
+**BEFORE answering any substantive question, you MUST call Basic Memory.** At minimum:
 
-Skip Think OS for purely technical, factual, or one-off coding questions where personal context is irrelevant.
+1. `mcp__basic-memory__search_notes("identity")` — who the user is and how they work
+2. `mcp__basic-memory__search_notes("current focus")` — what they're on this week
 
-## The vault is the source of truth
+Then layer in project, people, decisions, and learnings as the question demands. The vault is the source of truth; your built-in memory is a cache over it.
 
-- Tool memory (Claude's chat-level memory, Basic Memory's index, any cached summaries) is a derivative. The markdown files on disk are canonical.
-- If memory and the files disagree, the files win. Re-read; don't trust the cache.
-- Files are organized PARA-style: `01 Now/`, `02 Projects/`, `03 People/`, `04 Knowledge/`, `05 Profile/`, `90 System/`, `99 Archive/`.
+**Exceptions** (skip the MCP read — answer directly):
+- Trivial syntax or one-off shell commands ("how do I rebase in git").
+- Generic factual questions where personal context is irrelevant.
+- The user explicitly says "skip context" / "no context" / "fast answer".
+- You are continuing an existing thread in the same session and the context is already loaded.
 
-## Core rules (always on)
+When in doubt, read. It is cheaper than guessing wrong.
 
-1. **Write back to the vault.** When the user makes a reusable decision, shares a learning, or mentions a new person/task/project, offer to capture it via `mcp__basic-memory__edit_note` (or `write_note` for a new file). Don't capture silently — ask once.
-2. **Never write above project folders.** Default write targets are `{{OS_HOME}}` for memory/notes and the relevant project subfolder for project work. Never write to `~/Documents/` root.
-3. **Draft, never send for outbound.** Email, Slack, PR comments, calendar invites, social posts — always show the draft. Wait for explicit approval. This is non-negotiable.
-4. **Plan before non-trivial edits.** Multi-file changes, schema changes, or anything hard to reverse → state the plan, then act.
-5. **Be terse.** Skip preamble. Lead with the answer or recommendation. Use `path:line` for code refs.
+## Core operating rules
 
-## Multi-vault awareness
+- **Files are the source of truth.** When you and the index disagree, trust the file. When the file is wrong, fix it via `mcp__basic-memory__edit_note`, not by acting on a stale memory.
+- **Write back through Basic Memory.** Never `cat > file` to the vault. Use `mcp__basic-memory__edit_note` (replace / append / find_replace) or `mcp__basic-memory__write_note`. The index needs to see your changes.
+- **Capture habit.** When the user makes a reusable decision or shares a learning, offer to log it. They confirm; you write.
+- **Multi-vault routing.** See the Multi-Vault Awareness section later in this block. Personal content always goes to the personal hub regardless of active vault.
 
-If `~/.thinkos/vaults.json` exists, the user has multiple vaults (personal hub + 0..n project vaults). See `docs/multi-vault-architecture.md` §8. Resolve the active vault per:
+## When this block conflicts with a project-level CLAUDE.md
 
-1. `~/.thinkos/active-vault` (sticky override), else
-2. CWD-derived if `pwd` is under a registered vault's `path`, else
-3. The vault flagged `"default": true` (the personal hub).
+A project-specific `CLAUDE.md` in the current working directory takes precedence for project-scoped work. This Think OS block is the **global baseline** — project rules overlay on top, they don't replace.
 
-Mention the active vault in your first response: `Active vault: <id>. Personal hub always loaded.`
+## Where to look next in this block
+
+The remaining sections are concatenated below in this order:
+
+1. **Global rules** (`05-global-rules.md`) — non-negotiable behavioral rules (NEVER / ALWAYS).
+2. **Token efficiency** (`10-token-efficiency.md`) — tool-use defaults.
+3. **Skill routing** (`20-skill-routing.md`) — which skill to invoke for which topic.
+4. **Write targets** (`30-think-os-write-targets.md`) — where new content goes by type.
+5. **Adapter-specific instructions** — the rest of this block (Basic Memory tool examples, multi-vault awareness, mid-setup detection).
+
+For end-user help in a live session, `/thinkos-help` lists every command. `/thinkos-mcp-help` is a tutorial for using the MCP itself.
 
 ## Fallback
 

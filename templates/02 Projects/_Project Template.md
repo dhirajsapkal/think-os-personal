@@ -11,7 +11,7 @@ path: ~/{{path/to/folder}}
 
 # {{Project Name}}
 
-Deep context for one project. Loaded only when working on this project (the agent detects via cwd, or via `/project {{slug}}`).
+Deep context for one project. Loaded only when working on this project (the agent detects via cwd, or via `/thinkos-project {{slug}}`).
 
 ---
 

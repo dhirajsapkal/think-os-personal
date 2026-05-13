@@ -1,7 +1,6 @@
 ---
-description: Capture an AI draft vs my rewrite into 05 Profile/Voice Profile.md so the agent
-  learns my voice
-permalink: think-os/adapters/claude-code/commands/voice-rewrite
+description: Rewrite a draft in your voice profile
+permalink: think-os/adapters/claude-code/commands/thinkos-voice
 ---
 
 Append a rewrite delta to `05 Profile/Voice Profile.md` so the agent's voice modeling improves over time. The user's input ($ARGUMENTS) contains either:

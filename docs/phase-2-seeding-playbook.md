@@ -364,9 +364,9 @@ When all consented files are seeded:
    ```
 
 4. Suggest the first real workflow command they might try (one of):
-   - `/morning` — daily brief
-   - `/plate` — what's on my plate today
-   - `/whoami` — quick identity dump
+   - `/thinkos-morning` — daily brief
+   - `/thinkos-plate` — what's on my plate today
+   - `/thinkos-whoami` — quick identity dump
 
 ---
 

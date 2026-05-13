@@ -34,7 +34,7 @@ Lower-priority but live work I want the agent to be aware of:
 
 ## Awaiting from others
 
-People I'm waiting on. The agent can surface during `/morning` if anyone has gone quiet too long.
+People I'm waiting on. The agent can surface during `/thinkos-morning` if anyone has gone quiet too long.
 
 - **{{Name}}** — {{what I need, asked {{date}}}}
 
@@ -52,4 +52,4 @@ Things to roll over or revisit. `/weekly-review` reads this section when it cuts
 
 ---
 
-*Refresh every Sunday during `/weekly-review`. If you find yourself reading a stale week, run the review.*
+*Refresh every Sunday during `/weekly-review`. If you find yourself reading a stale week, run the review. Use `/thinkos-stale` to check all HOT/WARM file freshness at once.*

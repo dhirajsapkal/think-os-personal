@@ -1,6 +1,6 @@
 ---
-description: Capture a standing decision into 04 Knowledge/Decisions.md
-permalink: think-os/adapters/claude-code/commands/decide
+description: Record a standing decision in your vault
+permalink: think-os/adapters/claude-code/commands/thinkos-decide
 ---
 
 Append a structured decision entry to `04 Knowledge/Decisions.md` via Basic Memory.

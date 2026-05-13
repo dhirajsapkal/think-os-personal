@@ -1,6 +1,6 @@
 ---
-description: Walk OS frontmatter dates and report files past freshness thresholds
-permalink: think-os/adapters/claude-code/commands/stale
+description: List notes past their freshness window
+permalink: think-os/adapters/claude-code/commands/thinkos-stale
 ---
 
 Check freshness of all HOT / WARM tier files in the personal context OS per `90 System/OS Instructions.md` thresholds:

@@ -1,6 +1,6 @@
 ---
-description: Full morning brief — identity + focus + plate + tracker
-permalink: think-os/adapters/claude-code/commands/morning
+description: Daily brief — focus, plate, recent log, calendar
+permalink: think-os/adapters/claude-code/commands/thinkos-morning
 ---
 
 Pull a complete morning brief from the personal context OS via Basic Memory MCP:

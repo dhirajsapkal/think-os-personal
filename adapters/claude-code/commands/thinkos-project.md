@@ -1,6 +1,6 @@
 ---
 description: Load deep context for a project by slug or name
-permalink: think-os/adapters/claude-code/commands/project
+permalink: think-os/adapters/claude-code/commands/thinkos-project
 ---
 
 Load the per-project deep file for the project named in arguments.

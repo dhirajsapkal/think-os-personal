@@ -2,6 +2,20 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [0.2.1] — 2026-05-13
+
+### Added
+
+- **`templates/instructions/05-global-rules.md`** — non-negotiable NEVER / ALWAYS behavioral rules curated from a survey of well-regarded CLAUDE.md files (Anthropic docs, HumanLayer, ctoth, Glen Rhodes, Joe Cotellese, et al.). Inserted between the priority preamble and token-efficiency rules in the BEGIN/END THINK OS block. Covers destructive ops, scope creep, secrets, drafts-never-send, plan-before-edit, file:line citations, freshness checks, disagreement protocol, and more.
+- **Strengthened MCP-first directive** in `00-think-os-priority.md`. New explicit `IMPORTANT: First-action protocol` section with the exact tool calls the agent must make before answering substantive questions. Clear exception list (trivial syntax, generic facts, same-session continuation). The forceful language (MUST, BEFORE, IMPORTANT:) follows documented patterns that measurably improve compliance.
+
+### Changed
+
+- **Slash command rename** — all Claude Code slash commands now use the `thinkos-` prefix (e.g., `/log` → `/thinkos-log`, `/voice-rewrite` → `/thinkos-voice`, `/update` → `/thinkos-reindex`) for discoverability and to avoid collisions with common English words. Descriptions rewritten to be action-first and specific. References updated across all docs, templates, and instruction files.
+- **Two new help commands** — `/thinkos-help` (command index with script and doc pointers) and `/thinkos-mcp-help` (Basic Memory query/write tutorial with natural-language examples).
+
+---
+
 ## [0.2.0] — 2026-05-13
 
 The "ready to install on yourself" release. Major expansion across three axes: onboarding UX, multi-vault architecture, and curated always-on agent guidance.

@@ -1,6 +1,6 @@
 ---
-description: Append a manual entry to 01 Now/Work Log.md
-permalink: think-os/adapters/claude-code/commands/log
+description: Capture a timestamped note to your work log
+permalink: think-os/adapters/claude-code/commands/thinkos-log
 ---
 
 Append a manual log entry to `01 Now/Work Log.md` via Basic Memory:

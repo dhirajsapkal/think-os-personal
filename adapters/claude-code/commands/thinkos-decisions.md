@@ -1,6 +1,6 @@
 ---
-description: Search standing decisions, optionally filtered by topic
-permalink: think-os/adapters/claude-code/commands/decisions
+description: Search your standing decisions, optionally by topic
+permalink: think-os/adapters/claude-code/commands/thinkos-decisions
 ---
 
 Search `04 Knowledge/Decisions.md` for relevant standing decisions.

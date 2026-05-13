@@ -1,6 +1,6 @@
 ---
-description: Refresh Basic Memory's index from disk (CLI agent side)
-permalink: think-os/adapters/claude-code/commands/update
+description: Refresh Basic Memory's index after external edits
+permalink: think-os/adapters/claude-code/commands/thinkos-reindex
 ---
 
 Refresh Basic Memory's view of the personal context OS so any external edits (made in Obsidian, an editor, or by desktop agent's scheduled tasks) are picked up:

@@ -11,7 +11,7 @@ Where new content goes. Memorize this — these are the defaults the user expect
 | New person mentioned (colleague, client, vendor) | `03 People/People.md` |
 | New task / inbox item | `01 Now/Tasks.md` |
 | New project surfaces | `02 Projects/Project Index.md` + new stub at `02 Projects/<slug>.md` |
-| Manual work-log entry (`/log`) | `01 Now/Work Log.md` (personal hub only) |
+| Manual work-log entry (`/thinkos-log`) | `01 Now/Work Log.md` (personal hub only) |
 | Voice / tone artifact | `05 Profile/Voice Profile.md` |
 | Identity / role updates | `05 Profile/Identity.md` |
 | Current-week priorities | `01 Now/Current Focus.md` |

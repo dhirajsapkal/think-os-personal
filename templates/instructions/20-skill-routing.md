@@ -24,11 +24,11 @@ If a listed skill is not installed in the user's environment, fall through grace
 
 These ship with Think OS itself and are always installed alongside the curated instructions:
 
-- **morning brief, daily kickoff, "what's on my plate today"**: `/morning`, `/plate`.
-- **specific person / colleague / client lookup before drafting**: `/who <name>`.
-- **load a project's deep context**: `/project <slug>`.
-- **past decisions, "why did we choose X"**: `/decisions`.
-- **manual capture: log a thought, decision, or learning mid-session**: `/log`, `/capture`, `/decide`.
+- **morning brief, daily kickoff, "what's on my plate today"**: `/thinkos-morning`, `/thinkos-plate`.
+- **specific person / colleague / client lookup before drafting**: `/thinkos-who <name>`.
+- **load a project's deep context**: `/thinkos-project <slug>`.
+- **past decisions, "why did we choose X"**: `/thinkos-decisions`.
+- **manual capture: log a thought, decision, or learning mid-session**: `/thinkos-log`, `/thinkos-capture`, `/thinkos-decide`.
 - **what did I do last week / this week**: `/recent-log`.
 - **draft an email or Slack reply**: `/draft-reply` (always drafts, never sends).
 - **weekly digest, Sunday-evening rollup**: `/weekly-review`.
@@ -38,4 +38,4 @@ These ship with Think OS itself and are always installed alongside the curated i
 
 ## Routing principle
 
-Match on intent, not exact wording. "Build me a landing page for X" and "I need a hero section" both route to `frontend-design`. "Can you check what we decided about auth" routes to `/decisions`. When in doubt between two skills, pick the more specific one; fall back to the general if it errors.
+Match on intent, not exact wording. "Build me a landing page for X" and "I need a hero section" both route to `frontend-design`. "Can you check what we decided about auth" routes to `/thinkos-decisions`. When in doubt between two skills, pick the more specific one; fall back to the general if it errors.

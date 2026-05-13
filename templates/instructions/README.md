@@ -1,6 +1,6 @@
 # Curated Always-On Instructions
 
-The four markdown files in this directory are the **always-on guidance** that gets injected into every agent session. They are concatenated by `scripts/thinkos-setup.sh` (and re-applied by `scripts/thinkos-update.sh`) into the `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` block of the user's global agent instructions:
+The five markdown files in this directory are the **always-on guidance** that gets injected into every agent session. They are concatenated by `scripts/thinkos-setup.sh` (and re-applied by `scripts/thinkos-update.sh`) into the `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` block of the user's global agent instructions:
 
 - `~/.claude/CLAUDE.md` (Claude Code)
 - `~/.codex/AGENTS.md` (Codex)
@@ -8,13 +8,14 @@ The four markdown files in this directory are the **always-on guidance** that ge
 
 ## Concatenation order
 
-1. `00-think-os-priority.md` — "this user has Think OS, query Basic Memory before substantive answers, core rules"
-2. `10-token-efficiency.md` — tool-use defaults (Grep over Read+grep, Edit over Write, batch parallel calls, etc.)
-3. `20-skill-routing.md` — topic → skill mapping (design → `frontend-design:frontend-design`, etc.)
-4. `30-think-os-write-targets.md` — where new content goes by content type
-5. The adapter-specific instructions for the selected product (`adapters/<product>/instructions.md` or `AGENTS.md`)
+1. `00-think-os-priority.md` — "this user has Think OS, MUST query Basic Memory first, core rules"
+2. `05-global-rules.md` — non-negotiable NEVER / ALWAYS rules (destructive ops, scope, secrets, drafts-never-send, plan-before-edit, etc.)
+3. `10-token-efficiency.md` — tool-use defaults (Grep over Read+grep, Edit over Write, batch parallel calls, etc.)
+4. `20-skill-routing.md` — topic → skill mapping (design → `frontend-design:frontend-design`, etc.)
+5. `30-think-os-write-targets.md` — where new content goes by content type
+6. The adapter-specific instructions for the selected product (`adapters/<product>/instructions.md` or `AGENTS.md`)
 
-The resulting block is ~150–200 lines, self-contained, and readable as one coherent document.
+The resulting block is ~200–280 lines, self-contained, and readable as one coherent document.
 
 ## Editing
 
@@ -31,6 +32,7 @@ bash scripts/thinkos-update.sh
 - New routing entry → `20-skill-routing.md`
 - New token-efficiency default → `10-token-efficiency.md`
 - New content-type → write target → `30-think-os-write-targets.md`
-- New core rule that applies before all others → `00-think-os-priority.md`
+- New non-negotiable behavioral rule (NEVER / ALWAYS) → `05-global-rules.md`
+- New core rule that applies before all others / changes the priority protocol → `00-think-os-priority.md`
 
 Keep each file under ~120 lines. If a file outgrows that, the right move is usually to factor a subsection into a docs/ note and link to it from the curated file rather than appending forever.

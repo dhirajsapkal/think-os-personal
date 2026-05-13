@@ -1,6 +1,6 @@
 ---
-description: Quick identity + role + current focus dump
-permalink: think-os/adapters/claude-code/commands/whoami
+description: Quick identity + role + current focus
+permalink: think-os/adapters/claude-code/commands/thinkos-whoami
 ---
 
 Load my personal context from the OS:

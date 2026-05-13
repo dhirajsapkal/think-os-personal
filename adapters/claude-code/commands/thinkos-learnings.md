@@ -1,6 +1,6 @@
 ---
-description: Search cross-project learnings by topic or tag
-permalink: think-os/adapters/claude-code/commands/learnings
+description: Search reusable learnings by topic or tag
+permalink: think-os/adapters/claude-code/commands/thinkos-learnings
 ---
 
 Search `04 Knowledge/Learnings.md` for reusable patterns relevant to the topic.

@@ -13,7 +13,7 @@ last_reviewed: {{YYYY-MM-DD}}
 
 Mini personal CRM. Colleagues, clients, stakeholders, useful contacts. Used when the agent needs to know who someone is — their role, our shared projects, how we work together, anything I want to remember.
 
-**Append via `/who`** when a new person comes up, or by hand.
+**Append via `/thinkos-who`** when a new person comes up, or by hand.
 
 ---
 

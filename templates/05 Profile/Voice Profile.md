@@ -11,7 +11,7 @@ last_reviewed: {{YYYY-MM-DD}}
 
 # Voice Profile
 
-How I actually write, vs. how AI defaults to writing. Append a rewrite delta every time I rewrite an AI draft (use `/voice-rewrite`) so the agent's voice modeling gets sharper over time.
+How I actually write, vs. how AI defaults to writing. Append a rewrite delta every time I rewrite an AI draft (use `/thinkos-voice`) so the agent's voice modeling gets sharper over time.
 
 This is the file that makes drafts sound like me instead of like generic AI.
 
@@ -19,7 +19,7 @@ This is the file that makes drafts sound like me instead of like generic AI.
 
 ## Core rules (hand-curated, updated quarterly)
 
-Stable patterns about my voice. Don't append here from `/voice-rewrite` — let those land in the Rewrite log section below, then promote into this list at quarterly review.
+Stable patterns about my voice. Don't append here from `/thinkos-voice` — let those land in the Rewrite log section below, then promote into this list at quarterly review.
 
 - {{e.g., "Drop the 'Hey [name]!' opener in Slack DMs — go straight to the point"}}
 - {{e.g., "Em-dashes are fine in long-form; in Slack, replace with periods"}}
@@ -39,7 +39,7 @@ Stable patterns about my voice. Don't append here from `/voice-rewrite` — let 
 
 ## Rewrite log
 
-Append-only. New entries at the top via `/voice-rewrite`. Re-promote stable patterns into "Core rules" at quarterly review.
+Append-only. New entries at the top via `/thinkos-voice`. Re-promote stable patterns into "Core rules" at quarterly review.
 
 ### {{YYYY-MM-DD}} — {{channel}} — {{short context}}
 - **AI wrote**: {{verbatim AI draft}}

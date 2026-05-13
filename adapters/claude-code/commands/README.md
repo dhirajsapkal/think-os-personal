@@ -9,7 +9,7 @@ permalink: think-os/adapters/claude-code/commands/readme
 
 # CLI agent custom slash commands
 
-Fourteen slash commands for using your personal context OS from any CLI agent session, regardless of cwd. They wrap Basic Memory MCP calls plus a few file ops so common workflows are one keystroke instead of a sentence.
+Sixteen slash commands for using your personal context OS from any CLI agent session, regardless of cwd. They wrap Basic Memory MCP calls plus a few file ops so common workflows are one keystroke instead of a sentence. All commands use the `thinkos-` prefix so they're easy to find — type `/thinkos` and autocomplete shows the full list.
 
 ## Install (one time, ~5 sec)
 
@@ -26,20 +26,24 @@ To verify: `cd ~ && claude`, then type `/` — you should see the list.
 
 | Slash | What it does |
 |---|---|
-| `/whoami` | Quick identity + Current Focus dump |
-| `/plate` | What's on my plate today (Tasks + priorities) |
-| `/morning` | Full morning brief (identity + focus + plate + Slack tracker) |
-| `/who <name>` | Search `03 People/People.md` for a name |
-| `/project <slug>` | Load deep context for a project |
-| `/decisions [topic]` | Search standing decisions |
-| `/learnings [topic]` | Search cross-project learnings |
-| `/log <message>` | Append a manual entry to `01 Now/Work Log.md` |
-| `/capture <learning>` | Append a structured learning to `04 Knowledge/Learnings.md` |
-| `/decide <decision>` | Append a structured standing decision to `04 Knowledge/Decisions.md` |
-| `/stale` | Walk frontmatter dates, report stale files |
-| `/update` | Refresh Basic Memory's index from disk |
-| `/voice-rewrite <before \| after>` | Capture an AI draft vs my rewrite into `05 Profile/Voice Profile.md` |
+| `/thinkos-whoami` | Quick identity + role + current focus |
+| `/thinkos-plate` | What's on your plate today (tasks + current focus) |
+| `/thinkos-morning` | Daily brief — focus, plate, recent log, calendar |
+| `/thinkos-who <name>` | Show what you know about a specific person |
+| `/thinkos-project <slug>` | Load deep context for a project |
+| `/thinkos-decisions [topic]` | Search your standing decisions, optionally by topic |
+| `/thinkos-learnings [topic]` | Search reusable learnings by topic or tag |
+| `/thinkos-log <message>` | Capture a timestamped note to your work log |
+| `/thinkos-capture <learning>` | Capture a cross-project learning into your vault |
+| `/thinkos-decide <decision>` | Record a standing decision in your vault |
+| `/thinkos-stale` | List notes past their freshness window |
+| `/thinkos-reindex` | Refresh Basic Memory's index after external edits |
+| `/thinkos-voice <before \| after>` | Rewrite a draft in your voice profile |
 | `/thinkos-setup` | Run the first-time setup wizard from the export repo |
+| `/thinkos-continue` | Resume Think OS setup after OAuth + restart (Phase 2) |
+| `/thinkos-vault` | Manage vaults — list, switch, create-project, clone |
+| `/thinkos-help` | Show all Think OS commands and what they do |
+| `/thinkos-mcp-help` | How to query and update your personal context MCP |
 
 ## What's NOT here (and why)
 

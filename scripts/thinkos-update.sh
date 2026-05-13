@@ -105,6 +105,7 @@ curated_instruction_files() {
   local dir="$REPO_ROOT/templates/instructions"
   printf '%s\n' \
     "$dir/00-think-os-priority.md" \
+    "$dir/05-global-rules.md" \
     "$dir/10-token-efficiency.md" \
     "$dir/20-skill-routing.md" \
     "$dir/30-think-os-write-targets.md"

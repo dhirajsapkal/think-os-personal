@@ -1,6 +1,6 @@
 ---
-description: What's on my plate today — 01 Now/Tasks.md + Current Focus
-permalink: think-os/adapters/claude-code/commands/plate
+description: What's on your plate today (tasks + current focus)
+permalink: think-os/adapters/claude-code/commands/thinkos-plate
 ---
 
 Load:

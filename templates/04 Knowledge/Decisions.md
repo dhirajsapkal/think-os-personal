@@ -13,7 +13,7 @@ last_reviewed: {{YYYY-MM-DD}}
 
 Long-term decisions I've already made, so the agent does not re-litigate them every session. New entries go at the top (newest-first).
 
-**Append via `/decide`** (CLI agent) or just add a section by hand.
+**Append via `/thinkos-decide`** (CLI agent) or just add a section by hand.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
-description: Search 03 People/People.md for a name (and surrounding project context)
-permalink: think-os/adapters/claude-code/commands/who
+description: Show what you know about a specific person
+permalink: think-os/adapters/claude-code/commands/thinkos-who
 ---
 
 Search the personal context OS for the person named in arguments:

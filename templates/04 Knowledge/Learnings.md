@@ -11,7 +11,7 @@ last_reviewed: {{YYYY-MM-DD}}
 
 # Learnings
 
-Cross-project, reusable decisions / patterns / lessons. Tagged for discovery. Append-only. Append via `/capture` or by hand.
+Cross-project, reusable decisions / patterns / lessons. Tagged for discovery. Append-only. Append via `/thinkos-capture` or by hand.
 
 The point of this file: when I start something new, surface what I already know.
 

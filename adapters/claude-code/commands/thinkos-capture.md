@@ -1,6 +1,6 @@
 ---
-description: Capture a cross-project learning into 04 Knowledge/Learnings.md
-permalink: think-os/adapters/claude-code/commands/capture
+description: Capture a cross-project learning into your vault
+permalink: think-os/adapters/claude-code/commands/thinkos-capture
 ---
 
 Append a structured learning entry to `04 Knowledge/Learnings.md` via Basic Memory.

@@ -10,7 +10,7 @@ tier: WARM
 
 # Work Log
 
-Append-only chronological log of what I worked on. Auto-captured by the CLI agent Stop hook at session end. Manual entries via `/log "<message>"`.
+Append-only chronological log of what I worked on. Auto-captured by the CLI agent Stop hook at session end. Manual entries via `/thinkos-log "<message>"`.
 
 Used for:
 - Weekly review (`/weekly-review` reads the last 7 days)
@@ -31,7 +31,7 @@ Files: <comma-separated list of files touched>
 Session-id: <CLI agent session id>
 ```
 
-## Manual entry format (via `/log`)
+## Manual entry format (via `/thinkos-log`)
 
 ```
 ## YYYY-MM-DD HH:MM — <project-or-context>
@@ -42,4 +42,4 @@ Session-id: <CLI agent session id>
 
 ## Entries (newest first)
 
-<!-- Entries will be appended here by the Stop hook and /log. Leave the section heading. -->
+<!-- Entries will be appended here by the Stop hook and /thinkos-log. Leave the section heading. -->
