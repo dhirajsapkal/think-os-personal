@@ -52,19 +52,23 @@ ToolSearch select:AskUserQuestion
 
 Ask one question at a time. Wait for each answer before moving to the next.
 
+**Important formatting rule for all questions below.** Each chip option has a `label` (one short phrase, shown ON the chip) and a `description` (one sentence, shown under or alongside the chip). Don't combine them into one string. Don't put dashes between preset keys and human names in the label — that causes duplicate-looking chips ("design-Design"). The user's pick is mapped to a preset key by you, internally.
+
 ### Question 1 of 5 — Vault location
 
-Use `AskUserQuestion`:
+`AskUserQuestion`:
 
 - Header: "Vault location"
-- Question: "Where should your Think OS vault live? Your vault is just a folder of markdown files — identity, projects, decisions, work log."
+- Question: "Where should your Think OS vault live? Your vault is a folder of markdown files — identity, projects, decisions, work log."
 - multiSelect: false
-- Options:
-  - Label: `~/ThinkOS/vault` — Recommended. Clean local path, no macOS permission friction.
-  - Label: `~/Documents/ThinkOS` — Convenient if you already keep notes there. May require Files & Folders access for Claude Code.
-  - Label: `Pick a custom path` — I'll tell you where I want it.
+- Options (one chip per option; map the user's choice to the actual path internally):
+  | label | description | maps to |
+  |---|---|---|
+  | "Recommended" | "Lives at ~/ThinkOS/vault. Clean local path; no macOS permission friction." | `~/ThinkOS/vault` |
+  | "Under Documents" | "Lives at ~/Documents/ThinkOS. Convenient if you already keep notes there. May require Files & Folders access for Claude Code." | `~/Documents/ThinkOS` |
+  | "Custom path" | "I'll specify a different location." | (follow-up free-text prompt) |
 
-If the user picks "Pick a custom path", follow up with a plain text prompt asking for the full path. Expand `~` to `$HOME`. Warn if the path is under `~/Documents`, `~/Desktop`, or `~/Downloads`.
+If the user picks "Custom path", follow up with a plain text prompt asking for the full path. Expand `~` to `$HOME`. Warn if the path is under `~/Documents`, `~/Desktop`, or `~/Downloads`.
 
 ### Question 2 of 5 — Basic Memory
 
@@ -82,35 +86,39 @@ If basic-memory is missing, use `AskUserQuestion`:
 - Question: "Basic Memory is the MCP server that exposes your vault to me. It needs to be installed."
 - multiSelect: false
 - Options:
-  - Label: `Yes — install via uv` — Recommended. Takes ~30 seconds.
-  - Label: `No — I'll install it myself later` — Setup will continue, but I won't be able to query your vault until you install Basic Memory manually.
+  | label | description |
+  |---|---|
+  | "Yes, install via uv" | "Recommended. Takes ~30 seconds." |
+  | "Skip for now" | "Setup will continue, but I can't query your vault until you install Basic Memory manually later." |
 
 ### Question 3 of 5 — Plugin bundle
 
-Use `AskUserQuestion`:
+`AskUserQuestion`:
 
 - Header: "Plugin bundle"
-- Question: "Think OS can install a curated set of MCPs for you. Pick the bundle that matches how you work — you can always add or remove later."
+- Question: "Think OS can install a curated set of MCPs for you. Pick the bundle that matches your work — you can change later."
 - multiSelect: false
-- Options:
-  - Label: `pm — Product management` — Slack, Gmail, Notion, Linear, Granola, Figma + PM and Productivity skills.
-  - Label: `eng — Engineering` — Slack, Gmail, Atlassian Rovo, Linear + Engineering and Productivity skills.
-  - Label: `design — Design` — Slack, Gmail, Notion, Figma, Granola + Design and Productivity skills.
-  - Label: `ops — Operations` — Slack, Gmail, Microsoft 365, Notion, QuickBooks + Productivity skills.
-  - Label: `Skip — I'll add tools individually later` — No bundle.
+- Options (chip `label` is human-readable; map to the preset key in your bundle install command):
+  | label | description | maps to preset |
+  |---|---|---|
+  | "Product Management" | "Slack, Gmail, Notion, Linear, Granola, Figma + PM and Productivity skills." | `pm` |
+  | "Engineering" | "Slack, Gmail, Atlassian Rovo, Linear + Engineering and Productivity skills." | `eng` |
+  | "Design" | "Slack, Gmail, Notion, Figma, Granola + Design and Productivity skills." | `design` |
+  | "Operations" | "Slack, Gmail, Microsoft 365, Notion, QuickBooks + Productivity skills." | `ops` |
+  | "Skip" | "No bundle. Add individual tools later via `/thinkos-vault`." | (omit `--bundle` flag) |
 
 ### Question 4 of 5 — Vault id
 
-Use `AskUserQuestion`:
+`AskUserQuestion`:
 
 - Header: "Vault id"
 - Question: "What should I call this vault in commands? (e.g., `thinkos vault use <id>`)"
 - multiSelect: false
 - Options:
-  - Label: `personal` — Recommended default.
-  - Label: `Pick a custom id` — I want a different name.
-
-If "Pick a custom id", follow up with a plain text prompt. Validate the input matches `[a-z0-9-]+` (lowercase letters, digits, hyphens). Re-ask if invalid.
+  | label | description | maps to |
+  |---|---|---|
+  | "personal (default)" | "Use 'personal' as the id." | `personal` |
+  | "Custom id" | "I want a different name." | (follow-up free-text prompt, validate `[a-z0-9-]+`) |
 
 ### Question 5 of 5 — Display label
 
@@ -120,18 +128,18 @@ First, get the user's name:
 git config user.name 2>/dev/null || whoami
 ```
 
-Build the default label: `<that name>'s Think OS`.
+Build the default label as `<that name>'s Think OS`.
 
-Use `AskUserQuestion`:
+`AskUserQuestion`:
 
 - Header: "Display label"
-- Question: "Friendly label shown in vault listings. Just for your benefit."
+- Question: "Friendly label shown when listing vaults. Just for your benefit."
 - multiSelect: false
 - Options:
-  - Label: `<name>'s Think OS` — Default based on your git/system name.
-  - Label: `Customize` — I'll write my own.
-
-If "Customize", follow up with a free-text prompt.
+  | label | description |
+  |---|---|
+  | "Use default" | The default label you computed (e.g., "Dhiraj's Think OS"). |
+  | "Customize" | "I'll write my own label." (follow-up free-text prompt) |
 
 ---
 
