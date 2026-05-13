@@ -59,14 +59,14 @@ Ask one question at a time. Wait for each answer before moving to the next.
 `AskUserQuestion`:
 
 - Header: "Vault location"
-- Question: "Where should your Think OS vault live? Your vault is a folder of markdown files — identity, projects, decisions, work log."
+- Question: "Where do you want your vault?"
 - multiSelect: false
-- Options (one chip per option; map the user's choice to the actual path internally):
+- Options:
   | label | description | maps to |
   |---|---|---|
-  | "Recommended" | "Lives at ~/ThinkOS/vault. Clean local path; no macOS permission friction." | `~/ThinkOS/vault` |
-  | "Under Documents" | "Lives at ~/Documents/ThinkOS. Convenient if you already keep notes there. May require Files & Folders access for Claude Code." | `~/Documents/ThinkOS` |
-  | "Custom path" | "I'll specify a different location." | (follow-up free-text prompt) |
+  | "Recommended" | "~/ThinkOS/vault. Clean and out of the way." | `~/ThinkOS/vault` |
+  | "Under Documents" | "~/Documents/ThinkOS. May need Files & Folders access." | `~/Documents/ThinkOS` |
+  | "Custom path" | "Pick a different location." | (follow-up free-text prompt) |
 
 If the user picks "Custom path", follow up with a plain text prompt asking for the full path. Expand `~` to `$HOME`. Warn if the path is under `~/Documents`, `~/Desktop`, or `~/Downloads`.
 
@@ -78,25 +78,25 @@ First, check the local environment:
 command -v basic-memory && command -v uv
 ```
 
-If `basic-memory` already exists: tell the user "Basic Memory is already installed at `$(which basic-memory)`. I'll use that." Skip this question entirely.
+If `basic-memory` already exists: tell the user "Basic Memory is already installed. I'll use that." Skip this question entirely.
 
 If basic-memory is missing, use `AskUserQuestion`:
 
 - Header: "Install Basic Memory?"
-- Question: "Basic Memory is the MCP server that exposes your vault to me. It needs to be installed."
+- Question: "Do you want me to install Basic Memory?"
 - multiSelect: false
 - Options:
   | label | description |
   |---|---|
-  | "Yes, install via uv" | "Recommended. Takes ~30 seconds." |
-  | "Skip for now" | "Setup will continue, but I can't query your vault until you install Basic Memory manually later." |
+  | "Yes, install it" | "Takes about 30 seconds via uv." |
+  | "Skip for now" | "I'll install it myself later." |
 
 ### Question 3 of 5 — Plugin bundle
 
 `AskUserQuestion`:
 
 - Header: "Plugin bundle"
-- Question: "Think OS can install a curated set of MCPs for you. Pick the bundle that matches your work — you can change later."
+- Question: "Which bundle do you want?"
 - multiSelect: false
 - Options (chip `label` is human-readable; map to the preset key in your bundle install command):
   | label | description | maps to preset |
@@ -105,20 +105,20 @@ If basic-memory is missing, use `AskUserQuestion`:
   | "Engineering" | "Slack, Gmail, Atlassian Rovo, Linear + Engineering and Productivity skills." | `eng` |
   | "Design" | "Slack, Gmail, Notion, Figma, Granola + Design and Productivity skills." | `design` |
   | "Operations" | "Slack, Gmail, Microsoft 365, Notion, QuickBooks + Productivity skills." | `ops` |
-  | "Skip" | "No bundle. Add individual tools later via `/thinkos-vault`." | (omit `--bundle` flag) |
+  | "Skip" | "Add tools individually later." | (omit `--bundle` flag) |
 
-### Question 4 of 5 — Vault id
+### Question 4 of 5 — Vault name
 
 `AskUserQuestion`:
 
 - Header: "Vault name"
-- Question: "What should I call this vault? It's the id you'll type in commands like `thinkos vault use <name>`."
+- Question: "What do you want to call your vault?"
 - multiSelect: false
 - Options:
   | label | description | maps to |
   |---|---|---|
   | "personal (work)" | "Your own vault, not shared with a team." | `personal` |
-  | "Custom" | "Type your own id (lowercase letters, digits, hyphens)." | (follow-up free-text prompt, validate `[a-z0-9-]+`) |
+  | "Custom" | "Pick your own id." | (follow-up free-text prompt, validate `[a-z0-9-]+`) |
 
 ### Question 5 of 5 — Display label
 
@@ -133,13 +133,13 @@ Build the default label as `<that name>'s Think OS`.
 `AskUserQuestion`:
 
 - Header: "Display label"
-- Question: "Friendly label shown when listing vaults. Just for your benefit."
+- Question: "What do you want the label to say?"
 - multiSelect: false
 - Options:
   | label | description |
   |---|---|
-  | "Use default" | The default label you computed (e.g., "Dhiraj's Think OS"). |
-  | "Customize" | "I'll write my own label." (follow-up free-text prompt) |
+  | "Use default" | The label you computed (e.g., "Dhiraj's Think OS"). |
+  | "Customize" | "Write my own." (follow-up free-text prompt) |
 
 ---
 
