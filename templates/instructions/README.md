@@ -1,10 +1,8 @@
 # Curated Always-On Instructions
 
-The five markdown files in this directory are the **always-on guidance** that gets injected into every agent session. They are concatenated by `scripts/thinkos-setup.sh` (and re-applied by `scripts/thinkos-update.sh`) into the `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` block of the user's global agent instructions:
+The five markdown files in this directory are the **always-on guidance** that gets injected into every agent session. They are concatenated by `scripts/thinkos-setup.sh` (and re-applied by `scripts/thinkos-update.sh`) into the `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` block of the user's global Claude Code instructions:
 
 - `~/.claude/CLAUDE.md` (Claude Code)
-- `~/.codex/AGENTS.md` (Codex)
-- `~/.thinkos/claude-cowork-instructions.md` (Cowork — user pastes into Cowork personalization manually)
 
 ## Concatenation order
 

@@ -16,8 +16,8 @@ One-time setup to make your personal context OS reachable from any desktop agent
 Agent-assisted setup can run the safe parts for you:
 
 ```bash
-scripts/thinkos-setup.sh --products claude-code,codex --install-basic-memory --yes
-scripts/thinkos-doctor.sh --deep --products claude-code,codex
+scripts/thinkos-setup.sh --install-basic-memory --yes
+scripts/thinkos-doctor.sh --deep
 ```
 
 **Time**: ~15 minutes for Basic Memory · +10 minutes for Obsidian (optional)
@@ -84,7 +84,7 @@ The least-friction path is to put `{{OS_HOME}}` outside protected folders like D
 mkdir -p "$HOME/ThinkOS/vault"
 ```
 
-If you choose a protected folder, grant **Documents Folder** access, or Full Disk Access if needed, to every app that will launch the MCP: desktop agent, Claude Desktop, Codex, and the terminal app used for CLI agent.
+If you choose a protected folder, grant **Documents Folder** access, or Full Disk Access if needed, to every app that will launch the MCP: Claude Code, Claude Desktop, and the terminal app used for CLI.
 
 A setup script can open the right settings pane, but it cannot silently grant permission:
 

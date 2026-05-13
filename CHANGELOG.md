@@ -2,6 +2,37 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [0.3.0] — 2026-05-13
+
+### Removed
+- **Interactive wizard** (`scripts/thinkos-wizard.sh`). The agent-driven install
+  via the chat-based prompt is now the canonical path. Manual terminal users
+  can still call `scripts/thinkos-setup.sh` directly with flags.
+- **Cowork adapter** (`adapters/claude-cowork/`). Out of scope for now to focus
+  the alpha on Claude Code.
+- **Codex adapter** (`adapters/codex/`). Same reason.
+
+### Changed
+- `scripts/thinkos-setup.sh` simplified — no more multi-product `--products` flag
+  logic; Claude Code is the only target. `_write_install_manifest` drops the
+  multi-product structure.
+- `scripts/thinkos-uninstall.sh`, `scripts/thinkos-doctor.sh`,
+  `scripts/thinkos-update.sh`, `scripts/thinkos-continue.sh` — Cowork/Codex
+  paths removed.
+- `data/plugin-catalog.yaml` — `cowork:` blocks removed from each entry.
+- README, AGENTS, docs — all rewritten to be Claude-Code-only.
+
+### Rationale
+- The wizard's interactive read-prompts couldn't be driven from Claude Code's
+  Bash tool. The agent-driven install handles the same UX in chat with cleaner
+  feedback.
+- Cowork's MCP/plugin install is UI-driven and couldn't be fully automated
+  anyway. Reintroducing once the Cowork install API stabilizes.
+- Codex was a stretch goal; pulling back to one supported tool to ship a
+  polished v1.
+
+---
+
 ## [0.2.1] — 2026-05-13
 
 ### Added

@@ -302,17 +302,17 @@ When conflicts do happen (rare), they're standard git merge conflicts. The agent
 
 ## 7. Onboarding flow: where each piece fits
 
-### Phase 1 essentials (the wizard — unchanged in scope)
+### Phase 1 essentials (setup — unchanged in scope)
 
-Wizard sets up the **personal hub** only:
+Phase 1 sets up the **personal hub** only, via the agent-driven install:
 - Vault location (default `~/ThinkOS/vault/`)
-- Products (Claude Code / Cowork / Codex)
+- Claude Code adapter (MCP, instructions, slash commands)
 - Basic Memory installed + project registered
 - Plugin bundle (pm / eng / design / ops)
 
 No git. No project vaults. No encrypted vault. This stays as a tight ~5 minute flow.
 
-The wizard's completion screen now mentions multi-vault as an *optional next step*:
+The post-setup checklist now mentions multi-vault as an *optional next step*:
 
 ```
 [5] Optional: add a project or team vault
@@ -398,7 +398,7 @@ New shell commands:
 
 New slash commands (mirror shell commands for in-agent use):
 
-- `/thinkos-vault` — Cowork-style native picker for the operations above (Claude Code: text prompts)
+- `/thinkos-vault` — in-chat picker for the vault operations above (Claude Code: text prompts)
 
 ---
 
@@ -414,7 +414,7 @@ New slash commands (mirror shell commands for in-agent use):
 - `templates/team/.thinkos/schemas/*.schema.json` — JSON schemas per content type
 - `templates/team/.gitignore` — excludes `.private/`, `.vault/`, `.thinkos/state`
 - `templates/team/CODEOWNERS.template` — owner gating
-- `/thinkos-vault` slash commands for Claude Code and Cowork
+- `/thinkos-vault` slash command for Claude Code
 - Adapter instruction updates (multi-vault awareness, active vault on first response)
 - Wizard completion screen mentions multi-vault as next step
 - README + AGENTS.md updates

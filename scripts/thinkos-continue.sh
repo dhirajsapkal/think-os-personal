@@ -2,11 +2,10 @@
 # =============================================================================
 # scripts/thinkos-continue.sh — Resume Think OS onboarding from any state
 # =============================================================================
-# Reads the wizard state file and tells the user (or agent) exactly where they
+# Reads the setup state file and tells the user (or agent) exactly where they
 # are and what to do next. This is the human-facing entry point for Phase 2;
-# the agent equivalents live in:
+# the agent equivalent lives in:
 #   adapters/claude-code/commands/thinkos-continue.md
-#   adapters/claude-cowork/commands/thinkos-continue.md
 #
 # This script does no mutation. It prints next-step instructions and points
 # at the playbook the agent should follow.
@@ -29,10 +28,11 @@ if [[ ! -f "$STATE_FILE" ]]; then
   No setup state found. It looks like Phase 1 hasn't run yet (or the
   state file at $STATE_FILE was removed).
 
-  Run the wizard first:
+  Run setup first:
 
-      bash $SCRIPT_DIR/thinkos-wizard.sh             # apply
-      bash $SCRIPT_DIR/thinkos-wizard.sh --preview   # walk through, no changes
+      bash $SCRIPT_DIR/thinkos-setup.sh --install-basic-memory --yes
+
+  Or open Claude Code in the think-os repo and ask it to run /thinkos-setup.
 
 EOF
   exit 1
@@ -54,13 +54,10 @@ case "$phase" in
 
   Phase 1 finished, but a few steps cannot be automated:
 
-    1. If Cowork is one of your products: paste the MCP config + the
-       personalization block into Cowork settings, then quit and reopen.
+    1. Complete OAuth in Claude Code: run 'claude', type '/mcp',
+       and authorize each connector.
 
-    2. Complete OAuth in each app that asks for it. In Claude Code:
-       run 'claude', type '/mcp', authorize each connector.
-
-    3. Restart your agent apps so MCPs and plugins load fresh.
+    2. Restart Claude Code so MCPs and plugins load fresh.
 
   Once those are done, run this script again. The phase will advance to
   'ready_for_seeding' and you can begin Phase 2 (content seeding).
@@ -81,11 +78,11 @@ EOF
   HOT-tier files (Identity, Current Focus, Project Index, People). Every
   draft is shown to you for review before it's written to your vault.
 
-  Phase 2 is agent-driven. Open one of your agentic tools and run the
-  /thinkos-continue slash command (or just say "continue Think OS setup"):
+  Phase 2 is agent-driven. Open Claude Code in the think-os repo and run:
 
-    · In Claude Code:    open the export repo, type /thinkos-continue
-    · In Cowork:         open Cowork, type /thinkos-continue
+      /thinkos-continue
+
+  Or just say "continue Think OS setup" in Claude Code.
 
   The agent will follow:
       $REPO_ROOT/docs/phase-2-seeding-playbook.md

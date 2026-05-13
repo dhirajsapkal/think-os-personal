@@ -2,9 +2,9 @@
 
 **Your personal context, available to every agent.**
 
-Think OS gives every agentic tool you use — Claude Code, Cowork, Codex — durable memory of who you are, what you're working on, who you work with, and how you like to work. It's a markdown vault plus a context server (Basic Memory MCP) that any modern agent can query and update.
+Think OS gives Claude Code durable memory of who you are, what you're working on, who you work with, and how you like to work. It's a markdown vault plus a context server (Basic Memory MCP) that any modern agent can query and update.
 
-Early alpha — v0.2.1. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
+Early alpha — v0.3.0. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
 
 ---
 
@@ -20,7 +20,6 @@ Steps:
 2. cd into think-os, read AGENTS.md so you understand the architecture.
 3. Ask me my setup choices one at a time, with bracketed defaults:
    - Vault path [~/ThinkOS/vault]
-   - Wire up Claude Code? Cowork? Codex? [Y/N each]
    - Install Basic Memory via uv if missing? [Y]
    - Plugin bundle: pm / eng / design / ops / skip
    - Vault id [personal]
@@ -30,14 +29,13 @@ Steps:
 6. Show me the install manifest contents and the post-install checklist (OAuth steps, restart steps, /thinkos-continue for Phase 2).
 ```
 
-The agent will clone the repo, walk you through six questions, run the install, and tell you exactly what manual steps remain. You should be done in ~5 minutes (plus OAuth time per connector if you chose a plugin bundle).
+The agent will clone the repo, walk you through five questions, run the install, and tell you exactly what manual steps remain. You should be done in ~5 minutes (plus OAuth time per connector if you chose a plugin bundle).
 
 After install:
 
-- **Restart your agent app** so MCPs and slash commands load fresh.
-- **In Cowork** (if selected): paste the MCP config and personalization block from `~/.thinkos/` into Cowork's settings — the agent will tell you exactly what to do.
-- **Per-connector OAuth**: in Claude Code, run `/mcp` and authorize each one. In Cowork, Settings → Connectors → Authorize.
-- **Phase 2 (context seeding)**: in a fresh agent session, type `/thinkos-continue`. The agent will draft your Identity, Project Index, Current Focus, and People files from your connected tools — with citations, asking consent per source.
+- **Restart Claude Code** so MCPs and slash commands load fresh.
+- **Per-connector OAuth**: in Claude Code, run `/mcp` and authorize each one.
+- **Phase 2 (context seeding)**: in a fresh Claude Code session, type `/thinkos-continue`. The agent will draft your Identity, Project Index, Current Focus, and People files from your connected tools — with citations, asking consent per source.
 
 ## Install manually (the terminal way)
 
@@ -47,10 +45,8 @@ If you'd rather drive from a terminal:
 mkdir -p ~/code && cd ~/code
 git clone https://github.com/dhirajsapkal/think-os.git
 cd think-os
-bash scripts/thinkos-wizard.sh
+bash scripts/thinkos-setup.sh --install-basic-memory --yes
 ```
-
-Five DOS-style screens (vault path → products → Basic Memory → bundle → review). One question per screen. After review, you apply.
 
 ## Uninstall cleanly
 
@@ -89,16 +85,14 @@ Think OS makes a small, deliberate bet: **plain markdown files on disk are the s
 
 ```
 think-os/
-├── scripts/                    ← wizard, setup, vault, git, doctor, uninstall, update
+├── scripts/                    ← setup, vault, git, doctor, uninstall, update
 ├── templates/
 │   ├── (personal vault)        ← 00 Home, 01 Now, 02 Projects, 03 People, 04 Knowledge,
 │   │                              05 Profile, 90 System, 99 Archive
 │   ├── instructions/           ← curated always-on agent guidance (loaded into CLAUDE.md)
 │   └── team/                   ← project vault skeleton (one-file-per-entry, git-friendly)
 ├── adapters/
-│   ├── claude-code/            ← Claude Code MCP + global instructions + slash commands
-│   ├── claude-cowork/          ← Cowork MCP + personalization + agent playbooks
-│   └── codex/                  ← Codex MCP + AGENTS.md
+│   └── claude-code/            ← Claude Code MCP + global instructions + slash commands
 ├── docs/
 │   ├── multi-vault-architecture.md   ← personal + project + reference vault design
 │   ├── phase-2-seeding-playbook.md   ← how Phase 2 drafts HOT-tier from connectors
@@ -149,15 +143,13 @@ cd ~/code/think-os
 bash scripts/thinkos-update.sh --pull
 ```
 
-This refreshes the BEGIN/END THINK OS block in `~/.claude/CLAUDE.md` (and equivalents) without touching your vault, your bundles, or your registered MCPs. Safe to run anytime.
+This refreshes the BEGIN/END THINK OS block in `~/.claude/CLAUDE.md` without touching your vault, your bundles, or your registered MCPs. Safe to run anytime.
 
 ## Product support
 
 | Product | Status | Setup |
 |---|---|---|
 | Claude Code CLI | Early alpha | [`adapters/claude-code/README.md`](adapters/claude-code/README.md) |
-| Claude Cowork | Early alpha | [`adapters/claude-cowork/README.md`](adapters/claude-cowork/README.md) |
-| Codex | Early alpha | [`adapters/codex/README.md`](adapters/codex/README.md) |
 
 ## Feedback I'm looking for
 

@@ -14,7 +14,7 @@ bash scripts/thinkos-state.sh show
 bash scripts/thinkos-state.sh where-am-i
 ```
 
-If the state file does not exist: tell the user Phase 1 hasn't run yet and point them at `bash scripts/thinkos-wizard.sh`. Stop.
+If the state file does not exist: tell the user Phase 1 hasn't run yet and point them at `/thinkos-setup` (or `bash scripts/thinkos-setup.sh --install-basic-memory --yes`). Stop.
 
 Branch on the `phase` field:
 
@@ -62,9 +62,7 @@ Read it once and follow it. It covers:
 
 ## Per-source connector tool name resolution
 
-Bundle items install MCPs under different names depending on the path:
-- Claude Code stdio/remote MCPs use the `mcp_name` from `data/plugin-catalog.yaml` (e.g. `slack`, `gmail`, `notion`).
-- Cowork connectors use the `mcp__claude_ai_<Name>__*` naming.
+Bundle items install MCPs under the `mcp_name` from `data/plugin-catalog.yaml` (e.g. `slack`, `gmail`, `notion`).
 
 When you need to use a connector, first use `ToolSearch` with `query: "select:mcp__<name>__*"` or a keyword to load the schema, then call the tool. If a tool isn't available, the user hasn't installed it — tell them and offer to skip that source.
 

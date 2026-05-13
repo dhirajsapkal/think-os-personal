@@ -1,56 +1,36 @@
 ---
-description: Run the Think OS first-time setup wizard from Claude Code
+description: Run the Think OS first-time setup from Claude Code
 permalink: think-os/adapters/claude-code/commands/thinkos-setup
 ---
 
-Set up Think OS end-to-end. Two paths — let the user pick:
+Set up Think OS end-to-end via chat.
 
 1. Confirm the current working directory is the Think OS export repo by checking for:
    - `scripts/thinkos-doctor.sh`
    - `scripts/thinkos-setup.sh`
-   - `scripts/thinkos-wizard.sh`
 
    If not in the repo, ask for the path to the downloaded Think OS export repo.
 
-2. Offer the user two setup paths:
+2. Follow `docs/agent-setup-playbook.md`.
 
-   > I can set up Think OS two ways. Which do you prefer?
-   >
-   > **A. Run the interactive wizard in your terminal** — a guided DOS-style
-   >    installer that walks you through every choice with clear screens.
-   >    Open a new terminal in this repo and run:
-   >
-   >       bash scripts/thinkos-wizard.sh           # apply at the end
-   >       bash scripts/thinkos-wizard.sh --preview # walk through, no changes
-   >
-   > **B. Walk through it here in chat** — I'll ask each question and run the
-   >    commands for you. Slightly less theatrical but works inside this session.
-
-   If the user picks A: print the exact command, then stop. They drive from their own shell.
-
-   If the user picks B: continue with steps 3–7 below.
-
-3. Follow `docs/agent-setup-playbook.md`.
-
-4. Ask the setup choices one at a time (mirroring the wizard's order — do NOT pre-select):
+3. Ask the setup choices one at a time:
    - **Vault path** — suggest `~/ThinkOS/vault` as default.
-   - **Products** — ask Y/N separately for claude-code, claude-cowork, codex.
    - **Basic Memory** — if `command -v basic-memory` succeeds, tell the user it's already there. Otherwise offer to install via `uv tool install basic-memory`.
    - **Bundle preset** — present the four named presets (pm / eng / design / ops) plus "skip", with a one-line summary of what each contains.
 
-5. Summarize the choices and ask: "Apply this plan? (yes / change something / abort)" — wait for an explicit yes.
+4. Summarize the choices and ask: "Apply this plan? (yes / change something / abort)" — wait for an explicit yes.
 
-6. After approval, run the apply pipeline:
+5. After approval, run the apply pipeline:
 
 ```bash
-scripts/thinkos-doctor.sh --json --os-home "<vault-path>" --products "<products>"
-scripts/thinkos-setup.sh --os-home "<vault-path>" --products "<products>" --install-basic-memory --yes [--bundle <preset>]
-scripts/thinkos-doctor.sh --deep --os-home "<vault-path>" --products "<products>"
+scripts/thinkos-doctor.sh --json --os-home "<vault-path>"
+scripts/thinkos-setup.sh --os-home "<vault-path>" --install-basic-memory --yes [--bundle <preset>]
+scripts/thinkos-doctor.sh --deep --os-home "<vault-path>"
 ```
 
 Use the scripts instead of manually probing files. Do not read the user's live vault content during setup unless they explicitly ask.
 
-7. After the setup script completes successfully, offer the bundle picker (skip this step if a `--bundle` flag was already passed to `thinkos-setup.sh`). Tell the user:
+6. After the setup script completes successfully, offer the bundle picker (skip this step if a `--bundle` flag was already passed to `thinkos-setup.sh`). Tell the user:
 
    "Pick a plugin bundle to install (you can always run this later):
     1) pm    — Product management stack: Slack, Gmail, Notion, Linear, Granola, Figma, + PM and Productivity skills

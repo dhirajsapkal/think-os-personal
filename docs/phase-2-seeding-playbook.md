@@ -13,13 +13,9 @@ permalink: think-os/phase-2-seeding-playbook
 
 This is the canonical agent playbook for Phase 2 of Think OS onboarding — populating the user's HOT-tier markdown files from their connected tools.
 
-Phase 1 (the wizard) installs the infrastructure: vault folder, templates, Basic Memory MCP, product adapters, the chosen plugin/connector bundle. Phase 1 leaves the markdown files as blank skeletons. Phase 2 is where the user becomes a *user*: their actual identity, projects, focus, and people are drafted from real sources — with citations — and committed to the vault only after explicit approval.
+Phase 1 installs the infrastructure: vault folder, templates, Basic Memory MCP, Claude Code adapter, the chosen plugin/connector bundle. Phase 1 leaves the markdown files as blank skeletons. Phase 2 is where the user becomes a *user*: their actual identity, projects, focus, and people are drafted from real sources — with citations — and committed to the vault only after explicit approval.
 
-This playbook is invoked from:
-- `adapters/claude-code/commands/thinkos-continue.md` (Claude Code slash command)
-- `adapters/claude-cowork/commands/thinkos-continue.md` (Cowork slash command)
-
-Both adapters share this single source of truth.
+This playbook is invoked from `adapters/claude-code/commands/thinkos-continue.md` (the `/thinkos-continue` slash command).
 
 ---
 
@@ -392,3 +388,5 @@ When all consented files are seeded:
 ## Reference: state file shape
 
 The state file lives at `~/.thinkos/wizard-state.json`. Read it with `scripts/thinkos-state.sh show`. Don't edit it by hand — use the subcommands (`set`, `set-phase`, `mark-seeded`) so updates stay atomic and timestamped.
+
+Note: the filename is `wizard-state.json` for historical reasons; it tracks Phase 2 onboarding state regardless of how setup was performed.

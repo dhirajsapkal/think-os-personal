@@ -46,7 +46,6 @@ Usage: scripts/thinkos-install-bundle.sh --target claude-code \
          [--skip-platform-check]
 
 Installs a bundle of Think OS catalog items for the Claude Code CLI target.
-Cowork installs are handled by a separate agent flow, not this script.
 
 Exactly one of --preset, --items, or --all is required.
 
@@ -152,7 +151,6 @@ fi
 
 if [[ "$TARGET" != "claude-code" ]]; then
   log "Error: --target '$TARGET' is not supported by this script." >&2
-  log "Cowork installs are handled by a separate agent flow." >&2
   log "Valid value: claude-code" >&2
   exit 2
 fi

@@ -14,7 +14,7 @@ Use this adapter when Claude Code CLI is one of your primary tools. It wires Bas
 Agent-assisted path:
 
 ```bash
-scripts/thinkos-setup.sh --products claude-code --install-basic-memory --yes
+scripts/thinkos-setup.sh --install-basic-memory --yes
 ```
 
 Manual path:
@@ -89,7 +89,7 @@ Expected:
 Agent check:
 
 ```bash
-scripts/thinkos-doctor.sh --deep --products claude-code
+scripts/thinkos-doctor.sh --deep
 ```
 
 ## Troubleshooting
