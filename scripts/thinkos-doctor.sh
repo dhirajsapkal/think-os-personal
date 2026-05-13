@@ -180,6 +180,17 @@ done
 check_command "uv"
 check_command "basic-memory"
 
+BM_CONFIG="$HOME/.basic-memory/config.json"
+if [[ -f "$BM_CONFIG" ]]; then
+  if grep -E '"mode"[[:space:]]*:[[:space:]]*"cloud"' "$BM_CONFIG" >/dev/null 2>&1; then
+    add_check "basic-memory:cloud-mode" warn "one or more entries in $BM_CONFIG are cloud-mode; local-only setups should use 'basic-memory project add --local --default NAME PATH' so the project name routes around the global cloud namespace"
+  else
+    add_check "basic-memory:cloud-mode" ok "$BM_CONFIG has no cloud-mode entries"
+  fi
+else
+  add_check "basic-memory:cloud-mode" ok "no Basic Memory config yet"
+fi
+
 if command -v basic-memory >/dev/null 2>&1; then
   BASIC_VERSION="$(basic-memory --version 2>/dev/null | head -n 1 || true)"
   add_check "basic-memory:version" ok "${BASIC_VERSION:-installed}"

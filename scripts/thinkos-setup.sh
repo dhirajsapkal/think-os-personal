@@ -215,6 +215,7 @@ register_basic_memory_project() {
     log "Basic Memory project '$PROJECT_NAME' already exists"
   else
     log "Registering Basic Memory project '$PROJECT_NAME'"
+    # `--local --default` routes around Basic Memory's global cloud namespace — without these, re-adding a previously-removed project name fails with "Project already exists" and `project default` errors with "set to cloud mode but no credentials"
     run basic-memory project add "$PROJECT_NAME" "$OS_HOME" --local --default
   fi
 

@@ -102,6 +102,42 @@ basic-memory tool search-notes "identity" --project think-os
 
 If search works but `project ls` is empty or `status` reports all files deleted, the host app still cannot read the vault folder.
 
+### Step 1.6 — Troubleshooting: the cloud-mode trap
+
+Basic Memory reserves project names **globally** in `~/.basic-memory/config.json`. If a project was ever registered without `--local` (for example by running a bare `basic-memory project add think-os ...`), that name is recorded with `"mode": "cloud"`. Two failure modes follow:
+
+- **`project default` fails** — you see `"set to cloud mode but no credentials"` when running `basic-memory project default think-os`.
+- **Re-add fails** — after removing the project and trying to re-add it, you see `"Project already exists"`.
+
+**Detect it.** Check whether the config file contains a cloud entry for your project:
+
+```bash
+grep -A3 '"think-os"' ~/.basic-memory/config.json
+```
+
+If you see `"mode": "cloud"` in the output, the trap is active. `scripts/thinkos-doctor.sh` flags this as `basic-memory:cloud-mode` in its JSON output.
+
+**Fix it.** Back up the config file first, then remove the offending entry:
+
+```bash
+cp ~/.basic-memory/config.json ~/.basic-memory/config.json.bak
+```
+
+Open `~/.basic-memory/config.json` in any text editor and delete the block for the `think-os` project (the entire object for that entry inside the `projects` array). If `think-os` is the only project in the file and you want the simplest path, you can delete the file entirely:
+
+```bash
+rm ~/.basic-memory/config.json
+```
+
+Then re-add the project in local mode:
+
+```bash
+basic-memory project add think-os "{{OS_HOME}}" --local --default
+basic-memory reindex --project think-os
+```
+
+**Why local mode?** Think OS is file-first. The markdown vault is the source of truth; the SQLite + vector index is a rebuildable derivative. Cloud mode requires separate credentials and routes data through a remote service — neither is needed here. Cloud mode is opt-in only and is not configured by any Think OS setup script.
+
 ---
 
 ## Part 2 — Register Basic Memory in desktop agent (~3 min)
