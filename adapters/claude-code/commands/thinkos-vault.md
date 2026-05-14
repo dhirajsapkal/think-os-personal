@@ -45,7 +45,7 @@ Branch on the answer. The flows below all use `AskUserQuestion` for sub-choices.
 
 ### 1a. Project name (free text)
 
-Ask plainly: "What's the project name? Used as the vault id in commands. Lowercase letters, digits, hyphens only (e.g., `argenx-team`)."
+Ask plainly: "What's the project name? Used as the vault id in commands. Lowercase letters, digits, hyphens only (e.g., `acme-health-team`)."
 
 Validate `[a-z0-9-]+`. Re-ask if invalid.
 
@@ -102,7 +102,7 @@ End with one line: "Vault `<name>` created. Teammates can join via `/thinkos-vau
 
 ### 2a. Git URL (free text)
 
-Ask: "Git URL of the project vault?" (e.g., `git@github.com:thinkco/argenx-os.git`)
+Ask: "Git URL of the project vault?" (e.g., `git@github.com:your-org/acme-health-os.git`)
 
 ### 2b. Local path (chip picker)
 
@@ -188,7 +188,7 @@ Show output. End: "Registered `<label>` as a read-only reference vault."
 - multiSelect: false
 - Options: one chip per registered vault (parse from the `list` output you ran in Step 1).
   - `label`: vault id
-  - `description`: label + path + type (e.g., "Argenx Team OS · ~/ThinkOS/projects/argenx · project")
+  - `description`: label + path + type (e.g., "Acme Health Team OS · ~/ThinkOS/projects/acme-health · project")
 
 ```bash
 bash scripts/thinkos-vault.sh use <chosen-id>

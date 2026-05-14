@@ -39,9 +39,9 @@ Then follow the matching branch below.
 
 Collect answers via `AskUserQuestion` one at a time (Cowork renders each as its own prompt):
 
-**Q1** — Project id name (must match `[a-z0-9-]+`, e.g. `argenx-team`).
+**Q1** — Project id name (must match `[a-z0-9-]+`, e.g. `acme-health-team`).
 
-**Q2** — Human-readable label (e.g. "Argenx Team OS").
+**Q2** — Human-readable label (e.g. "Acme Health Team OS").
 
 **Q3** — Local path. Suggest `~/ThinkOS/projects/<name>/` as the default. If `~/Documents/Think/` exists on this machine, also offer `~/Documents/Think/<Label>/team-os/` as an alternative. Include a free-text option.
 
@@ -73,7 +73,7 @@ Show all output. Confirm the new vault appears in `list`. End: "Vault `<name>` c
 
 Use `AskUserQuestion` (`multiSelect: false`) to collect:
 
-**Q1** — Git URL (e.g. `git@github.com:thinkco/argenx-os.git`).
+**Q1** — Git URL (e.g. `git@github.com:your-org/acme-health-os.git`).
 
 **Q2** — Local path. Default `~/ThinkOS/projects/<derived-name>/` (strip `.git` from the last URL segment).
 
@@ -140,7 +140,7 @@ Use `AskUserQuestion` (`multiSelect: false`) with each registered vault id as an
 
 ```
 header: "Which vault should become active?"
-options: <one option per vault id, e.g. "personal — Dhiraj's Think OS", "argenx-team — Argenx Team OS">
+options: <one option per vault id, e.g. "personal — Dhiraj's Think OS", "acme-health-team — Acme Health Team OS">
 ```
 
 ```bash

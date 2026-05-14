@@ -30,11 +30,11 @@ The agent translates your intent to the right tool call. You don't need to know 
 
 | What you say | What the agent does under the hood |
 |---|---|
-| "What do I know about Maya Chen?" | `search_notes("Maya Chen", page_size=5)` |
+| "What do I know about Alex Park?" | `search_notes("Alex Park", page_size=5)` |
 | "What did I decide about auth patterns?" | `search_notes("decisions auth patterns")` |
 | "Show me my current focus" | `read_note("Current Focus")` |
 | "What learnings do I have tagged #facilitation?" | `search_notes("learnings #facilitation", page_size=10)` |
-| "Load context on the Argenx project" | `read_note("02 Projects/Argenx")` then `build_context(["Argenx"])` |
+| "Load context on the Acme Health project" | `read_note("02 Projects/Acme Health")` then `build_context(["Acme Health"])` |
 | "What changed in my vault today?" | `recent_activity("1d")` |
 
 ---
@@ -82,7 +82,7 @@ echo "my-project-vault-id" > ~/.thinkos/active-vault
 
 When active vault is a project vault, the agent queries both the project vault and your personal hub, and prefixes results with `[personal]` or `[project-name]` so you know where each result came from.
 
-To query a specific vault explicitly, tell the agent: "search my personal vault for X" or "look in the Argenx project vault for Y".
+To query a specific vault explicitly, tell the agent: "search my personal vault for X" or "look in the Acme Health project vault for Y".
 
 ---
 

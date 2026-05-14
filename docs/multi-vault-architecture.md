@@ -76,7 +76,7 @@ Three vault types. A user has exactly one Personal Hub, and any number of Projec
 ### B. Project / team vault
 
 - **Purpose**: shared knowledge for a project or team — project mission, team roster, team decisions, team activity log, specs.
-- **Lives at**: default `~/ThinkOS/projects/<name>/`; user can override (e.g. `~/Documents/Think/Argenx/team-os/`).
+- **Lives at**: default `~/ThinkOS/projects/<name>/`; user can override (e.g. `~/Documents/work/acme-health/team-os/`).
 - **Owner**: team. Shared via git.
 - **Sync**: git (any host: GitHub, GitLab, self-hosted).
 - **Schema (reduced — no personal slots)**:
@@ -128,13 +128,13 @@ A single source of truth at `~/.thinkos/vaults.json`. The wizard and the vault C
       "created_at": "2026-05-13T..."
     },
     {
-      "id": "argenx-team",
+      "id": "acme-health-team",
       "type": "project",
-      "label": "Argenx Team OS",
-      "path": "/Users/dhirajsapkal/ThinkOS/projects/argenx",
-      "bm_project": "argenx-os",
-      "git_remote": "git@github.com:thinkco/argenx-os.git",
-      "team_members": ["dhiraj", "maya", "sarah"],
+      "label": "Acme Health Team OS",
+      "path": "/Users/you/ThinkOS/projects/acme-health",
+      "bm_project": "acme-health-os",
+      "git_remote": "git@github.com:your-org/acme-health-os.git",
+      "team_members": ["alex", "jordan", "kai"],
       "created_at": "2026-05-15T..."
     },
     {
@@ -164,7 +164,7 @@ The agent needs to know which vault is "write-active" at any moment.
 
 The agent surfaces the active vault on its first response in any session:
 
-> Active vault: `argenx-team` (Argenx Team OS). Personal hub `personal` always loaded for identity/focus.
+> Active vault: `acme-health-team` (Acme Health Team OS). Personal hub `personal` always loaded for identity/focus.
 
 ---
 

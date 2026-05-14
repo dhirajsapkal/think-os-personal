@@ -159,7 +159,7 @@ Step 10 — Output one line: "Gmail snapshot written: <N> thread(s) for <YYYY-MM
 ## Ledger event shape
 
 ```json
-{"ts":"2026-05-14T11:00:00Z","source":"gmail","detail":{"thread_id":"18f3a2c9b1d","subject":"Re: Contract renewal — Q3","sender":"sarah@client.com","starred":true,"message_count":4},"output":"01 Now/Signals/gmail-2026-05-14.md","mode":"append","bytes":687}
+{"ts":"2026-05-14T11:00:00Z","source":"gmail","detail":{"thread_id":"18f3a2c9b1d","subject":"Re: Contract renewal — Q3","sender":"colleague@example.com","starred":true,"message_count":4},"output":"01 Now/Signals/gmail-2026-05-14.md","mode":"append","bytes":687}
 ```
 
 Privacy-routed variant:

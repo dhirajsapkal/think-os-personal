@@ -306,15 +306,15 @@ For each candidate project, score on signals (folder exists + Linear + recurring
 
 | Project | Status | Last touched | Notes |
 |---|---|---|---|
-| Argenx | Active | 2026-05-12 | Folder + Linear project + weekly Granola meeting |
-| Walwil design system | Active | 2026-05-09 | Folder + Granola recurring (Mon/Wed) |
+| Acme Health | Active | 2026-05-12 | Folder + Linear project + weekly Granola meeting |
+| Northstar Bio design system | Active | 2026-05-09 | Folder + Granola recurring (Mon/Wed) |
 ...
 
 ## Watching
 
 | Project | Source | Why on the list |
 |---|---|---|
-| Skramble | ~/Documents/Think/Skramble | Folder exists but no recent activity |
+| Skunkworks | ~/Documents/Think/Skunkworks | Folder exists but no recent activity |
 ```
 
 **Citations block at the end of the message (not in the file):**
@@ -364,20 +364,20 @@ covers_week: 2026-05-12 → 2026-05-18
 
 ## This week
 
-### Argenx (60% of capacity)
-- Patient communication redesign: review with Maya Wed (ARGX-142)
+### Acme Health (60% of capacity)
+- Patient communication redesign: review with Alex Wed (ACME-142)
 - Compliance review delayed → blocker, escalating Friday
-- 3 active threads in #argenx-design
+- 3 active threads in #acme-design
 
-### Walwil design system (30%)
-- Component library spec freeze targeted EOW (WAL-89)
+### Northstar Bio design system (30%)
+- Component library spec freeze targeted EOW (NBI-89)
 - ...
 
 ## Next week
 - ...
 
 ## On hold / cooling
-- Skramble: paused pending Q3 priorities
+- Skunkworks: paused pending Q3 priorities
 ```
 
 **Citations block:**
@@ -428,7 +428,7 @@ Dhiraj Sapkal — Principal Designer at Think Company.
 
 ## What I work on
 
-- Design systems for regulated healthcare clients (Argenx, Walwil)
+- Design systems for regulated healthcare clients (Acme Health, Northstar Bio)
 - AI-assisted design tooling and workflows (Cursor experiments, Think OS)
 - ...
 
@@ -490,7 +490,7 @@ Merge the three contact lists, dedupe by email/identity. For each person, pull:
 
 ## Team (Think Co)
 
-### Maya Chen — Product Designer, Argenx project
+### Alex Park — Product Designer, Acme Health project
 - Daily Slack, 1:1 every Tuesday
 - Owns patient comms redesign with me
 - Prefers Figma walkthroughs over written specs
@@ -499,7 +499,7 @@ Merge the three contact lists, dedupe by email/identity. For each person, pull:
 
 ## Clients
 
-### Sarah Wells — Argenx, VP Design
+### Jordan Wells — Acme Health, VP Design
 - Weekly review meeting Wed 10am
 - ...
 

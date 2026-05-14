@@ -42,9 +42,9 @@ Returns the authenticated user's notifications, newest first.
       "type": "mention",
       "read": false,
       "created_at": "2026-05-13T14:30:00Z",
-      "actor": { "handle": "maya", "display_name": "Maya Chen" },
+      "actor": { "handle": "alex", "display_name": "Alex Park" },
       "subject": { "kind": "work-entry", "uid": "01HXY...", "title": "2026-05-13 Standup" },
-      "body": "Maya mentioned you in a work entry."
+      "body": "Alex mentioned you in a work entry."
     }
   ],
   "next_cursor": "eyJp...",
