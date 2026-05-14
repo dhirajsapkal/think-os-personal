@@ -25,6 +25,39 @@ const benefits = [
   },
 ];
 
+const installed = [
+  {
+    n: '01',
+    title: 'Curated agent guidance',
+    body: 'A five-file instruction stack drops into the agent\'s always-loaded context. Consult the vault first. Draft, never send. Plan before multi-file edits. Cite path:line. Surface freshness warnings. Never commit secrets. ~280 lines of distilled prompt engineering — refreshable in place with /thinkos-update.',
+  },
+  {
+    n: '02',
+    title: 'Twenty slash commands',
+    body: 'Pre-built playbooks for daily flows: /thinkos-morning, /thinkos-plate, /thinkos-decide, /thinkos-who, /thinkos-vault, /thinkos-update. Each is a markdown playbook the agent reads; you can audit or edit any of them. Full list in § VI.',
+  },
+  {
+    n: '03',
+    title: 'Role-based bundles',
+    body: 'Pick one preset and the right MCPs install for you: PM (Slack + Gmail + Notion + Linear + Granola + Figma), Engineering (Slack + Gmail + Atlassian + Linear), Design (Slack + Gmail + Notion + Figma + Granola), Operations (Slack + Gmail + Microsoft 365 + Notion + QuickBooks). Each pulls the matching Anthropic skill packs too.',
+  },
+  {
+    n: '04',
+    title: 'Skill routing baked in',
+    body: 'The instructions teach the agent which Anthropic skill to invoke for which task. UI work routes to frontend-design. PR review to review. Security audits to security-review. SDK code to claude-api. You ask in plain English; the agent picks the right tool.',
+  },
+  {
+    n: '05',
+    title: 'Three-vault privacy model',
+    body: 'Personal hub (local-only, never shared). Project vaults (shared via git, schema-enforced). Reference vaults (read-only imports). Your work log structurally cannot end up in a team repo — the team schema has no slot for it. Privacy as architecture, not policy.',
+  },
+  {
+    n: '06',
+    title: 'Self-healing onboarding',
+    body: 'If anything in setup feels off — wrong command, missing step, confusing prompt — tell the agent. It opens a PR upstream so the next person doesn\'t hit it. The install gets better every time someone runs it. (Gated on gh CLI being authenticated.)',
+  },
+];
+
 const rules = [
   {
     n: 'I',
@@ -181,12 +214,48 @@ const faqs = [
     </div>
   </section>
 
-  <!-- SETUP IS THREE STEPS -->
+  <!-- BUILT IN — what actually installs -->
   <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-16">
         <div class="col-span-12 md:col-span-3">
           <p class="kicker">§ II</p>
+          <h2 class="display text-3xl md:text-4xl mt-4">Built in</h2>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5">
+          <p class="text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
+            Think OS isn't just a folder of markdown. Installing it drops a curated
+            agent instruction stack, twenty pre-built playbooks, a role-based MCP
+            bundle, and skill routing into your environment. Every agent that touches
+            the vault knows what to do without you teaching it.
+          </p>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-12 gap-x-6 gap-y-14">
+        {installed.map((b) => (
+          <div class="col-span-12 md:col-span-6 grid grid-cols-12 gap-4 md:gap-6">
+            <div class="col-span-3 md:col-span-2">
+              <p class="numeral text-3xl md:text-4xl leading-none">{b.n}</p>
+            </div>
+            <div class="col-span-9 md:col-span-10">
+              <h3 class="font-display text-xl md:text-2xl tracking-tight">{b.title}</h3>
+              <p class="mt-3 text-[16px] leading-relaxed text-muted max-w-[42ch]">
+                {b.body}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- SETUP IS THREE STEPS -->
+  <section class="border-t border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+      <header class="grid grid-cols-12 gap-6 mb-16">
+        <div class="col-span-12 md:col-span-3">
+          <p class="kicker">§ III</p>
           <h2 class="display text-3xl md:text-4xl mt-4">Setup</h2>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
@@ -255,7 +324,7 @@ const faqs = [
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-16">
         <div class="col-span-12 md:col-span-3">
-          <p class="kicker">§ III</p>
+          <p class="kicker">§ IV</p>
           <h2 class="display text-3xl md:text-4xl mt-4">Three rules</h2>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
@@ -289,7 +358,7 @@ const faqs = [
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-16">
         <div class="col-span-12 md:col-span-3">
-          <p class="kicker">§ IV</p>
+          <p class="kicker">§ V</p>
           <h2 class="display text-3xl md:text-4xl mt-4">Vaults</h2>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
@@ -317,7 +386,7 @@ const faqs = [
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-12">
         <div class="col-span-12 md:col-span-3">
-          <p class="kicker">§ V</p>
+          <p class="kicker">§ VI</p>
           <h2 class="display text-3xl md:text-4xl mt-4">Commands</h2>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
@@ -349,7 +418,7 @@ const faqs = [
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-16">
         <div class="col-span-12 md:col-span-3">
-          <p class="kicker">§ VI</p>
+          <p class="kicker">§ VII</p>
           <h2 class="display text-3xl md:text-4xl mt-4">Continuous capture</h2>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
@@ -422,7 +491,7 @@ const faqs = [
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-12">
         <div class="col-span-12 md:col-span-3">
-          <p class="kicker">§ VII</p>
+          <p class="kicker">§ VIII</p>
           <h2 class="display text-3xl md:text-4xl mt-4">Staying current</h2>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
@@ -461,7 +530,7 @@ bash scripts/thinkos-update.sh --pull</pre>
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-12">
         <div class="col-span-12 md:col-span-3">
-          <p class="kicker">§ VIII</p>
+          <p class="kicker">§ IX</p>
           <h2 class="display text-3xl md:text-4xl mt-4">Questions</h2>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
