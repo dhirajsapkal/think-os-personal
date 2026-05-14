@@ -49,7 +49,7 @@ const installed = [
   {
     n: '05',
     title: 'Three-vault privacy model',
-    body: 'Personal hub (local-only, never shared). Project vaults (shared via git, schema-enforced). Reference vaults (read-only imports). Your work log structurally cannot end up in a team repo — the team schema has no slot for it. Privacy as architecture, not policy.',
+    body: 'Personal hub (local-only, never shared). Project vaults (shared via git, schema-enforced). Reference vaults (read-only imports). Personal content stays out of team repos by structural design — project vault schemas physically don\'t accept it. Privacy as architecture, not policy.',
   },
   {
     n: '06',
@@ -72,7 +72,7 @@ const rules = [
   {
     n: 'III',
     title: 'Personal stays personal. Team stays team.',
-    body: 'Your work log and private notes live in a vault only you can see. Project work lives in a separate vault shared with your team. The structure makes accidental crossover impossible.',
+    body: 'Your private notes live in a vault only you can see. Project work lives in a separate vault shared with your team. The structure makes accidental crossover impossible.',
   },
 ];
 
@@ -80,7 +80,7 @@ const vaultTypes = [
   {
     name: 'Personal hub',
     kicker: 'Always local',
-    body: 'Identity, current focus, work log, people notes, decisions, learnings. Lives on your disk, never shared.',
+    body: 'Identity, current focus, decisions, learnings, people, private notes. Lives on your disk, never shared.',
   },
   {
     name: 'Project vault',
@@ -98,7 +98,7 @@ const commands = [
   ['/thinkos-whoami',         'Quick identity + role + current focus'],
   ['/thinkos-morning',        'Daily brief — focus, plate, recent log'],
   ['/thinkos-plate',          'What\'s on your plate today'],
-  ['/thinkos-log',            'Capture a timestamped note to your work log'],
+  ['/thinkos-log',            'Capture a timestamped note'],
   ['/thinkos-who',            'What you know about a specific person'],
   ['/thinkos-project',        'Load deep context for a project'],
   ['/thinkos-decisions',      'Search your standing decisions'],
@@ -438,9 +438,9 @@ const faqs = [
           </div>
           <div class="col-span-12 md:col-span-5">
             <p class="text-[16px] leading-relaxed text-muted max-w-[50ch]">
-              A launchd job runs every 2 hours and appends a one-line stub to your
-              Work Log (cwd, file count, last commit). No LLM call. No file contents
-              leave your machine. Toggle with
+              A launchd job runs every 2 hours and appends a one-line stub of what
+              you worked on (cwd, file count, last commit) to your private vault.
+              No LLM call. No file contents leave your machine. Toggle with
               <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">/thinkos-autosave</code>.
             </p>
           </div>

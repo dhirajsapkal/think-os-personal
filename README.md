@@ -126,7 +126,7 @@ think-os/
 
 **Three vault types:**
 
-- **Personal hub** (always local, never shared) — your identity, daily work log, current focus, people notes, decisions, learnings.
+- **Personal hub** (always local, never shared) — your identity, current focus, people, decisions, learnings, private notes.
 - **Project vaults** (shared via git) — team activity log, project decisions, specs, learnings. Privacy enforced *structurally*: project vault schemas have no slot for personal content, so personal observations can't accidentally leak into a shared repo.
 - **Reference vaults** (read-only imports) — folders of markdown you read from but don't own.
 
@@ -139,7 +139,7 @@ See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for t
 | `/thinkos-whoami` | Quick identity + role + current focus |
 | `/thinkos-morning` | Daily brief — focus, plate, recent log |
 | `/thinkos-plate` | What's on your plate today |
-| `/thinkos-log <message>` | Capture a timestamped note to your work log |
+| `/thinkos-log <message>` | Capture a timestamped note |
 | `/thinkos-who <name>` | What you know about a specific person |
 | `/thinkos-project <slug>` | Load deep context for a project |
 | `/thinkos-decisions [topic]` | Search your standing decisions |
@@ -160,7 +160,7 @@ See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for t
 
 Once setup is done, Think OS captures what you work on without you remembering to log it:
 
-- **Session capture** — every 2 hours during work hours, a launchd job scans recent Claude Code sessions and appends a one-line entry to your Work Log (cwd, file count, commit). No LLM call. No file contents leave your machine. Toggle with `/thinkos-autosave`.
+- **Session capture** — every 2 hours during work hours, a launchd job scans recent Claude Code sessions and appends a one-line entry of what you worked on (cwd, file count, commit) to your private vault. No LLM call. No file contents leave your machine. Toggle with `/thinkos-autosave`.
 - **External ingestion (opt-in per source)** — local launchd jobs pull from Granola meetings, Slack DMs + @-mentions, starred Gmail threads, Calendar, Linear, ClickUp. Jobs run when your Mac is awake. Configure via `/thinkos-capture-setup` — safest source (Granola) offered first, most sensitive (Slack DMs) last. Privacy-routed by keyword (anything matching `comp`, `salary`, `HR`, `health`, `family`, `performance`, `1:1` lands in your personal hub only).
 - **Audit & undo** — every capture writes one line to the vault note `90 System/Capture Log.md`. `/thinkos-recent` shows what landed; `/thinkos-undo-capture` removes any entry that shouldn't have been kept.
 

@@ -16,9 +16,9 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   <h2>Layer A — Session capture</h2>
   <p>
     A launchd job fires every 2 hours during work hours. It scans recent Claude
-    Code session metadata and appends a one-line stub to
-    <code>01 Now/Work Log.md</code>: working directory, file count, and last
-    git commit. No LLM call. No file contents leave the machine.
+    Code session metadata and appends a one-line stub of what you worked on
+    (working directory, file count, last git commit) to your private vault.
+    No LLM call. No file contents leave the machine.
   </p>
   <p>
     Toggle via <code>/thinkos-autosave on|off|status|now</code>. Running

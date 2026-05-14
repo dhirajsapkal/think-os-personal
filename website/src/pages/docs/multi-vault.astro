@@ -10,7 +10,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
     Think OS has one personal hub vault, zero-or-more project vaults shared
     via git, and zero-or-more reference vaults that are read-only.
     Privacy is enforced <em>structurally</em> — a project vault's schema has
-    no slot for personal content, so the agent cannot write your work log
+    no slot for personal content, so the agent cannot write personal notes
     into a shared repo because there is no destination.
   </p>
 
@@ -18,8 +18,8 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   <ul>
     <li>
       <strong>Personal hub</strong> — your individual knowledge. Identity,
-      current focus, work log, decisions, learnings, people. Lives on disk,
-      never shared. Always loaded into every agent session.
+      current focus, decisions, learnings, people, private notes. Lives on
+      disk, never shared. Always loaded into every agent session.
     </li>
     <li>
       <strong>Project vault</strong> — shared with teammates via git. Reduced
