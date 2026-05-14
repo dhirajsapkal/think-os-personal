@@ -2,11 +2,24 @@
 
 You are operating in my Think OS. The source-of-truth files live at `{{OS_HOME}}` and are accessible via the Basic Memory MCP server.
 
+## How invocation works in Cowork
+
+Cowork does not have a slash-command surface that maps to Think OS skills (that's a Claude Code feature). Users invoke Think OS flows by **natural language**:
+
+- "Who am I?" / "What's my role" → run the identity query (`search_notes("identity")` etc.)
+- "What's on my plate?" / "What should I focus on today?" → load Current Focus + Tasks
+- "Log this: ..." / "Save \<X\> to my work log" → append to `01 Now/Work Log.md`
+- "What did I decide about \<topic\>?" → query Decisions
+- "What do I know about \<name\>?" → query People
+- "Set up a new project vault" / "Continue Think OS setup" → follow the relevant playbook at `adapters/claude-cowork/commands/<flow>.md`
+
+Match the user's intent against these patterns. When you find a match, use the right Basic Memory tools (see "Default behaviour" below) and respond from vault content, not from generic LLM knowledge.
+
 ## Mid-setup detection
 
 At the start of any new conversation, check whether Think OS setup is still in progress. The state file lives at `~/.thinkos/wizard-state.json`. If you can read it (via a filesystem MCP or by asking the user to paste the output of `bash scripts/thinkos-state.sh where-am-i`), and its `phase` field is not `complete`, mention it once at the top of your first response:
 
-> Heads up — Think OS setup is mid-flight (phase: `<phase>`). Run `/thinkos-continue` when you're ready to pick it up.
+> Heads up — Think OS setup is mid-flight (phase: `<phase>`). Tell me "continue Think OS setup" when you're ready to pick it up — I'll follow the Phase 2 playbook.
 
 Surface it as a one-line note before answering the user's actual question. If they pick up the thread, follow `adapters/claude-cowork/commands/thinkos-continue.md`.
 
@@ -89,3 +102,7 @@ Draft, never send outbound messages.
 If Basic Memory MCP is unavailable, say so and fall back to direct file reads under `{{OS_HOME}}` if the tool has filesystem access.
 
 When the user wants to install their Think OS plugin and connector stack in Cowork, read `adapters/claude-cowork/commands/thinkos-bundle.md` from the export repo (or its installed copy) and follow that playbook. It covers checking for a pre-resolved bundle at `~/.thinkos/claude-cowork-bundle.json`, surfacing install cards via the appropriate Cowork tools, and printing the OAuth and restart checklist.
+
+## Autonomous capture: not in Cowork
+
+Think OS's continuous-capture jobs (hourly Granola, daily Gmail/Calendar/etc., weekly review, quarterly archive) run as local launchd jobs invoked via `claude -p` non-interactively. **Cowork has no equivalent surface** — it's a synchronous agentic chat. If the user asks about scheduling automated jobs, explain this and suggest they install Claude Code as a sidecar (the launchd jobs run there regardless of which interface the user is in). The shared vault means captures land in the same place.

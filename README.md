@@ -4,9 +4,9 @@
 
 Think OS gives your agentic tools durable memory of who you are, what you're working on, who you work with, and how you like to work. It's a markdown vault plus a context server (Basic Memory MCP) that any modern agent can query and update.
 
-Early alpha — v0.3.3. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
+Early alpha — v0.4.1. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
 
-> **Tool support roadmap.** v0.3 focuses on **Claude Code**. Cowork and Codex adapters are preserved in this repo (`adapters/claude-cowork/`, `adapters/codex/`) and will light up in future versions. The install flow today only wires up Claude Code; the architecture is designed to extend.
+> **Tool support roadmap.** **Claude Code** is the primary target — full feature set: slash commands, autonomous capture, drift-aware updates. **Claude Cowork** (v0.4): thinner integration — vault access + curated agent instructions + native onboarding chips, but no slash commands (Cowork uses a different plugin format) and no autonomous capture (no equivalent surface). See [`adapters/claude-cowork/README.md`](adapters/claude-cowork/README.md) for the honest writeup. **Codex**: scaffolding only.
 
 ---
 

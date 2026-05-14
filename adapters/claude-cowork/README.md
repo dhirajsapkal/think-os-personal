@@ -1,83 +1,109 @@
-# Claude Cowork Adapter
+# Claude Cowork adapter
 
-Use this adapter when Claude Cowork is your desktop agent. Cowork should use Basic Memory MCP as the read/write path to Think OS so you do not need to attach the vault folder to every task.
+Think OS support inside Claude Cowork (the agentic tab in Claude Desktop). v0.4 ships **minimal-but-functional**: full vault/memory access, native onboarding chip-pickers, **no slash commands**, **no autonomous capture jobs**.
 
-## Prereqs
+> **What you'll need to accept:** Cowork uses a different plugin format than Claude Code. We don't ship a Cowork plugin yet (it would require Anthropic marketplace approval and may be blocked by Think Company's org policy anyway). So Cowork users get a thinner integration than Claude Code users. The vault + the agent's behavior is the same; the *invocation surface* is narrower.
 
-- Basic Memory installed and indexed: see [`../../docs/setup-basic-memory.md`](../../docs/setup-basic-memory.md)
-- Think OS vault at `{{OS_HOME}}`, recommended `~/ThinkOS/vault`
-- Basic Memory project name: `think-os`
+---
 
-## 1. Register Basic Memory MCP
+## What works
 
-Agent-assisted path:
+- **Vault access** via the `basic-memory` MCP — Cowork shares this with Claude Code through `~/Library/Application Support/Claude/claude_desktop_config.json`.
+- **Curated agent instructions** — pasted once into `Settings → Cowork → Edit`. They teach the agent how to use Basic Memory, route writes correctly, surface freshness warnings, etc.
+- **Native chip-picker onboarding** — `AskUserQuestion` renders as checkboxes in Cowork exactly like it does in Claude Code, so the install flow looks the same.
+- **Connectors** — Granola, Slack, Gmail, Calendar, etc. authenticated through Cowork's own UI work the same way.
+
+## What's degraded
+
+- **No slash commands.** You invoke flows by natural language: "what's on my plate today?" instead of `/thinkos-plate`. The instructions block teaches the agent the patterns, but the precision of a 19-command vocabulary is lost.
+- **One manual paste step** — Cowork's global instructions field has no scriptable storage path. The setup script generates the text and copies it to your clipboard; you paste it into Settings once.
+- **No autonomous capture.** All of Think OS's local-launchd jobs (hourly Granola, daily Gmail/Calendar, weekly review, etc.) are Claude Code–only. Cowork itself is a synchronous chat surface. If you want autonomous capture, install Claude Code as a sidecar — the launchd jobs there will keep your vault flowing whether you're in Cowork or not.
+
+## What's not (yet) possible
+
+- **A native Cowork plugin** — would require building a DXT (Desktop Extension) with a Node.js MCP server, submitting to Anthropic's marketplace, and (for enterprise users) getting org approval. Tracked as v0.5+ work.
+
+---
+
+## Install (~3 minutes, one manual step)
+
+From a terminal in this repo:
 
 ```bash
-scripts/thinkos-setup.sh --products claude-cowork --install-basic-memory --yes
+bash scripts/thinkos-setup.sh --products claude-cowork --yes
 ```
 
-This prepares generated copy/paste files at `~/.thinkos/claude-cowork-mcp.txt` and `~/.thinkos/claude-cowork-instructions.md`. Cowork still needs the MCP added through its settings UI.
+The script:
+1. Renders the curated instruction block to `~/.thinkos/claude-cowork-instructions.md` and copies it to your clipboard.
+2. Inspects `~/Library/Application Support/Claude/claude_desktop_config.json`:
+   - If `basic-memory` is missing → adds it pointing at your Think OS project (`think-os` by default). Writes a `.pre-thinkos.<timestamp>.bak` backup first.
+   - If `basic-memory` is present and already points at your Think OS project → no-op.
+   - If `basic-memory` is present but points at a different project (e.g., a pre-existing setup) → does **not** overwrite. Writes a proposed merged config to `~/.thinkos/claude-cowork-mcp-conflict.json` for you to apply manually.
+3. (If `--bundle <preset>` is passed) Writes `~/.thinkos/claude-cowork-bundle.json` listing the connectors and plugins the Cowork agent should install on first run.
 
-Manual path:
+Then the **one manual step**:
 
-Cowork manages MCPs through its UI.
+1. Open Claude Desktop → `Settings` → `Cowork` → click into the "Global instructions" text field.
+2. Paste (Cmd+V — it's already on your clipboard).
+3. Save.
+4. Quit and reopen Claude Desktop (MCPs load on startup; the global instructions activate immediately).
 
-Open Cowork settings and add a custom MCP server:
+## Verify
 
-| Field | Value |
+In a fresh Cowork task, ask:
+
+```
+Use Basic Memory to tell me who I am and what I'm working on this week.
+```
+
+You should see specific answers drawing from `05 Profile/Identity.md` and `01 Now/Current Focus.md` in your vault — not generic LLM padding. If the answer is generic, either the instructions weren't pasted, the MCP isn't connected, or Cowork wasn't restarted.
+
+For deeper diagnosis: `bash scripts/thinkos-doctor.sh --products claude-cowork`.
+
+---
+
+## Using it day-to-day
+
+Anything you'd do via slash commands in Claude Code, do via natural language in Cowork:
+
+| Claude Code slash command | What you'd say in Cowork |
 |---|---|
-| Name | `Basic Memory` |
-| Command | `basic-memory` |
-| Args | `mcp --project think-os` |
-| Working directory | Leave default or use `$HOME` |
+| `/thinkos-whoami` | "Who am I?" or "What's my role and current focus?" |
+| `/thinkos-morning` | "Run my morning brief" or "What should I focus on today?" |
+| `/thinkos-plate` | "What's on my plate?" |
+| `/thinkos-log <msg>` | "Log this: \<your note\>" or "Save \<X\> to my work log" |
+| `/thinkos-decisions \<topic\>` | "What did I decide about \<topic\>?" |
+| `/thinkos-who \<name\>` | "What do I know about \<name\>?" |
+| `/thinkos-vault list` | "List my Think OS vaults" |
+| `/thinkos-continue` (Phase 2 seeding) | "Continue Think OS setup" — agent follows the playbook at `adapters/claude-cowork/commands/thinkos-continue.md` |
 
-If Cowork cannot find `basic-memory`, use the full path:
+The agent infers intent from the wording. The instructions block teaches it which Basic Memory tools to use and where things should land.
 
-```bash
-which basic-memory
-```
+## What the existing `commands/*.md` files are now
 
-Then paste that path as the command.
+The files at `adapters/claude-cowork/commands/{thinkos-continue,thinkos-vault,thinkos-bundle}.md` are **agent-readable playbooks**, not slash commands. When you say "set up a new project vault" or "continue Think OS setup", the agent reads the relevant file from this repo (or its local copy) and follows the steps. They're internal references, not user-facing commands.
 
-Fully quit and reopen Cowork after saving. MCP servers usually load on app startup.
+---
 
-## 2. Add Global Instructions
+## Sidecar pattern: Claude Code + Cowork
 
-Open Cowork's personalization / custom instructions area and paste the contents of [`instructions.md`](instructions.md), replacing `{{OS_HOME}}` with your vault path.
+You can install both. Most users will want to:
 
-## 3. Verify
+- **Claude Code** — handles the install, the autonomous capture jobs (launchd), `/thinkos-update`, anything that benefits from precise slash-command invocation.
+- **Cowork** — uses the same vault, the same MCP, the same instructions. Best for conversational work where you want Cowork's agentic features (filesystem extension, web search, etc.) layered on top of Think OS's context.
 
-Start a fresh Cowork conversation in a project that is not the Think OS vault and ask:
-
-```text
-Use Basic Memory to answer: who am I and what am I working on?
-```
-
-Expected:
-
-- Cowork can see Basic Memory tools.
-- The answer references `05 Profile/Identity.md` and `01 Now/Current Focus.md`.
-- The answer is specific, not generic.
-
-Agent check:
-
-```bash
-scripts/thinkos-doctor.sh --products claude-cowork
-```
-
-## 4. Install Your Plugin / Connector Bundle
-
-After the MCP and instructions are configured, install your tool stack via the bundle wizard. In Cowork, run the `/thinkos-bundle` slash command or ask the agent to follow the playbook at [`commands/thinkos-bundle.md`](commands/thinkos-bundle.md).
-
-The wizard will:
-1. Pick up a pre-resolved bundle from `~/.thinkos/claude-cowork-bundle.json` if the setup script was run with `--bundle`, or ask you to choose a preset/custom list interactively.
-2. Surface install cards for each connector and plugin via Cowork's native tools.
-3. Print an OAuth checklist and remind you to restart Cowork.
-
-Available presets: `pm` (product management), `eng` (engineering), `design`, `ops` (operations), or `custom`.
+They share `~/ThinkOS/vault/`, share `basic-memory`, and share `~/.thinkos/capture-log.jsonl`. You can write a learning from Cowork and read it from Claude Code five minutes later.
 
 ## Troubleshooting
 
-- `command not found`: use the full `which basic-memory` path in the MCP config.
-- MCP exists but cannot read files: move the vault to `~/ThinkOS/vault`, or grant Cowork Documents Folder / Full Disk Access if you chose a protected folder.
-- Search works but edits fail: verify `basic-memory project ls --name think-os` from the same app environment if possible.
+- **`basic-memory` doesn't appear in Cowork after restart**: open Claude Desktop's `Settings → Connectors` (or the equivalent panel) and check the list. If your filesystem extension shows `Extension is not approved for your organization`, you may be in a Cowork tenant with strict extension policy — basic-memory should still work since it's a local MCP, but verify in the panel.
+- **The agent ignores my instructions**: confirm the global instructions text was saved (open `Settings → Cowork → Edit` and look at the text field — should show ~280 lines starting with `# Think OS — Priority Preamble`). If empty, paste again from `~/.thinkos/claude-cowork-instructions.md`.
+- **Conflict with existing basic-memory MCP**: see `~/.thinkos/claude-cowork-mcp-conflict.json` — the setup script wrote a proposed merged config there. Either change the existing `--project` arg to `think-os`, or add a second MCP entry under a different name.
+
+## Uninstall
+
+```bash
+bash scripts/thinkos-uninstall.sh --products claude-cowork
+```
+
+Removes the `~/.thinkos/claude-cowork-*` files. **Does not** modify `claude_desktop_config.json` (would require the user to choose what to keep). **Does not** clear the global instructions in Cowork's UI — clear that field manually if you want a clean state.

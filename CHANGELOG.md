@@ -2,6 +2,20 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.4.1] — 2026-05-14 — Claude Cowork support (Option A)
+
+### Added
+
+- **Cowork adapter ships as installable** via `bash scripts/thinkos-setup.sh --products claude-cowork --yes`. Auto-edits `~/Library/Application Support/Claude/claude_desktop_config.json` to register `basic-memory` MCP pointing at the user's Think OS project. Backs the original config up with a `.pre-thinkos.<timestamp>.bak` suffix before writing. Refuses to overwrite an existing basic-memory entry that points at a different project — writes a proposed merged config to `~/.thinkos/claude-cowork-mcp-conflict.json` instead so the user can resolve manually.
+- **Honest README rewrite at `adapters/claude-cowork/README.md`** — replaces the prior aspirational claims with the post-research reality: Cowork uses a DXT (Desktop Extension) plugin format, not the `~/.claude/skills/` directory that Claude Code uses. We don't ship a DXT yet (would need Anthropic marketplace approval + possible org allowlisting). So Cowork users get vault access via MCP + curated instructions via paste, but no slash commands and no autonomous capture jobs.
+- **`adapters/claude-cowork/instructions.md`** — added a "How invocation works in Cowork" section that teaches the agent to match user intent against natural-language patterns ("who am I?", "what's on my plate?", etc.) instead of expecting slash commands. Added a closing note that autonomous capture is Claude Code-only and Cowork users should run Claude Code as a sidecar if they want it.
+
+### Known limits (documented, not bugs)
+
+- No slash commands in Cowork (DXT not built).
+- No autonomous capture in Cowork (no equivalent of `claude -p` non-interactive surface).
+- One manual paste step during install (Cowork's global instructions field has no scriptable storage path that we could locate).
+
 ## [Unreleased] — local launchd correction
 
 ### Changed
