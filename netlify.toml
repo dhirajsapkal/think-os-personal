@@ -1,0 +1,16 @@
+# Netlify build config for the Think OS website.
+# The Astro site lives in the `website/` subdirectory of the repo.
+
+[build]
+  base    = "website"
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Pretty 404 page when a route doesn't match.
+[[redirects]]
+  from   = "/*"
+  to     = "/404.html"
+  status = 404

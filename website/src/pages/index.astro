@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InstallPrompt from '../components/InstallPrompt.astro';
-import ThinkCompanyMark from '../components/ThinkCompanyMark.astro';
 
 const benefits = [
   {
@@ -114,11 +113,15 @@ const faqs = [
   <section class="mx-auto max-w-[1200px] px-6 md:px-10 pt-20 md:pt-28 pb-24 md:pb-36">
     <div class="grid grid-cols-12 gap-6">
       <div class="col-span-12 md:col-span-9 md:col-start-2">
-        <div class="lift lift-1 flex items-center gap-4 flex-wrap">
-          <ThinkCompanyMark size="sm" />
-          <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">
-            · a project from Think Company
-          </span>
+        <div class="lift lift-1">
+          <a
+            href="https://thinkcompany.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted hover:text-accent transition-colors"
+          >
+            A project from Think Company
+          </a>
         </div>
 
         <h1 class="display lift lift-2 mt-8 text-[44px] md:text-[88px] lg:text-[104px] tracking-tightest">
