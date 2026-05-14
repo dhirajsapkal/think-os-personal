@@ -13,6 +13,10 @@
   --soft:    #EFEDE5;
   --accent:  #A85740;
 
+  /* Think Company brand — used sparingly for endorsement marks */
+  --tc-blue: #1657C2;
+  --tc-blue-fg: #FFFFFF;
+
   --paper-rgb: 248 247 242;
   --ink-rgb:   27  27  27;
 }
@@ -24,6 +28,9 @@
   --rule:    #2A2722;
   --soft:    #1B1916;
   --accent:  #C88770;
+
+  --tc-blue: #4A86E0;
+  --tc-blue-fg: #FFFFFF;
 
   --paper-rgb: 19 17 15;
   --ink-rgb:   242 239 232;

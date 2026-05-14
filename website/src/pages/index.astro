@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InstallPrompt from '../components/InstallPrompt.astro';
+import ThinkCompanyMark from '../components/ThinkCompanyMark.astro';
 
 const benefits = [
   {
@@ -33,13 +34,13 @@ const rules = [
   },
   {
     n: 'II',
-    title: 'HOT tier stays small.',
-    body: 'About 280 lines of always-loaded context — identity, current focus, project index. Detail lives in WARM tier, loaded on demand.',
+    title: 'Always-loaded context stays small.',
+    body: 'About 280 lines load into every session — identity, current focus, project index. Anything bigger loads only when the question needs it.',
   },
   {
     n: 'III',
-    title: 'Write targets are explicit.',
-    body: 'Personal memory goes to your hub. Project work goes to that project\'s vault. Nothing ever lands in your Documents root.',
+    title: 'Personal stays personal. Team stays team.',
+    body: 'Your work log and private notes live in a vault only you can see. Project work lives in a separate vault shared with your team. The structure makes accidental crossover impossible.',
   },
 ];
 
@@ -108,9 +109,14 @@ const faqs = [
   <section class="mx-auto max-w-[1200px] px-6 md:px-10 pt-20 md:pt-28 pb-24 md:pb-36">
     <div class="grid grid-cols-12 gap-6">
       <div class="col-span-12 md:col-span-9 md:col-start-2">
-        <p class="kicker lift lift-1">Markdown · MCP · Claude Code</p>
+        <div class="lift lift-1 flex items-center gap-4 flex-wrap">
+          <ThinkCompanyMark size="sm" />
+          <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">
+            · a project from Think Company
+          </span>
+        </div>
 
-        <h1 class="display lift lift-2 mt-7 text-[44px] md:text-[88px] lg:text-[104px] tracking-tightest">
+        <h1 class="display lift lift-2 mt-8 text-[44px] md:text-[88px] lg:text-[104px] tracking-tightest">
           Personal context<br />
           that follows you<br />
           into <em>every agent session.</em>

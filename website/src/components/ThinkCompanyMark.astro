@@ -1,0 +1,43 @@
+---
+// Think Company wordmark — small inline badge.
+// Modeled on the "think" blue-badge + "Company" lockup used by Think Co.
+interface Props {
+  size?: 'sm' | 'md';
+  linked?: boolean;
+  showCompany?: boolean;
+}
+const { size = 'sm', linked = true, showCompany = true } = Astro.props;
+const isSm = size === 'sm';
+const badgeText  = isSm ? 'text-[10px] px-[6px] py-[2px]' : 'text-[12px] px-2 py-[3px]';
+const companyText = isSm ? 'text-[12px]' : 'text-[14px]';
+const Tag = linked ? 'a' : 'span';
+const tagProps = linked
+  ? { href: 'https://thinkcompany.com', target: '_blank', rel: 'noopener noreferrer' }
+  : {};
+---
+<Tag
+  {...tagProps}
+  class={`tc-mark inline-flex items-center gap-1.5 ${linked ? 'group' : ''}`}
+  aria-label="Think Company"
+>
+  <span
+    class={`tc-badge inline-flex items-center font-medium leading-none rounded-[3px] ${badgeText}`}
+  >think</span>
+  {showCompany && (
+    <span class={`font-medium tracking-tight text-ink/85 ${companyText}`}>
+      Company
+    </span>
+  )}
+</Tag>
+
+<style>
+  .tc-badge {
+    background: var(--tc-blue);
+    color: var(--tc-blue-fg);
+    font-family: 'Geist', system-ui, sans-serif;
+    letter-spacing: -0.01em;
+  }
+  .tc-mark.group:hover .tc-badge {
+    filter: brightness(1.08);
+  }
+</style>
