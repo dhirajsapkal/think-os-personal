@@ -1,0 +1,18 @@
+Read the past 7 days of entries from 01 Now/Work Log.md via
+mcp__basic-memory__search_notes (filter by recent dates).
+
+Identify patterns: which projects consumed most time, what got
+blocked, what's emerging.
+
+Read the current 01 Now/Current Focus.md to understand prior
+framing.
+
+Draft an updated Current Focus.md covering next week (Mon-Sun).
+Match the existing file's structure.
+
+Write the draft to 01 Now/Current Focus.md.draft (NOT to the live
+file) via mcp__basic-memory__write_note. The user reviews and
+approves on Monday.
+
+Append a brief one-paragraph summary of this session to
+01 Now/Work Log.md noting the review ran.

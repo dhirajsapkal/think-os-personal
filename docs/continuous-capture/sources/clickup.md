@@ -30,9 +30,10 @@ The `mcp__clickup__get_tasks` tool (the MCP server-side ClickUp integration) and
 
 ## Schedule
 
-- Cron (UTC): `0 11 * * *`
-- Translated: "daily at 6am US Eastern (11am UTC)"
+- Cron (local time): `0 6 * * *` — daily at 6am
+- Translated: "every day at 6am local time"
 - Why this cadence: same reasoning as Linear — daily task-movement summary is the right granularity. ClickUp can be high-volume; hourly capture would generate noise.
+- **Laptop-wake note:** this job runs locally via launchd. If your Mac is asleep at 6am, launchd fires it on next wake. The 25-hour lookback window in the filter ensures tasks from a missed window are still captured on the next run.
 
 ## Vault destination
 
@@ -53,7 +54,13 @@ When matched:
 
 ## Trigger prompt
 
-Register this verbatim via `CronCreate`:
+The prompt body lives at `scripts/cron-prompts/clickup.txt`. The generic dispatcher `scripts/thinkos-cron-run.sh clickup` reads it and pipes it to `claude -p`. Install the job via:
+
+```bash
+bash scripts/install-launchd-job.sh clickup
+```
+
+This writes `~/Library/LaunchAgents/com.thinkos.clickup.plist` (schedule: `0 6 * * *` local time) and loads it with `launchctl`.
 
 ```
 You are the Think OS ClickUp capture agent. Run daily.
@@ -150,12 +157,13 @@ Step 10 — Output one line: "ClickUp snapshot written: <N> task(s) with status 
 
 Run `/thinkos-capture-setup clickup` — or run `/thinkos-capture-setup` and select ClickUp when prompted.
 
+The command installs the launchd job via `bash scripts/install-launchd-job.sh clickup`.
+
 Prerequisites:
 - ClickUp MCP connected. Both `mcp__claude_ai_ClickUp__*` and `mcp__clickup__*` are available in this environment. The trigger uses `mcp__claude_ai_ClickUp__clickup_filter_tasks` as the primary fetch tool.
 - Run `claude mcp list` to confirm authentication.
 
 ## How to disable
 
-1. Run `/thinkos-automate list` to find `think-os-capture-clickup`.
-2. Run `/thinkos-automate remove think-os-capture-clickup`.
-3. Past snapshot files remain; future snapshots stop.
+1. Run `/thinkos-automate remove clickup` — this runs `launchctl unload ~/Library/LaunchAgents/com.thinkos.clickup.plist` and deletes the plist.
+2. Past snapshot files remain; future snapshots stop.

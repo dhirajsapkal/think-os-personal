@@ -20,7 +20,7 @@ This is the canonical playbook for the `/thinkos-automate` slash command. When a
 
 ## What this is
 
-After Phase 1 (install) and Phase 2 (context seeding), your Think OS has identity, projects, focus, and people — but markdown files go stale if no one maintains them. Phase 3 sets up **scheduled triggers** that run automatically on a cron schedule:
+After Phase 1 (install) and Phase 2 (context seeding), your Think OS has identity, projects, focus, and people — but markdown files go stale if no one maintains them. Phase 3 sets up **scheduled jobs** that run automatically on a cron schedule:
 
 - **Daily reindex** so external edits (Obsidian, your editor) flow into Basic Memory.
 - **Weekly review** so `Current Focus.md` rolls over to next week without you remembering.
@@ -30,16 +30,20 @@ These aren't notifications — they're maintenance. Your vault gets healthier ov
 
 ---
 
-## How Claude Code scheduling works
+## How Phase 3 scheduling works
 
-Claude Code supports **remote scheduled triggers** through the `schedule` skill and the `CronCreate` / `CronList` / `CronDelete` tools. Key properties:
+Phase 3 triggers run as **local launchd jobs** — the same mechanism Phase A session capture uses. Each job is a `templates/LaunchAgents/com.thinkos.<name>.plist` that invokes a single generic dispatcher: `scripts/thinkos-cron-run.sh <name>`. The dispatcher knows whether the task is deterministic (e.g., `basic-memory reindex` for daily-reindex) or LLM-prompted (reads `scripts/cron-prompts/<name>.txt` and runs `claude -p` against it).
 
-- **They run remotely**, not in your local Claude Code session. You don't need to keep an app open or a terminal running.
-- **They fire on cron expressions** — same syntax as Linux cron (`0 7 * * 1-5` = 7am weekdays).
-- **They run a small Claude session** with whatever prompt you defined, with access to your MCPs and tools.
-- **They write to your filesystem and vault** the same way an in-session agent would.
+Key properties:
 
-Each fire uses Anthropic API tokens. For low-frequency maintenance tasks, token usage is low — a daily 4am reindex takes ~500-2000 tokens.
+- **They run locally**, on your Mac, via launchd. Installation writes a `.plist` and loads it with `launchctl`.
+- **They fire on cron schedules** — same expressions as Linux cron (`0 7 * * 1-5` = 7am weekdays).
+- **Jobs that need LLM synthesis** spawn a local `claude -p` session with your vault's MCP tools available.
+- **They write to your local vault** — which is why they must be local. Remote triggers run on Anthropic's cloud infrastructure and cannot write to `~/ThinkOS/vault/` on your machine.
+
+**Laptop-wake caveat:** launchd jobs only fire when your Mac is awake. If your Mac sleeps through a scheduled time (e.g., 4am reindex), launchd catches up on next wake — or skips that fire, depending on the job's `StartCalendarInterval` settings. The original "your laptop can be asleep" framing was wrong for these jobs; that only holds for remote triggers that write to cloud-accessible storage (project vaults, Slack notifications). Phase 3 jobs write to your personal hub vault, which is local.
+
+Each LLM-synthesis fire uses Anthropic API tokens. For low-frequency maintenance tasks, token usage is low — a daily reindex takes no tokens (it is a deterministic script call); the weekly review and quarterly archive each spawn one Claude session.
 
 ---
 
@@ -51,12 +55,13 @@ When the user runs `/thinkos-automate`, the agent offers these by default. Each 
 
 **Why**: Basic Memory's index drifts if you edit vault files outside an agent session (Obsidian, your text editor). The reindex keeps search results accurate.
 
-**What runs**: A tiny Claude session that calls `Bash` once to run:
+**What runs**: A shell script that runs:
 ```bash
 basic-memory reindex --project think-os
 ```
+No LLM call. No API tokens. Pure deterministic command.
 
-**Cost**: each fire spawns a tiny Claude session (one Bash call). Token usage is minimal. Whether you're billed depends on your Claude plan.
+**Cost**: zero API tokens. The script runs directly; no Claude session is spawned.
 
 ### 2. Weekly review — `0 20 * * 0` (Sunday 8pm)
 
@@ -68,7 +73,7 @@ basic-memory reindex --project think-os
 3. Drafts an updated `01 Now/Current Focus.md` covering next week.
 4. Writes the draft to `01 Now/Current Focus.md.draft` (NOT the live file) for the user to review and approve on Monday morning.
 
-**Cost**: reads ~7 days of vault content and drafts an updated focus file. Whether you're billed depends on your Claude plan.
+**Cost**: spawns one local `claude -p` session that reads ~7 days of vault content and drafts an updated focus file. Uses Anthropic API tokens. Whether that's covered by your Claude plan or charged as pay-as-you-go depends on your account.
 
 ### 3. Quarterly archive — `0 21 1-7 1,4,7,10 0` (first Sunday of Jan/Apr/Jul/Oct, 9pm)
 
@@ -81,7 +86,7 @@ basic-memory reindex --project think-os
 4. Prunes stale entries from `02 Projects/Project Index.md` (projects with no activity in 6+ months get marked dormant).
 5. Writes a quarterly summary to `99 Archive/quarterly-summary-YYYY-QN.md`.
 
-**Cost**: fires 4 times a year. Token usage scales with vault size.
+**Cost**: fires 4 times a year. Spawns one local `claude -p` session per fire. Token usage scales with vault size.
 
 ### 4. Daily morning brief — `0 7 * * 1-5` (7am Mon-Fri) — *optional*
 
@@ -92,7 +97,7 @@ basic-memory reindex --project think-os
 2. Reads Calendar events for today (via MCP if `Granola` / `Google Calendar` MCPs are installed).
 3. Writes a brief markdown summary to `01 Now/briefs/YYYY-MM-DD-brief.md`.
 
-**Cost**: reads HOT-tier files + today's calendar events (if MCP connected). Whether you're billed depends on your Claude plan.
+**Cost**: spawns one local `claude -p` session per fire. Reads HOT-tier files + today's calendar events (if MCP connected). Whether you're billed depends on your Claude plan.
 
 **Skip if**: You already use `/thinkos-morning` interactively each day. Then there's no benefit to scheduling.
 
@@ -112,7 +117,7 @@ If the user wants to proceed anyway, that's fine. The triggers can be created ag
 
 Show the user a brief framing:
 
-> Phase 3 sets up scheduled triggers that keep your Think OS fresh automatically. Triggers run remotely (no app needs to stay open) and use a small amount of Anthropic API tokens per fire. I'll offer you four pre-built automations; you choose which to enable.
+> Phase 3 installs local launchd jobs that keep your Think OS fresh automatically. Jobs run on your Mac — they fire when your Mac is awake (if the Mac sleeps through a scheduled time, the job catches up on next wake or skips that fire). LLM-synthesis jobs (weekly review, quarterly archive, morning brief) use Anthropic API tokens when they run; the daily reindex does not. I'll offer you four pre-built automations; you choose which to install.
 
 ### Step 2 — Offer each automation (one at a time)
 
@@ -122,21 +127,35 @@ For each of the four (reindex, weekly-review, quarterly-archive, morning-brief),
 
 Wait for each answer before moving to the next.
 
-### Step 3 — Create the triggers
+### Step 3 — Install the launchd jobs
 
-For each Y answer, use the `schedule` skill (or `CronCreate` tool — load via `ToolSearch select:CronCreate` if needed). The trigger config for each is:
+For each Y answer, install via:
+
+```bash
+bash scripts/install-launchd-job.sh <name>
+```
+
+This writes `templates/LaunchAgents/com.thinkos.<name>.plist` to `~/Library/LaunchAgents/`, runs `launchctl load` on it, and wires the plist to invoke `scripts/thinkos-cron-run.sh <name>` at fire time. LLM-prompted tasks read their prompt from `scripts/cron-prompts/<name>.txt`; daily-reindex is a special case (deterministic, hardcoded in the dispatcher).
+
+The job configs for each trigger are:
 
 #### Daily reindex
 ```
-schedule: "0 4 * * *"
-prompt: |
-  Run `basic-memory reindex --project think-os` via the Bash tool.
-  Output any errors as a single line. If successful, exit silently.
+name: thinkos-daily-reindex
+schedule: "0 4 * * *"   # 4am daily
+dispatcher: scripts/thinkos-cron-run.sh daily-reindex
+# Deterministic command, hardcoded in the dispatcher:
+#   basic-memory reindex --project think-os
+# No claude -p call.
 ```
 
 #### Weekly review
 ```
-schedule: "0 20 * * 0"
+name: thinkos-weekly-review
+schedule: "0 20 * * 0"   # Sunday 8pm
+dispatcher: scripts/thinkos-cron-run.sh weekly-review
+prompt_file: scripts/cron-prompts/weekly-review.txt
+# Dispatcher reads the prompt file and runs `claude -p` against it.
 prompt: |
   Read the past 7 days of entries from 01 Now/Work Log.md via
   mcp__basic-memory__search_notes (filter by recent dates).
@@ -160,7 +179,11 @@ prompt: |
 
 #### Quarterly archive
 ```
-schedule: "0 21 1-7 1,4,7,10 0"
+name: thinkos-quarterly-archive
+schedule: "0 21 1-7 1,4,7,10 0"   # first Sunday of Jan/Apr/Jul/Oct, 9pm
+dispatcher: scripts/thinkos-cron-run.sh quarterly-archive
+prompt_file: scripts/cron-prompts/quarterly-archive.txt
+# Dispatcher reads the prompt file and runs `claude -p` against it.
 prompt: |
   Read 01 Now/Work Log.md fully.
 
@@ -185,7 +208,11 @@ prompt: |
 
 #### Daily morning brief (only if user said yes)
 ```
-schedule: "0 7 * * 1-5"
+name: thinkos-morning-brief
+schedule: "0 7 * * 1-5"   # 7am Mon-Fri
+dispatcher: scripts/thinkos-cron-run.sh morning-brief
+prompt_file: scripts/cron-prompts/morning-brief.txt
+# Dispatcher reads the prompt file and runs `claude -p` against it.
 prompt: |
   Read these via mcp__basic-memory__read_note or search_notes:
     - 05 Profile/Identity.md (briefly)
@@ -210,52 +237,49 @@ prompt: |
   start on?" — no preamble.
 ```
 
-### Step 4 — Show the user what was created
+### Step 4 — Show the user what was installed
 
-After creating each trigger, list them back:
+After installing each job, list them back:
 
-> Created 3 scheduled triggers:
->   1. Daily reindex — fires at 4am every day
->   2. Weekly review — fires Sunday 8pm
->   3. Quarterly archive — fires first Sunday of Jan/Apr/Jul/Oct, 9pm
+> Installed 3 local launchd jobs:
+>   1. Daily reindex — fires at 4am every day (no API tokens)
+>   2. Weekly review — fires Sunday 8pm (one Claude session per fire)
+>   3. Quarterly archive — fires first Sunday of Jan/Apr/Jul/Oct, 9pm (one Claude session per fire)
 >
-> You don't need to do anything — they run on their own. To list, edit, or remove them later, run `/thinkos-automate list` or `/thinkos-automate remove <name>`.
+> They run when your Mac is awake. If your Mac sleeps through a scheduled time, the job catches up on next wake (or skips that fire). To list or remove jobs later, run `/thinkos-automate list` or `/thinkos-automate remove <name>`.
 
 ### Step 5 — Common follow-up questions to expect
 
 **"Do I need to keep Claude Code open for these to run?"**
-No. Triggers run on Anthropic's infrastructure. Your laptop can be asleep.
+Claude Code doesn't need to be open, but your Mac does need to be awake. These are local launchd jobs, not remote cloud triggers. If your Mac is asleep at the scheduled time, the job fires on next wake (or is skipped, depending on the job type).
 
-**"What if a trigger fails?"**
-The next run will retry. If it fails repeatedly, you'll see warnings in `/thinkos-doctor` output.
+**"What if a job fails?"**
+launchd will retry on the next scheduled interval. If it fails repeatedly, you'll see warnings in `/thinkos-doctor` output.
 
 **"How much will this cost?"**
-Token usage depends on vault size and how much each trigger reads/writes. Whether that usage counts against your Claude plan or pay-as-you-go depends on your account.
+The daily reindex costs zero API tokens — it is a direct script call. The weekly review, quarterly archive, and morning brief each spawn a local `claude -p` session; token usage depends on vault size. Whether that usage counts against your Claude plan or pay-as-you-go depends on your account.
 
 **"Can I add my own?"**
-Yes — use the `schedule` skill directly or `CronCreate` tool. Anything you can prompt an agent to do, you can schedule. Common candidates:
-- "Every Monday 9am, draft a Slack message summarizing the past week to my team."
-- "Every Friday 5pm, draft an end-of-week update for me."
-- "Every hour during work hours, check Linear for new tickets assigned to me and append to Tasks.md."
+For jobs that write to your personal vault: add a new prompt file at `scripts/cron-prompts/<name>.txt`, add a case branch to `run_task()` in `scripts/thinkos-cron-run.sh`, register the schedule in `scripts/install-launchd-job.sh`, then install via `bash scripts/install-launchd-job.sh <name>`. For jobs that don't write to your local vault (Slack notifications, project vault pushes): use the `schedule` skill or `RemoteTrigger` for remote triggers instead.
 
 ---
 
-## Listing / managing existing triggers
+## Listing / managing existing jobs
 
-When the user runs `/thinkos-automate list`, use `CronList` to enumerate active triggers. Show:
+When the user runs `/thinkos-automate list`, check `~/Library/LaunchAgents/` for `com.thinkos.*.plist` files and run `launchctl list | grep thinkos` to show load status. Show:
 - Name / description
 - Cron schedule (translated to English)
-- Last fire time
-- Last status (success/fail)
+- Loaded/unloaded status
 
-When the user runs `/thinkos-automate remove <name>`, use `CronDelete` after confirmation.
+When the user runs `/thinkos-automate remove <name>`, run `launchctl unload ~/Library/LaunchAgents/com.thinkos.<name>.plist` and delete the plist, after confirmation.
 
 ---
 
 ## Scope notes
 
-- **Briefs go to vault files, not Slack/email.** If you want Slack delivery, write a follow-up agent prompt that reads the brief file and sends it (requires Slack OAuth via your plugin bundle).
-- **Triggers run remotely.** There is no machine-local cron option.
+- **Briefs go to vault files, not Slack/email.** If you want Slack delivery, write a separate remote trigger (via the `schedule` skill) that reads the brief file and sends it (requires Slack OAuth via your plugin bundle). That use case — sending a notification, no vault write — is appropriate for a remote trigger.
+- **Jobs run locally.** They fire when your Mac is awake. Laptops that sleep through midnight will miss the 4am reindex; it catches up on the next boot/wake.
+- **Remote triggers are still available** via the `schedule` skill for use cases that fit: writing to project vaults (git-backed, push-accessible remotely), sending Slack/email notifications, or anything that does not need to write to your local personal hub.
 - **Stale-data alerting** is manual via `/thinkos-stale`.
 
 ---

@@ -44,11 +44,14 @@ The agent will:
 - Offer to import from an existing markdown vault (Obsidian, old Think OS, etc.) if you have one
 - Pull and cache data from your consented connectors (Granola, Calendar, Slack, Gmail, Linear/Jira/ClickUp)
 - Synthesize drafts of your Identity, Project Index, Current Focus, and People files for review
-- Offer to set up scheduled triggers at the end (daily reindex, weekly review, quarterly archive, optional morning brief) — runs on Anthropic's cloud, your machine doesn't need to stay on
+- Walk you through all three capture layers at the end:
+  - **Session capture** (Block 1) — local launchd job, every 2h during work hours, no API cost, just metadata
+  - **Vault maintenance** (Block 2) — local launchd jobs: daily reindex (no API tokens), weekly review draft, quarterly archive, optional morning brief
+  - **Continuous capture sources** (Block 3) — opt-in per source: Calendar (default on), Granola, Linear, ClickUp, Gmail starred, Slack DMs + @-mentions
 
 You can pause and resume anytime — state is saved.
 
-Standalone: if you skipped automations during Phase 2, you can set them up anytime with `/thinkos-automate`. To turn on continuous capture (passive auto-logging of your work + opt-in external ingestion from Granola/Slack/Gmail/etc.), run `/thinkos-autosave on` and `/thinkos-capture-setup`.
+Standalone: each layer is also available after onboarding. Session capture: `/thinkos-autosave on`. Maintenance triggers: `/thinkos-automate`. Capture sources: `/thinkos-capture-setup`.
 
 ---
 
@@ -158,7 +161,7 @@ See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for t
 Once setup is done, Think OS captures what you work on without you remembering to log it:
 
 - **Session capture** — every 2 hours during work hours, a launchd job scans recent Claude Code sessions and appends a one-line entry to your Work Log (cwd, file count, commit). No LLM call. No file contents leave your machine. Toggle with `/thinkos-autosave`.
-- **External ingestion (opt-in per source)** — scheduled remote triggers pull from Granola meetings, Slack DMs + @-mentions, starred Gmail threads, Calendar, Linear, ClickUp. Configure via `/thinkos-capture-setup` — safest source (Granola) offered first, most sensitive (Slack DMs) last. Privacy-routed by keyword (anything matching `comp`, `salary`, `HR`, `health`, `family`, `performance`, `1:1` lands in your personal hub only).
+- **External ingestion (opt-in per source)** — local launchd jobs pull from Granola meetings, Slack DMs + @-mentions, starred Gmail threads, Calendar, Linear, ClickUp. Jobs run when your Mac is awake. Configure via `/thinkos-capture-setup` — safest source (Granola) offered first, most sensitive (Slack DMs) last. Privacy-routed by keyword (anything matching `comp`, `salary`, `HR`, `health`, `family`, `performance`, `1:1` lands in your personal hub only).
 - **Audit & undo** — every capture writes one line to `~/.thinkos/capture-log.jsonl`. `/thinkos-recent` shows what landed; `/thinkos-undo-capture` removes any entry that shouldn't have been kept.
 
 Full design: [`docs/continuous-capture/README.md`](docs/continuous-capture/README.md).

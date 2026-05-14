@@ -7,10 +7,11 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   current="phase-3"
 >
   <p>
-    Think OS offers four pre-built scheduled triggers via
+    Think OS offers four pre-built scheduled jobs via
     <code>/thinkos-automate</code> (also offered inline at the end of Phase 2).
-    They run remotely on Anthropic's infrastructure — your local machine
-    can be asleep when they fire.
+    They run as local launchd jobs on your Mac — they fire when your Mac is
+    awake. If the Mac sleeps through a scheduled time, the job runs on next
+    wake (or skips that fire).
   </p>
 
   <h2>The four triggers</h2>

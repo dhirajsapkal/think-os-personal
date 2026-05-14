@@ -522,23 +522,73 @@ After approval: write file, `mark-seeded people`.
 
 ---
 
-## Section 3 — Offer scheduled triggers (optional)
+## Section 3 — Three-layer capture offer
 
-After all chosen files are seeded but BEFORE marking phase complete, offer to set up scheduled triggers. The user is already in flow — easier to opt in here than to remember to run `/thinkos-automate` later.
+After all chosen files are seeded but BEFORE marking phase complete, offer all three capture layers in sequence. The user is already in flow — this is the right moment. Present each block as a distinct question; after each block, show what was set up before moving to the next.
+
+---
+
+### Block 1 — Background session capture (Phase A, local, no API cost)
 
 `AskUserQuestion`:
-- Header: "Scheduled triggers"
-- Question: "Want me to set up automations that keep your OS fresh on its own? They run on a cron schedule (no local app needed)."
+- Header: "Background session capture"
+- Question: "Enable background session capture? Every 2h during work hours, your Work Log gets a one-line stub of what you worked on. Local, no API cost, no file contents — just metadata (cwd, file count, last commit)."
 - multiSelect: false
 - Options:
   | label | description |
   |---|---|
-  | "Yes, set them up now" | "I'll offer four pre-built triggers (daily reindex, weekly review, quarterly archive, optional morning brief)." |
-  | "Skip — I'll do it later" | "You can run `/thinkos-automate` anytime." |
+  | "Yes, enable it" | "Run the installer now. I can toggle it anytime with `/thinkos-autosave off`." |
+  | "Skip for now" | "I can turn it on later with `/thinkos-autosave on`." |
 
-If "Yes, set them up now": follow `docs/phase-3-automations-playbook.md` Steps 2 and 3 (offer each trigger via `AskUserQuestion`, register the chosen ones via `CronCreate`). When done, return here for the final wrap-up below.
+If "Yes, enable it": run `bash scripts/install-session-capture.sh`. Show one-line result: "Session capture enabled. Work Log will get stubs every 2h during work hours."
 
-If "Skip — I'll do it later": move directly to Section 4.
+If "Skip for now": "OK — run `/thinkos-autosave on` anytime to enable it."
+
+---
+
+### Block 2 — Vault maintenance triggers (Phase 3, local launchd)
+
+`AskUserQuestion`:
+- Header: "Vault maintenance"
+- Question: "Which scheduled maintenance jobs do you want? These run as local launchd jobs — they fire when your Mac is awake."
+- **multiSelect: true**
+- Options (with defaults as shown):
+  | label | description | default |
+  |---|---|---|
+  | "Daily reindex" | "Keeps search fresh. Runs nightly. No API tokens. Essential if you edit files outside Claude." | **checked** |
+  | "Weekly review draft" | "Drafts a Current Focus refresh every Sunday at 8pm. One Claude session per fire." | **checked** |
+  | "Quarterly archive" | "Rotates stale projects and trims Work Log on the first Sunday of each quarter. One Claude session per fire." | **checked** |
+  | "Daily morning brief" | "Posts a morning brief to your vault each weekday. One Claude session per fire." | unchecked |
+
+For each chosen trigger: install via `bash scripts/install-launchd-job.sh <name>` using the job name defined in `docs/phase-3-automations-playbook.md` Step 3 for that trigger name.
+
+After processing: show a one-line summary: "Installed: <comma-separated chosen>. Skipped: <comma-separated not chosen>."
+
+If nothing chosen: "No maintenance jobs installed. Run `/thinkos-automate` anytime to add them."
+
+---
+
+### Block 3 — Continuous capture sources (Phase C, opt-in per source)
+
+`AskUserQuestion`:
+- Header: "Continuous capture sources"
+- Question: "Which external sources should feed your vault on a schedule? Each runs as a local launchd job — fires when your Mac is awake. You can add or remove sources later with `/thinkos-capture-setup`."
+- **multiSelect: true**
+- Options (with defaults as shown):
+  | label | description | default |
+  |---|---|---|
+  | "Calendar snapshot" | "Daily snapshot of upcoming recurring meetings. Low-surprise data you already have." | **checked** |
+  | "Granola meetings" | "Hourly pull of new meeting summaries from Granola. Meeting transcripts are sensitive — review privacy settings first." | unchecked |
+  | "Linear tickets" | "Daily sync of assigned open tickets. Only available if Linear MCP is connected." | unchecked |
+  | "ClickUp tickets" | "Daily sync of assigned open tasks. Only available if ClickUp MCP is connected." | unchecked |
+  | "Gmail starred" | "Daily pull of starred threads. Privacy-routed by keyword (comp, salary, HR, health, family → personal hub only)." | unchecked |
+  | "Slack DMs + @-mentions" | "Hourly pull of your DMs and @-mentions. Most invasive — only enable if you've reviewed what lands in your vault." | unchecked |
+
+For each chosen source: install via `bash scripts/install-launchd-job.sh <name>` using the job name defined in `docs/continuous-capture/sources/<name>.md` (where `<name>` maps: Calendar → `calendar`, Granola → `granola`, Linear → `linear`, ClickUp → `clickup`, Gmail → `gmail`, Slack → `slack`).
+
+After processing: show a one-line summary: "Installed: <comma-separated chosen>. Skipped: <comma-separated not chosen>."
+
+If nothing chosen: "No capture sources installed. Run `/thinkos-capture-setup` anytime to add them."
 
 ---
 
@@ -591,10 +641,11 @@ If "Skip — I'll do it later": move directly to Section 4.
 
 ## What comes next
 
-Phase 2 is **Step 3** of the 3-step setup flow. After it completes:
+Phase 2 is **Step 3** of the 3-step setup flow. All three capture layers are offered inline in Section 3 above:
 
-- **Phase 3 automations** (`/thinkos-automate`) — scheduled triggers (daily reindex, weekly review, quarterly archive). Playbook: `docs/phase-3-automations-playbook.md`. Also offered inline at the end of the automations offer above.
-- **Continuous capture** (`/thinkos-autosave`, `/thinkos-capture-setup`) — passive session logging and opt-in external ingestion from Granola/Slack/Gmail/etc. Design: `docs/continuous-capture/README.md`.
+- **Block 1 — Session capture** (`/thinkos-autosave`) — local launchd job, no API cost. If skipped during onboarding: `bash scripts/install-session-capture.sh` or `/thinkos-autosave on`.
+- **Block 2 — Vault maintenance** (`/thinkos-automate`) — local launchd jobs (daily reindex, weekly review, quarterly archive, optional morning brief). Playbook: `docs/phase-3-automations-playbook.md`. If skipped: `/thinkos-automate`.
+- **Block 3 — Continuous capture sources** (`/thinkos-capture-setup`) — opt-in per-source external ingestion from Granola, Calendar, Slack, Gmail, Linear, ClickUp, each as a local launchd job. Design: `docs/continuous-capture/README.md`. If skipped: `/thinkos-capture-setup`.
 
 **MCP call fails repeatedly:**
 - Don't loop. Two attempts, then surface the error and ask the user how to proceed.

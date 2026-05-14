@@ -18,7 +18,15 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
     <li><strong>Import an existing vault</strong> (optional) — if you have a markdown vault from Obsidian or an older Think OS install, point at it. The agent maps filenames to Think OS slots and copies content over, marking those files as seeded.</li>
     <li><strong>File picker</strong> — choose which un-seeded files to populate next.</li>
     <li><strong>Per-file flow</strong> — chip-pick which connectors to read from, see the draft, approve / edit / regenerate. Nothing writes to the vault without your OK.</li>
-    <li><strong>Automations offer</strong> — at the end, optionally set up scheduled triggers (Phase 3).</li>
+    <li>
+      <strong>Three-layer capture offer</strong> — at the end, three grouped questions set up forward-capture:
+      <ul>
+        <li><strong>Block 1 — Session capture</strong> (local, no API cost): a launchd job appends a one-line Work Log stub every 2h during work hours.</li>
+        <li><strong>Block 2 — Vault maintenance</strong> (scheduled cloud triggers): daily reindex, weekly review draft, quarterly archive, optional morning brief. Defaults are on for the first three.</li>
+        <li><strong>Block 3 — Continuous capture sources</strong> (opt-in per source): Calendar snapshot (default on), Granola meetings, Linear tickets, ClickUp tickets, Gmail starred, Slack DMs + @-mentions.</li>
+      </ul>
+      After each block, the agent shows what was set up before moving to the next. Anything skipped here is available later via <code>/thinkos-autosave on</code>, <code>/thinkos-automate</code>, and <code>/thinkos-capture-setup</code>.
+    </li>
   </ol>
 
   <h2>Files seeded</h2>

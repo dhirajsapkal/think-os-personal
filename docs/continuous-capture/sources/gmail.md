@@ -47,9 +47,10 @@ Total result cap: 30 threads per daily run. If more match, capture the 30 most r
 
 ## Schedule
 
-- Cron (UTC): `0 11 * * *`
-- Translated: "daily at 6am US Eastern (11am UTC)"
+- Cron (local time): `0 6 * * *` — daily at 6am
+- Translated: "every day at 6am local time"
 - Why this cadence: email is asynchronous by nature; a 24-hour summary at day-start is the right rhythm. Hourly email capture would be noise. The morning brief can reference today's Gmail snapshot if it needs email context.
+- **Laptop-wake note:** this job runs locally via launchd. If your Mac is asleep at 6am, launchd fires it on next wake. The 25-hour lookback in the filter catches any threads from the missed window.
 
 ## Vault destination
 
@@ -73,7 +74,13 @@ When matched:
 
 ## Trigger prompt
 
-Register this verbatim via `CronCreate`:
+The prompt body lives at `scripts/cron-prompts/gmail.txt`. The generic dispatcher `scripts/thinkos-cron-run.sh gmail` reads it and pipes it to `claude -p`. Install the job via:
+
+```bash
+bash scripts/install-launchd-job.sh gmail
+```
+
+This writes `~/Library/LaunchAgents/com.thinkos.gmail.plist` (schedule: `0 6 * * *` local time) and loads it with `launchctl`.
 
 ```
 You are the Think OS Gmail capture agent. Run daily.
@@ -172,12 +179,13 @@ Privacy-routed variant:
 
 Run `/thinkos-capture-setup gmail` — or run `/thinkos-capture-setup` and select Gmail when prompted.
 
+The command installs the launchd job via `bash scripts/install-launchd-job.sh gmail`.
+
 Prerequisites:
 - Gmail MCP (`mcp__claude_ai_Gmail__*`) connected and authenticated. Run `claude mcp list` to confirm.
 - Gmail MCP requires OAuth consent for read access. The `search_threads` and `get_thread` tools need at least `gmail.readonly` scope.
 
 ## How to disable
 
-1. Run `/thinkos-automate list` to find `think-os-capture-gmail`.
-2. Run `/thinkos-automate remove think-os-capture-gmail`.
-3. Past snapshot files remain; future snapshots stop.
+1. Run `/thinkos-automate remove gmail` — this runs `launchctl unload ~/Library/LaunchAgents/com.thinkos.gmail.plist` and deletes the plist.
+2. Past snapshot files remain; future snapshots stop.

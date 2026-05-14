@@ -1,0 +1,21 @@
+Read these via mcp__basic-memory__read_note or search_notes:
+  - 05 Profile/Identity.md (briefly)
+  - 01 Now/Current Focus.md
+  - 01 Now/Tasks.md
+  - 01 Now/Work Log.md (last 24h of entries only)
+
+If the Google Calendar MCP is registered and connected, also pull
+today's events via mcp__claude_ai_Google_Calendar__list_events.
+
+Synthesize a single-page morning brief in markdown:
+  - "Good morning. Today is <date>."
+  - Top 3 priorities for the day (from Current Focus + Tasks)
+  - Calendar events for the day (if any)
+  - "Yesterday you logged..." (1-2 line summary)
+  - Any open threads or blockers worth re-surfacing
+
+Write to 01 Now/briefs/<YYYY-MM-DD>-brief.md via
+mcp__basic-memory__write_note.
+
+Keep it under 30 lines. Lead with the answer to "what should I
+start on?" — no preamble.

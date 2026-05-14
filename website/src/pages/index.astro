@@ -21,7 +21,7 @@ const benefits = [
   {
     n: '04',
     title: 'Self-maintenance',
-    body: 'Scheduled triggers keep the vault fresh on their own: daily reindex, weekly Current Focus refresh, quarterly archive rotation. Runs in the cloud; nothing local to babysit.',
+    body: 'Local launchd jobs keep the vault fresh: daily reindex, weekly Current Focus refresh, quarterly archive rotation. Runs when your Mac is awake — no cloud dependency, no remote infrastructure.',
   },
 ];
 
@@ -95,7 +95,7 @@ const faqs = [
   },
   {
     q: 'What about cost?',
-    a: 'Basic Memory itself is free and runs locally — no cloud mode, no recurring infrastructure cost. Scheduled triggers (Phase 3) consume Anthropic API tokens when they fire; whether that\'s included in your Claude subscription or charged as pay-as-you-go depends on your account.',
+    a: 'Basic Memory itself is free and runs locally — no cloud mode, no recurring infrastructure cost. Phase 3 maintenance jobs run as local launchd jobs. The daily reindex uses no API tokens. The weekly review, quarterly archive, and morning brief each spawn a local claude session when they fire — those consume Anthropic API tokens; whether that\'s included in your Claude subscription or charged as pay-as-you-go depends on your account.',
   },
   {
     q: 'Is this only for Claude Code?',
@@ -243,7 +243,7 @@ const faqs = [
             Identity, Project Index, Current Focus, and People files.
           </p>
           <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-            At the end, optional scheduled triggers keep everything fresh on their own.
+            At the end, three grouped questions wire up all three capture layers: session capture (local, no API cost), vault maintenance triggers (daily reindex, weekly review, quarterly archive), and continuous capture sources (Calendar by default; Granola, Slack, Gmail, Linear, ClickUp opt-in).
           </p>
         </article>
       </div>

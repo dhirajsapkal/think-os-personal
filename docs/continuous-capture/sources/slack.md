@@ -57,9 +57,10 @@ Available Slack MCP tools in this environment: `mcp__claude_ai_Slack__slack_sear
 
 ## Schedule
 
-- Cron (UTC): `0 * * * *`
+- Cron (local time): `0 * * * *`
 - Translated: "every hour, on the hour"
 - Why this cadence: DMs and @-mentions are time-sensitive. A 24-hour delay means missing context in a fast-moving conversation. Hourly keeps the vault within 60 minutes of reality without flooding it.
+- **Laptop-wake note:** this job runs locally via launchd. If your Mac is asleep, hourly fires are skipped. The cursor-based lookback in Step 1 of the trigger prompt ensures messages from skipped windows are caught on the next run.
 
 ## Vault destination
 
@@ -82,12 +83,18 @@ When matched for a specific message:
 
 ## Trigger prompt
 
-Register this verbatim via `CronCreate`:
+The prompt body lives at `scripts/cron-prompts/slack.txt`. The generic dispatcher `scripts/thinkos-cron-run.sh slack` reads it and pipes it to `claude -p`. Install the job via:
+
+```bash
+bash scripts/install-launchd-job.sh slack
+```
+
+This writes `~/Library/LaunchAgents/com.thinkos.slack.plist` (schedule: `0 * * * *`) and loads it with `launchctl`.
 
 ```
 You are the Think OS Slack capture agent. Run hourly.
 
-PRIVACY NOTICE: This agent captures only DMs sent to you and messages that @-mention you. It does not capture channel firehose. If you did not intend to enable this, delete the trigger via CronDelete.
+PRIVACY NOTICE: This agent captures only DMs sent to you and messages that @-mention you. It does not capture channel firehose. If you did not intend to enable this, run `/thinkos-automate remove slack` to unload the job.
 
 Step 1 — Determine the capture window.
 Read ~/.thinkos/capture-log.jsonl. Find the most recent entry where source == "slack". Record its ts as LAST_CAPTURE. If no entry exists, use now minus 65 minutes.
@@ -182,7 +189,7 @@ Privacy-routed variant:
 
 Run `/thinkos-capture-setup slack` — or run `/thinkos-capture-setup` and select Slack when prompted.
 
-The setup command will show you the exact filter that will be applied and ask for explicit confirmation before registering the trigger. You will also be asked for your Slack @-handle (used in the @-mention search query).
+The setup command will show you the exact filter that will be applied and ask for explicit confirmation before installing the job. You will also be asked for your Slack @-handle (used in the @-mention search query). The command then installs via `bash scripts/install-launchd-job.sh slack`, substituting your @-handle into the trigger prompt.
 
 **Slack capture is offered last** in the setup sequence (after Granola, Calendar, Linear, ClickUp, and Gmail) because it is the most sensitive source. If you are not confident the filter matches your mental model of what is acceptable to capture, skip it.
 
@@ -193,8 +200,7 @@ Prerequisites:
 
 ## How to disable
 
-1. Run `/thinkos-automate list` to find `think-os-capture-slack`.
-2. Run `/thinkos-automate remove think-os-capture-slack`.
-3. Past vault files remain. No further Slack content is captured.
+1. Run `/thinkos-automate remove slack` — this runs `launchctl unload ~/Library/LaunchAgents/com.thinkos.slack.plist` and deletes the plist.
+2. Past vault files remain. No further Slack content is captured.
 
-Disabling removes only the scheduled trigger. It does not delete previously written vault files or ledger entries. If you want to purge past Slack captures, delete the relevant `01 Now/Signals/slack-*.md` files manually via Basic Memory.
+Disabling removes only the launchd job. It does not delete previously written vault files or ledger entries. If you want to purge past Slack captures, delete the relevant `01 Now/Signals/slack-*.md` files manually via Basic Memory.

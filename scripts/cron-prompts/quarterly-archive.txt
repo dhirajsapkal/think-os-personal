@@ -1,0 +1,19 @@
+Read 01 Now/Work Log.md fully.
+
+Move entries with dates older than 90 days from today to
+99 Archive/work-log-<YYYY>-Q<N>.md (create the archive file
+if it doesn't exist).
+
+Read 02 Projects/Project Index.md. For each project with no
+activity in 180+ days (check the project's last-touched stamp),
+flag it as candidate for archive.
+
+Audit HOT-tier files for line counts:
+  - 05 Profile/Identity.md > 100 lines: flag
+  - 01 Now/Current Focus.md > 100 lines: flag
+  - 02 Projects/Project Index.md > 200 lines: flag
+  - 90 System/OS Instructions.md > 150 lines: flag
+
+Write a quarterly summary to 99 Archive/quarterly-summary-<YYYY>-Q<N>.md
+with: what was archived, what was flagged for pruning, what looks
+healthy. The user reviews and acts on the flags manually.

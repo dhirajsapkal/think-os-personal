@@ -34,9 +34,10 @@ The trigger prompt below uses the Atlassian MCP path (JQL query against the sync
 
 ## Schedule
 
-- Cron (UTC): `0 11 * * *`
-- Translated: "daily at 6am US Eastern (11am UTC)"
+- Cron (local time): `0 6 * * *` — daily at 6am
+- Translated: "every day at 6am local time"
 - Why this cadence: a daily summary of ticket movement is the right granularity for a work-OS. Hourly would generate noise; more than 24 hours means you miss context during morning planning.
+- **Laptop-wake note:** this job runs locally via launchd. If your Mac is asleep at 6am, launchd fires it on next wake. The 25-hour lookback window in the filter means tickets from a missed window are still captured on the next run.
 
 ## Vault destination
 
@@ -59,7 +60,13 @@ In practice, Linear tickets matching these keywords are rare — they usually ap
 
 ## Trigger prompt
 
-Register this verbatim via `CronCreate`:
+This prompt is passed verbatim to `claude -p` by `scripts/thinkos-linear.sh`. Install the job via:
+
+```bash
+bash scripts/install-launchd-job.sh linear
+```
+
+This writes `~/Library/LaunchAgents/com.thinkos.linear.plist` (schedule: `0 6 * * *` local time) and loads it with `launchctl`.
 
 ```
 You are the Think OS Linear capture agent. Run daily.
@@ -148,7 +155,7 @@ Step 9 — Output one line: "Linear snapshot written: <N> ticket(s) with status 
 
 Run `/thinkos-capture-setup linear` — or run `/thinkos-capture-setup` and select Linear when prompted.
 
-The setup command will detect whether Linear is available via the Atlassian MCP or a direct Linear MCP, and confirm the right tool path before registering the trigger.
+The command detects whether Linear is available via the Atlassian MCP or a direct Linear MCP, then installs the launchd job via `bash scripts/install-launchd-job.sh linear`.
 
 Prerequisites:
 - Either the Atlassian MCP (`mcp__claude_ai_Atlassian__*`) with Linear synced, or a direct Linear MCP connected. Run `claude mcp list` to verify.
@@ -156,6 +163,5 @@ Prerequisites:
 
 ## How to disable
 
-1. Run `/thinkos-automate list` to find `think-os-capture-linear`.
-2. Run `/thinkos-automate remove think-os-capture-linear`.
-3. Past snapshot files remain; future snapshots stop.
+1. Run `/thinkos-automate remove linear` — this runs `launchctl unload ~/Library/LaunchAgents/com.thinkos.linear.plist` and deletes the plist.
+2. Past snapshot files remain; future snapshots stop.

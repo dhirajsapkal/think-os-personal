@@ -2,6 +2,28 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [Unreleased] — local launchd correction
+
+### Changed
+
+- Phase 3 maintenance triggers and Phase C continuous capture sources
+  now run as local launchd jobs, not remote scheduled triggers. The
+  original "remote triggers run on Anthropic infrastructure, your
+  laptop can be closed" framing was wrong: remote triggers can't write
+  to the user's local personal-hub vault. Local launchd does, with the
+  trade-off that jobs only fire when the Mac is awake.
+- Trigger registration in the Phase 2 wrap-up and standalone slash
+  commands (`/thinkos-automate`, `/thinkos-capture-setup`) now uses
+  `bash scripts/install-launchd-job.sh <name>`. The script names and
+  prompts are unchanged; only the registration mechanism moved.
+- Remote scheduled triggers remain available via the `schedule` skill
+  for use cases that fit (project vaults, posting to Slack/email,
+  anything that doesn't write to the personal vault).
+- Schedule expressions for daily sources changed from UTC cron to local
+  time (launchd uses the system clock, no UTC offset needed).
+
+---
+
 ## [0.4.0] — 2026-05-14
 
 ### Added

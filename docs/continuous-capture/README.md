@@ -51,9 +51,9 @@ Continuous capture has three layers. Each layer builds on the previous one.
 
 ### Layer 3 — External ingestion (Phase C, this layer)
 
-**What**: Scheduled remote triggers pull from external sources — meetings, calendar, task tools, email, Slack — and write vault files. Each source has a playbook document in `docs/continuous-capture/sources/`.
+**What**: Local launchd jobs pull from external sources — meetings, calendar, task tools, email, Slack — and write vault files. Each source has a playbook document in `docs/continuous-capture/sources/`.
 
-**When**: Each source runs on its own cron schedule. Granola and Slack run hourly; Calendar, Linear, ClickUp, and Gmail run once daily at 6am.
+**When**: Each source runs on its own schedule. Granola and Slack run hourly; Calendar, Linear, ClickUp, and Gmail run once daily at 6am. Jobs only fire when the Mac is awake.
 
 **Privacy**: Every source applies a keyword-based privacy routing rule. Sensitive content routes to the personal hub regardless of active vault. Ledger entries for sensitive items are redacted (identifier only; no content).
 
@@ -82,7 +82,7 @@ Run `/thinkos-capture-setup` from Claude Code. The command:
 2. Checks that Basic Memory is operational.
 3. Offers each source in the safe→sensitive order above (Granola first, Slack last).
 4. For each source: shows the filter, asks "Enable?" (chip picker: Enable / Skip / Show me the filter rules first).
-5. On Enable: reads the source's playbook, extracts the trigger prompt, registers it via `CronCreate`.
+5. On Enable: installs the launchd job via `bash scripts/install-launchd-job.sh <source>`.
 6. At the end: summarizes what was enabled and shows the cron schedules.
 
 See `adapters/claude-code/commands/thinkos-capture-setup.md` for the full command playbook.
@@ -93,8 +93,8 @@ See `adapters/claude-code/commands/thinkos-capture-setup.md` for the full comman
 
 - **View recent captures**: read `~/.thinkos/capture-log.jsonl` — one JSON event per line, newest at the bottom.
 - **View a day's Signals**: read `01 Now/Signals/<source>-<date>.md` via Basic Memory.
-- **List active capture triggers**: run `/thinkos-automate list` (shows all CronCreate triggers including capture ones).
-- **Disable a source**: run `/thinkos-automate remove think-os-capture-<source>`.
+- **List installed capture jobs**: run `/thinkos-automate list` (shows all launchd jobs including capture ones).
+- **Disable a source**: run `/thinkos-automate remove <source>`.
 
 ---
 
@@ -117,4 +117,4 @@ Phase 3 (`docs/phase-3-automations-playbook.md`) covers maintenance automations:
 - Phase 3 triggers maintain the vault's internal health.
 - Phase C triggers bring new external signal into the vault.
 
-Both use `CronCreate` and are managed via `/thinkos-automate list` / `remove`. They coexist without conflict. The morning brief trigger (Phase 3) can read the calendar snapshot written by the calendar capture trigger (Phase C) — this is the intended integration.
+Both use local launchd jobs and are managed via `/thinkos-automate list` / `remove`. They coexist without conflict. The morning brief job (Phase 3) can read the calendar snapshot written by the calendar capture job (Phase C) — this is the intended integration.

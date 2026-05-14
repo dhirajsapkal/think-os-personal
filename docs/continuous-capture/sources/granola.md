@@ -30,9 +30,10 @@ The one-hour overlap in rule 2 handles cases where Granola finishes processing a
 
 ## Schedule
 
-- Cron (UTC): `0 * * * *`
+- Cron (local time): `0 * * * *`
 - Translated: "every hour, on the hour"
 - Why this cadence: meetings are short-lived signals; capturing within an hour keeps the vault current for same-day context queries and avoids the vault falling 24+ hours behind during heavy meeting days.
+- **Laptop-wake note:** this job runs locally via launchd. If your Mac is asleep, the job does not fire. Missed hourly windows are not retried — transcripts from a sleep window are picked up on the next run that wakes (via the 25-hour lookback window in the filter).
 
 ## Vault destination
 
@@ -57,7 +58,13 @@ The trigger prompt includes this check before every write.
 
 ## Trigger prompt
 
-Register this verbatim via `CronCreate`:
+The prompt body lives at `scripts/cron-prompts/granola.txt`. The generic dispatcher `scripts/thinkos-cron-run.sh granola` reads it and pipes it to `claude -p`. Install the job via:
+
+```bash
+bash scripts/install-launchd-job.sh granola
+```
+
+This writes `~/Library/LaunchAgents/com.thinkos.granola.plist` (schedule: `0 * * * *`) and loads it with `launchctl`.
 
 ```
 You are the Think OS Granola capture agent. Run on this prompt hourly.
@@ -146,7 +153,7 @@ Privacy-routed variant (personal keyword matched):
 
 Run `/thinkos-capture-setup granola` — or run `/thinkos-capture-setup` and select Granola when prompted.
 
-The command reads this playbook and registers the trigger via `CronCreate` with the prompt above.
+The command installs the launchd job via `bash scripts/install-launchd-job.sh granola`.
 
 Prerequisites:
 - Granola MCP (`mcp__claude_ai_Granola__*`) must be connected and authenticated. Run `claude mcp list` to verify. If not present, install via the Granola plugin and re-authenticate.
@@ -154,6 +161,5 @@ Prerequisites:
 
 ## How to disable
 
-1. Run `/thinkos-automate list` (or `CronList`) to find the trigger named `think-os-capture-granola`.
-2. Run `/thinkos-automate remove think-os-capture-granola` (or `CronDelete` with that id).
-3. The trigger stops firing. Existing vault files and ledger entries are not deleted.
+1. Run `/thinkos-automate remove granola` — this runs `launchctl unload ~/Library/LaunchAgents/com.thinkos.granola.plist` and deletes the plist.
+2. The job stops firing. Existing vault files and ledger entries are not deleted.

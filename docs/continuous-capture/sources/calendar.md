@@ -31,11 +31,12 @@ The trigger does NOT attempt to prep for each meeting (no fetching agendas, no w
 
 ## Schedule
 
-- Cron (UTC): `0 11 * * *`
-- Translated: "daily at 6am US Eastern (11am UTC)" — adjust the UTC offset for your timezone. For US Pacific, use `0 14 * * *`.
+- Cron (local time): `0 6 * * *` — daily at 6am
+- Translated: "every day at 6am local time"
 - Why this cadence: fires before the typical workday starts, so the snapshot is ready when the morning brief runs (also 6am) and when the user opens their first session.
+- **Laptop-wake note:** this job runs locally via launchd. If your Mac is asleep at 6am, launchd fires it on next wake. A brief that reads the calendar snapshot may read yesterday's file if the Mac was asleep at the scheduled time — that is acceptable, as the snapshot is a day-granularity file.
 
-Note: if you are not in US Eastern, edit the cron expression to match your local 6am in UTC. The setup command will prompt for timezone.
+Note: the `install-launchd-job.sh granola` script sets the plist schedule in local time. No UTC conversion required.
 
 ## Vault destination
 
@@ -58,7 +59,13 @@ The snapshot file itself always lands in the active vault (it is a today-snapsho
 
 ## Trigger prompt
 
-Register this verbatim via `CronCreate`:
+The prompt body lives at `scripts/cron-prompts/calendar.txt`. The generic dispatcher `scripts/thinkos-cron-run.sh calendar` reads it and pipes it to `claude -p`. Install the job via:
+
+```bash
+bash scripts/install-launchd-job.sh calendar
+```
+
+This writes `~/Library/LaunchAgents/com.thinkos.calendar.plist` (schedule: `0 6 * * *` local time) and loads it with `launchctl`.
 
 ```
 You are the Think OS Calendar capture agent. Run daily.
@@ -141,7 +148,7 @@ Do not output anything else.
 
 Run `/thinkos-capture-setup calendar` — or run `/thinkos-capture-setup` and select Calendar when prompted.
 
-The setup command will ask for your timezone offset (to compute the correct UTC expression for your local 6am) before registering the trigger.
+The command installs the launchd job via `bash scripts/install-launchd-job.sh calendar`. No timezone conversion needed — launchd uses local system time.
 
 Prerequisites:
 - Google Calendar MCP (`mcp__claude_ai_Google_Calendar__*`) must be connected. Run `claude mcp list` to verify.
@@ -149,6 +156,5 @@ Prerequisites:
 
 ## How to disable
 
-1. Run `/thinkos-automate list` to find `think-os-capture-calendar`.
-2. Run `/thinkos-automate remove think-os-capture-calendar`.
-3. Past snapshot files remain in the vault; future snapshots stop being written.
+1. Run `/thinkos-automate remove calendar` — this runs `launchctl unload ~/Library/LaunchAgents/com.thinkos.calendar.plist` and deletes the plist.
+2. Past snapshot files remain in the vault; future snapshots stop being written.

@@ -14,6 +14,7 @@ The full Phase 2 flow lives in `docs/phase-2-seeding-playbook.md`. Read it once 
 3. **Check connector auth** via `claude mcp list`. If anything needs auth, use `AskUserQuestion` to ask the user whether to pause-and-auth or skip un-authed tools.
 4. **Use `AskUserQuestion` for the file picker** (Project Index / Current Focus / Identity / People / All four / Pause).
 5. **Per-file flow**: tell the user which sources you'd like to use, ask consent per source (one at a time, default N), pull and synthesize, show draft, iterate, commit via `mcp__basic-memory__edit_note`, `mark-seeded`.
+6. **Three-layer capture offer (Section 3)**: after all files are seeded, run the three-block wrap-up in order — Block 1 (session capture, local), Block 2 (vault maintenance triggers, cloud), Block 3 (continuous capture sources, opt-in per source). Each block uses `AskUserQuestion`; after each block, show a one-line summary of what was set up before proceeding to the next.
 
 ## Critical UX rules
 

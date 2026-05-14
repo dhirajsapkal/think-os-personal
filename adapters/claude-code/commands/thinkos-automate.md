@@ -3,22 +3,22 @@ description: Set up Think OS scheduled triggers (Phase 3 — automations)
 permalink: think-os/adapters/claude-code/commands/thinkos-automate
 ---
 
-Set up automated maintenance for the user's Think OS via Claude Code's scheduled triggers. This is Phase 3 — runs after Phase 1 (install) and Phase 2 (context seeding) are done.
+Set up automated maintenance for the user's Think OS via local launchd jobs. This is Phase 3 — runs after Phase 1 (install) and Phase 2 (context seeding) are done.
 
 ## What this does
 
-Creates **remote scheduled triggers** (via the `schedule` skill / `CronCreate` tool) that keep the user's Think OS healthy without them remembering:
+Installs **local launchd jobs** (via `bash scripts/install-launchd-job.sh <name>`) that keep the user's Think OS healthy without them remembering:
 
-- Daily reindex (4am) — keeps Basic Memory's index fresh after external edits
-- Weekly review (Sunday 8pm) — drafts updated Current Focus for next week
-- Quarterly archive (first Sunday of quarter) — rotates Work Log, prunes stale projects
-- Daily morning brief (7am Mon-Fri) — optional; writes a markdown brief to the vault
+- Daily reindex (4am) — runs `basic-memory reindex` directly; no API tokens
+- Weekly review (Sunday 8pm) — spawns `claude -p` to draft updated Current Focus for next week
+- Quarterly archive (first Sunday of quarter) — spawns `claude -p` to rotate Work Log, prune stale projects
+- Daily morning brief (7am Mon-Fri) — optional; spawns `claude -p` to write a markdown brief to the vault
 
-Remote triggers run on Anthropic's infrastructure. The user does NOT need to keep Claude Code or any app open.
+Jobs run when the Mac is awake. If the Mac sleeps through a scheduled time, launchd fires the job on next wake (or skips that fire). These jobs write to the user's local personal-hub vault — that is why they must be local; remote triggers on Anthropic's infrastructure cannot write to `~/ThinkOS/vault/`.
 
 ## How to drive this
 
-Read and follow `docs/phase-3-automations-playbook.md`. It contains the exact cron schedules, the prompts to register for each trigger, and the conversation flow.
+Read and follow `docs/phase-3-automations-playbook.md`. It contains the exact cron schedules, the prompts for each job, and the conversation flow.
 
 Key UX points:
 
@@ -26,23 +26,23 @@ Key UX points:
 
 2. Offer each of the 4 automations one at a time with Y/N defaults. Show the cron schedule translated to English ("every Sunday at 8pm" not `0 20 * * 0`).
 
-3. Cost transparency. Tell the user up front: "Each trigger fire uses Anthropic API tokens. Whether that's covered by your Claude subscription quota or counts as pay-as-you-go API spend depends on your account — check your plan. Basic Memory itself is fully local; no cloud mode."
+3. Cost transparency. Tell the user up front: "The daily reindex uses zero API tokens — it's a direct script call. The weekly review, quarterly archive, and morning brief each spawn a `claude -p` session when they fire; token usage depends on your vault size. Whether that's covered by your Claude subscription or charged as pay-as-you-go depends on your account."
 
-4. Use the `schedule` skill (preferred) or `CronCreate` tool directly to create each trigger. The exact prompt body for each is in the playbook.
+4. Install each job via `bash scripts/install-launchd-job.sh <name>`. The exact prompt body for each is in the playbook.
 
-5. After creating triggers, list them back to the user with their schedules. Mention how to list / remove later (`/thinkos-automate list`, `/thinkos-automate remove <name>`).
+5. After installing jobs, list them back to the user with their schedules. Mention how to list / remove later (`/thinkos-automate list`, `/thinkos-automate remove <name>`).
 
 ## Subcommand: `/thinkos-automate list`
 
-If the user invokes with `list`, enumerate active triggers via `CronList`. Show name, schedule (in English), last fire time, last status.
+Check `~/Library/LaunchAgents/` for `com.thinkos.*.plist` files and run `launchctl list | grep thinkos` to show load status. Show name, schedule (in English), and loaded/unloaded status.
 
 ## Subcommand: `/thinkos-automate remove <name>`
 
-Confirm twice ("This will remove the <name> trigger — Think OS won't auto-<what it does> anymore. Continue?"), then call `CronDelete`.
+Confirm twice ("This will remove the <name> job — Think OS won't auto-<what it does> anymore. Continue?"), then run `launchctl unload ~/Library/LaunchAgents/com.thinkos.<name>.plist` and delete the plist.
 
 ## Common questions to expect
 
-- **"Do I need to keep Claude Code open?"** No. Triggers run on Anthropic's infrastructure.
-- **"What if a fire fails?"** The next scheduled run will retry. Persistent failures show up in `/thinkos-doctor`.
-- **"Can I write my own?"** Yes — `schedule` skill or `CronCreate` directly. Anything you can prompt an agent to do, you can schedule.
-- **"Difference vs Cowork scheduled tasks?"** Cowork's require the app to be open and running on your machine. Claude Code's run in the cloud. The Claude Code path is more reliable for "set and forget" maintenance.
+- **"Do I need to keep Claude Code open?"** Claude Code doesn't need to be open, but the Mac does need to be awake. These are local launchd jobs.
+- **"What if a fire fails?"** launchd retries on the next scheduled interval. Persistent failures show up in `/thinkos-doctor`.
+- **"Can I write my own?"** For jobs that write to your local vault: add a new plist + wrapper script. For jobs that don't write to the local vault (Slack alerts, project vault pushes): use the `schedule` skill or `CronCreate` for remote triggers.
+- **"What about remote triggers?"** Remote triggers (via the `schedule` skill) are still available for use cases that fit — project vaults, sending notifications, anything that doesn't need to write to the local personal hub.
