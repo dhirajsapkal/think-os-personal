@@ -34,6 +34,16 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
     </li>
   </ul>
 
+  <p class="mt-6 border-l-2 border-accent pl-4 text-[15px]">
+    <strong>Direction matters.</strong> A reference vault always points at a folder
+    <em>on your own machine</em> — it's a local-filesystem pointer in <em>your</em>
+    <code>vaults.json</code>, not a network endpoint. There's no mechanism by which
+    someone else can register your machine's folders as their reference vault.
+    Privacy of your personal hub depends on it staying on your disk (no git remote,
+    no cloud-sync of the vault folder); the reference-vault feature itself doesn't
+    expose anything outward.
+  </p>
+
   <h2>Vault registry</h2>
   <p>
     <code>~/.thinkos/vaults.json</code> lists all registered vaults with their

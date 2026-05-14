@@ -108,6 +108,8 @@ Three vault types. A user has exactly one Personal Hub, and any number of Projec
 - **Sync**: pull-only git, or fully detached. No writes.
 - **Schema**: none enforced. Indexed for search; visually marked `[reference]` in agent output.
 
+> **Direction matters.** A reference vault always points at a folder **on your own machine** — it's a local-filesystem pointer in *your* `vaults.json`, not a network endpoint. There is no mechanism by which someone else can register your machine's folders as their reference vault. Privacy of your personal hub depends on it staying on your disk (no git remote, no cloud-sync of the vault folder); the reference-vault feature itself doesn't expose anything outward.
+
 ---
 
 ## 2. Vault registry
