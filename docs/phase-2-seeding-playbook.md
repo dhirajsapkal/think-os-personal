@@ -587,6 +587,15 @@ If "Skip — I'll do it later": move directly to Section 4.
 - "OK — I'll save where we are. Run `/thinkos-continue` anytime to come back."
 - Make sure state reflects what's actually been seeded (don't mark `seeded` if the file wasn't written).
 
+---
+
+## What comes next
+
+Phase 2 is **Step 3** of the 3-step setup flow. After it completes:
+
+- **Phase 3 automations** (`/thinkos-automate`) — scheduled triggers (daily reindex, weekly review, quarterly archive). Playbook: `docs/phase-3-automations-playbook.md`. Also offered inline at the end of the automations offer above.
+- **Continuous capture** (`/thinkos-autosave`, `/thinkos-capture-setup`) — passive session logging and opt-in external ingestion from Granola/Slack/Gmail/etc. Design: `docs/continuous-capture/README.md`.
+
 **MCP call fails repeatedly:**
 - Don't loop. Two attempts, then surface the error and ask the user how to proceed.
 

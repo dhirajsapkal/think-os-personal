@@ -8,6 +8,8 @@ permalink: think-os/adapters/claude-code/install
 
 **If you're an AI agent installing Think OS for a user, this is the file you follow. Skip the rest of this repo's docs — they're human-facing reference. Everything you need is here.**
 
+The declarative schema for every question, optional capability, and managed file lives in `setup/manifest.yaml`. This playbook is the prose walkthrough; the manifest is the source of truth. If the two disagree, trust the manifest and fix the playbook.
+
 ---
 
 ## Step 0 — Where are you?
@@ -170,6 +172,25 @@ This auto-detects the vault, registers it in `~/.thinkos/vaults.json`, and makes
 
 ---
 
+## Step 4.5 — Optional capabilities
+
+After the vault is registered but before the post-install checklist, offer optional capability add-ons. These are not part of core Think OS — they extend what Phase 2 seeding can pull from.
+
+`AskUserQuestion`:
+
+- Header: "Optional capabilities"
+- Question: "Add any optional capabilities? Pick none, one, or more."
+- multiSelect: true
+- Options (full list defined in `setup/manifest.yaml` under `phases.optional_capabilities`):
+  | label | description |
+  |---|---|
+  | "Browser capture" | "Install Playwright so Phase 2 can pull from your personal site, public Notion pages, or LinkedIn profile." |
+  | "GitHub CLI (auth now)" | "Authenticate the GitHub CLI so project vaults, the self-healing feedback loop, and /thinkos-update all work without a second hop." |
+
+For each selected capability, run the `install` block from the manifest, then the `verify` command. Surface failures verbatim; don't paper over them. If the user picks none, move on silently.
+
+---
+
 ## Step 5 — Show the user what landed
 
 Display the install manifest:
@@ -223,6 +244,16 @@ bash scripts/thinkos-doctor.sh --deep
 ```
 
 Surface any FAIL or WARN results as a one-line punch list. If everything's green, tell the user: "Install complete. Restart Claude Code and try `/thinkos-help` to see your new commands."
+
+---
+
+## Step 7 — Offer the self-healing loop (only if gh CLI is authenticated)
+
+If the user opted into "GitHub CLI (auth now)" in Step 4.5, *or* `gh auth status` already returned success at install time, end the install with this exact line:
+
+> If anything in this install felt off — wrong command, missing step, confusing prompt — just tell me what happened. I'll open a PR upstream so the next person doesn't hit it.
+
+Don't say it if `gh` isn't authenticated; the line is a promise you can't keep without it.
 
 ---
 

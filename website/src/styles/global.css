@@ -3,37 +3,39 @@
 @tailwind utilities;
 
 /* ---------------------------------------------------------
-   Theme tokens — warm paper / ink editorial palette
+   Theme tokens — Think Company palette
+   Pulled from thinkcompany.com: navy #173145, Think blue,
+   Inter + Newsreader, white backgrounds.
    --------------------------------------------------------- */
 :root {
-  --paper:   #F8F7F2;
-  --ink:     #1B1B1B;
-  --muted:   #75726B;
-  --rule:    #E5E2D9;
-  --soft:    #EFEDE5;
-  --accent:  #A85740;
+  --paper:   #FFFFFF;
+  --ink:     #173145;            /* Think navy — verified from their CSS */
+  --muted:   #5A6B7C;
+  --rule:    #E2E6EB;
+  --soft:    #F4F6F8;
+  --accent:  #0058CC;            /* Think blue — primary */
 
-  /* Think Company brand — used sparingly for endorsement marks */
-  --tc-blue: #1657C2;
+  /* Endorsement mark color (same as accent in light mode) */
+  --tc-blue: #0058CC;
   --tc-blue-fg: #FFFFFF;
 
-  --paper-rgb: 248 247 242;
-  --ink-rgb:   27  27  27;
+  --paper-rgb: 255 255 255;
+  --ink-rgb:    23 49 69;
 }
 
 [data-theme="dark"] {
-  --paper:   #13110F;
-  --ink:     #F2EFE8;
-  --muted:   #8F8B82;
-  --rule:    #2A2722;
-  --soft:    #1B1916;
-  --accent:  #C88770;
+  --paper:   #0A1622;
+  --ink:     #EDF2F7;
+  --muted:   #8FA0B2;
+  --rule:    #1E2B3A;
+  --soft:    #122031;
+  --accent:  #5B9CF0;            /* Lighter Think blue for dark mode */
 
-  --tc-blue: #4A86E0;
-  --tc-blue-fg: #FFFFFF;
+  --tc-blue: #5B9CF0;
+  --tc-blue-fg: #0A1622;
 
-  --paper-rgb: 19 17 15;
-  --ink-rgb:   242 239 232;
+  --paper-rgb: 10 22 34;
+  --ink-rgb:   237 242 247;
 }
 
 /* ---------------------------------------------------------

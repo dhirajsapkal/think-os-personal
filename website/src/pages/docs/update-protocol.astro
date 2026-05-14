@@ -1,0 +1,82 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+  title="Update protocol"
+  description="How /thinkos-update fetches the latest, detects drift on managed files, and re-applies without touching your vault."
+  current="update-protocol"
+>
+  <p>
+    <code>/thinkos-update</code> keeps Think OS current without a re-install.
+    It fetches the latest commits from the upstream repo, summarizes what
+    changed, checks managed files for local drift, and re-applies the curated
+    instructions and slash commands atomically. Your vault is never touched.
+  </p>
+
+  <h2>What it updates</h2>
+  <p>
+    Think OS tracks two categories of files in
+    <code>~/.thinkos/install-manifest.json</code>:
+  </p>
+  <ul>
+    <li>
+      <strong>Managed files</strong> — curated instructions and slash command
+      playbooks that ship with the repo and are expected to evolve. The update
+      command owns these.
+    </li>
+    <li>
+      <strong>Your content</strong> — vault markdown, state files, and anything
+      you've edited. These are never touched by an update.
+    </li>
+  </ul>
+
+  <h2>Drift detection</h2>
+  <p>
+    Before overwriting any managed file, the command compares the on-disk sha256
+    against the hash recorded at install time. If they differ — meaning you edited
+    the file locally — it shows you the diff and asks before proceeding. You can
+    keep your local version, take the upstream version, or merge manually.
+  </p>
+
+  <h2>Manifest v2</h2>
+  <p>
+    The install manifest now carries <code>managed_files</code> (array of paths
+    with install-time hashes), <code>thinkos_version</code>, <code>channel</code>,
+    <code>repo_path</code>, and <code>last_updated_at</code>. If your manifest
+    is v1, run:
+  </p>
+  <pre class="bg-soft border border-rule rounded px-5 py-4 font-mono text-[14px] overflow-x-auto">bash scripts/thinkos-migrate-manifest-v1-to-v2.sh</pre>
+
+  <h2>Running an update</h2>
+  <p>
+    From any Claude Code session:
+  </p>
+  <pre class="bg-soft border border-rule rounded px-5 py-4 font-mono text-[14px] overflow-x-auto">/thinkos-update</pre>
+  <p>
+    For a non-interactive terminal refresh:
+  </p>
+  <pre class="bg-soft border border-rule rounded px-5 py-4 font-mono text-[14px] overflow-x-auto">cd ~/code/think-os
+bash scripts/thinkos-update.sh --pull</pre>
+
+  <h2>Doctor checks</h2>
+  <p>
+    Four new <code>install:*</code> checks were added to
+    <code>scripts/thinkos-doctor.sh</code>: <code>install:manifest-version</code>,
+    <code>install:version</code>, <code>install:updates</code>, and
+    <code>install:drift</code>. Run <code>bash scripts/thinkos-doctor.sh --deep</code>
+    to see update and drift status at any time.
+  </p>
+
+  <h2>Full protocol</h2>
+  <p>
+    For the complete design — file categories, atomic swap behavior, backup and
+    restore — see
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/update-protocol.md">
+      docs/update-protocol.md
+    </a>.
+  </p>
+
+  <p class="text-muted text-sm mt-12">
+    Rendered docs coming soon. For now, the source files in the repo are authoritative.
+  </p>
+</DocsLayout>

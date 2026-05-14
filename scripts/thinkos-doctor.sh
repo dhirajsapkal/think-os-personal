@@ -168,6 +168,74 @@ check_file() {
 
 add_check "repo:templates" "$([[ -d "$TEMPLATE_DIR" ]] && echo ok || echo fail)" "$TEMPLATE_DIR"
 
+# ---------------------------------------------------------------------------
+# Install manifest / version / update awareness
+# ---------------------------------------------------------------------------
+INSTALL_MANIFEST="$HOME/.thinkos/install-manifest.json"
+if [[ -f "$INSTALL_MANIFEST" ]]; then
+  MANIFEST_VERSION="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('version', 1))" "$INSTALL_MANIFEST" 2>/dev/null || echo "1")"
+  THINKOS_VERSION="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('thinkos_version', ''))" "$INSTALL_MANIFEST" 2>/dev/null || echo "")"
+  CHANNEL="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('channel', 'stable'))" "$INSTALL_MANIFEST" 2>/dev/null || echo "stable")"
+
+  if [[ "$MANIFEST_VERSION" == "1" ]]; then
+    add_check "install:manifest-version" warn "manifest is v1 (pre-update-protocol); first /thinkos-update will migrate to v2"
+  else
+    add_check "install:manifest-version" ok "v$MANIFEST_VERSION"
+  fi
+
+  if [[ -n "$THINKOS_VERSION" ]]; then
+    add_check "install:version" ok "$THINKOS_VERSION ($CHANNEL)"
+  else
+    add_check "install:version" warn "no thinkos_version recorded (v1 manifest)"
+  fi
+
+  # Available updates — only if repo is a git checkout
+  if [[ -d "$REPO_ROOT/.git" ]] && [[ -n "$THINKOS_VERSION" ]]; then
+    CURRENT_HEAD="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "")"
+    if [[ -n "$CURRENT_HEAD" ]] && [[ "$CURRENT_HEAD" != "$THINKOS_VERSION" ]]; then
+      add_check "install:updates" warn "repo HEAD ($CURRENT_HEAD) differs from installed version ($THINKOS_VERSION); run /thinkos-update"
+    elif [[ -n "$CURRENT_HEAD" ]]; then
+      add_check "install:updates" ok "repo HEAD matches installed version"
+    fi
+  fi
+
+  # Drift detection — count managed files whose on-disk sha differs from shipped_sha.
+  # For mode=block files, sha the content BETWEEN the BEGIN/END markers (not the whole file)
+  # so user-owned content outside the block doesn't register as drift.
+  DRIFT_COUNT="$(python3 - "$INSTALL_MANIFEST" <<'PY' 2>/dev/null || echo "0"
+import json, sys, hashlib, os, re
+m = json.load(open(sys.argv[1]))
+files = m.get("managed_files") or []
+BEGIN = "<!-- BEGIN THINK OS -->"
+END = "<!-- END THINK OS -->"
+drift = 0
+for f in files:
+    target = f.get("target")
+    shipped = f.get("shipped_sha")
+    mode = f.get("mode", "file")
+    if not target or not shipped or not os.path.exists(target):
+        continue
+    if mode == "block":
+        text = open(target).read()
+        pat = re.escape(BEGIN) + r"(.*?)" + re.escape(END)
+        match = re.search(pat, text, re.DOTALL)
+        h = hashlib.sha256(match.group(1).encode("utf-8")).hexdigest() if match else None
+    else:
+        h = hashlib.sha256(open(target, "rb").read()).hexdigest()
+    if h and h != shipped:
+        drift += 1
+print(drift)
+PY
+)"
+  if [[ "$DRIFT_COUNT" == "0" ]]; then
+    add_check "install:drift" ok "no managed files drifted"
+  else
+    add_check "install:drift" warn "$DRIFT_COUNT managed file(s) edited locally; /thinkos-update will prompt before overwriting"
+  fi
+else
+  add_check "install:manifest" warn "no install-manifest.json — Think OS may not be installed yet"
+fi
+
 if [[ -d "$OS_HOME" ]]; then
   add_check "vault:path" ok "$OS_HOME"
 else
@@ -346,6 +414,146 @@ if [[ "$CHECK_BUNDLE" -eq 1 ]]; then
 
 fi
 # end --check-bundle
+
+# ---------------------------------------------------------------------------
+# Capture ledger checks
+# ---------------------------------------------------------------------------
+CAPTURE_LEDGER="$HOME/.thinkos/capture-log.jsonl"
+
+if [[ ! -f "$CAPTURE_LEDGER" ]]; then
+  add_check "capture:ledger" ok "no ledger yet — will be created on first capture"
+else
+  # Validate: every non-empty line must be parseable JSON
+  CORRUPT_LINES="$(python3 - "$CAPTURE_LEDGER" <<'PY' 2>/dev/null || echo "error"
+import sys, json
+bad = 0
+with open(sys.argv[1]) as fh:
+    for line in fh:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            json.loads(line)
+        except json.JSONDecodeError:
+            bad += 1
+print(bad)
+PY
+)"
+  if [[ "$CORRUPT_LINES" == "error" ]]; then
+    add_check "capture:ledger" fail "ledger exists but could not be read: $CAPTURE_LEDGER"
+  elif [[ "$CORRUPT_LINES" == "0" ]]; then
+    LINE_COUNT="$(python3 -c "
+import sys
+n = sum(1 for l in open(sys.argv[1]) if l.strip())
+print(n)
+" "$CAPTURE_LEDGER" 2>/dev/null || echo "?")"
+    add_check "capture:ledger" ok "$LINE_COUNT line(s), all valid JSONL"
+  else
+    add_check "capture:ledger" warn "$CORRUPT_LINES corrupt line(s) in $CAPTURE_LEDGER; run thinkos-recent.sh to see details"
+  fi
+
+  # Most recent session capture — warn if > 4h old during 9am–9pm local
+  LAST_SESSION_INFO="$(python3 - "$CAPTURE_LEDGER" <<'PY' 2>/dev/null || echo ""
+import sys, json, datetime
+
+ledger = sys.argv[1]
+newest_ts = None
+with open(ledger) as fh:
+    for line in fh:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            evt = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if evt.get("source") != "session":
+            continue
+        ts_str = evt.get("ts", "")
+        try:
+            ts = datetime.datetime.fromisoformat(ts_str.rstrip("Z")).replace(tzinfo=datetime.timezone.utc)
+        except (ValueError, AttributeError):
+            continue
+        if newest_ts is None or ts > newest_ts:
+            newest_ts = ts
+
+if newest_ts is None:
+    print("none")
+else:
+    age_h = (datetime.datetime.now(datetime.timezone.utc) - newest_ts).total_seconds() / 3600
+    print(f"{newest_ts.strftime('%Y-%m-%dT%H:%M:%SZ')} {age_h:.1f}")
+PY
+)"
+
+  if [[ -z "$LAST_SESSION_INFO" || "$LAST_SESSION_INFO" == "none" ]]; then
+    add_check "capture:last_session" ok "no session captures yet"
+  else
+    LAST_TS="$(echo "$LAST_SESSION_INFO" | awk '{print $1}')"
+    AGE_H="$(echo "$LAST_SESSION_INFO" | awk '{print $2}')"
+    # Check local hour to determine if we're in 9am–9pm window
+    LOCAL_HOUR="$(date +%H)"
+    AGE_INT="$(python3 -c "print(int(float('$AGE_H')))" 2>/dev/null || echo "0")"
+    if [[ "$LOCAL_HOUR" -ge 9 && "$LOCAL_HOUR" -lt 21 && "$AGE_INT" -gt 4 ]]; then
+      add_check "capture:last_session" warn "last session capture was ${AGE_H}h ago ($LAST_TS); expected every ~2h during working hours"
+    else
+      add_check "capture:last_session" ok "last session capture: $LAST_TS (${AGE_H}h ago)"
+    fi
+  fi
+
+  # 24h event volume — warn if zero (suggests automation is stalled)
+  VOLUME_24H="$(python3 - "$CAPTURE_LEDGER" <<'PY' 2>/dev/null || echo "0"
+import sys, json, datetime
+
+ledger = sys.argv[1]
+cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=24)
+count = 0
+with open(ledger) as fh:
+    for line in fh:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            evt = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        ts_str = evt.get("ts", "")
+        try:
+            ts = datetime.datetime.fromisoformat(ts_str.rstrip("Z")).replace(tzinfo=datetime.timezone.utc)
+        except (ValueError, AttributeError):
+            continue
+        if ts >= cutoff:
+            count += 1
+print(count)
+PY
+)"
+  if [[ "$VOLUME_24H" == "0" ]]; then
+    add_check "capture:24h_volume" warn "0 capture events in the last 24h — automation may be paused or broken"
+  else
+    add_check "capture:24h_volume" ok "$VOLUME_24H event(s) in last 24h"
+  fi
+
+  # Redaction count — informational only
+  REDACT_COUNT="$(python3 - "$CAPTURE_LEDGER" <<'PY' 2>/dev/null || echo "0"
+import sys, json
+
+ledger = sys.argv[1]
+count = 0
+with open(ledger) as fh:
+    for line in fh:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            evt = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if evt.get("redacted") is True:
+            count += 1
+print(count)
+PY
+)"
+  add_check "capture:redaction_count" ok "$REDACT_COUNT redacted event(s) in ledger (privacy routing intercepts)"
+fi
 
 if [[ "$JSON" -eq 1 ]]; then
   printf '{"os_home":"%s","project":"%s","checks":[' "$(json_escape "$OS_HOME")" "$(json_escape "$PROJECT_NAME")"

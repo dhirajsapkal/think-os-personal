@@ -13,8 +13,8 @@ Show the full index of Think OS slash commands grouped by category, plus key scr
 |---|---|
 | `/thinkos-setup` | Run the first-time setup wizard from the export repo |
 | `/thinkos-continue` | Resume setup after OAuth + app restart (Phase 2) |
+| `/thinkos-update` | Pull the latest curated instructions and commands without re-installing |
 | `/thinkos-vault` | Manage vaults — list, switch, create-project, clone |
-| `bash scripts/thinkos-wizard.sh` | Interactive guided installer (one question per screen) |
 | `bash scripts/thinkos-doctor.sh` | Health-check MCP, vault, and installed products |
 | `bash scripts/thinkos-uninstall.sh` | Remove Think OS install artifacts (preserves vault by default) |
 

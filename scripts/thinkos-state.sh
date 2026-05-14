@@ -171,7 +171,7 @@ if sub == "init":
 
 state = load()
 if state is None:
-    print(f"thinkos-state: no state file at {state_file}. Run Phase 1 first (scripts/thinkos-wizard.sh).", file=sys.stderr)
+    print(f"thinkos-state: no state file at {state_file}. Run Phase 1 first (scripts/thinkos-setup.sh, or paste the install one-liner in Claude Code).", file=sys.stderr)
     sys.exit(1)
 
 if sub == "path":

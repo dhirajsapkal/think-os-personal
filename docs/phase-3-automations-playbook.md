@@ -257,3 +257,15 @@ When the user runs `/thinkos-automate remove <name>`, use `CronDelete` after con
 - **Briefs go to vault files, not Slack/email.** If you want Slack delivery, write a follow-up agent prompt that reads the brief file and sends it (requires Slack OAuth via your plugin bundle).
 - **Triggers run remotely.** There is no machine-local cron option.
 - **Stale-data alerting** is manual via `/thinkos-stale`.
+
+---
+
+## What comes next — continuous capture
+
+Phase 3 automations handle scheduled maintenance. For ongoing passive logging of what you actually work on, see continuous capture:
+
+- **Session capture** (Layer A, live) — `/thinkos-autosave on` starts a launchd job that appends a one-line stub to Work Log every 2 hours. No LLM call.
+- **External ingestion** (Layer B, opt-in per source) — Granola, Slack, Gmail, Calendar, Linear, ClickUp. Configure via `/thinkos-capture-setup`.
+- **Audit ledger** (Layer C) — every capture is recorded in `~/.thinkos/capture-log.jsonl`. Review with `/thinkos-recent`; undo with `/thinkos-undo-capture`.
+
+Design: `docs/continuous-capture/README.md`.

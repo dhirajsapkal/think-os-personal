@@ -1,0 +1,157 @@
+# Think OS — Setup Manifest
+#
+# Declarative source of truth for the install + Phase 1.5 + update flows.
+# Agents read this instead of hard-coding step lists. Humans edit this
+# instead of editing every playbook.
+#
+# Step statuses:
+#   required    — user must complete this step
+#   recommended — encouraged but skippable without explicit prompt
+#   optional    — always ask the user before starting (can skip entirely)
+#
+# Tags drive grouping in chip-picker UIs; phase orders the timeline.
+
+version: 1
+
+phases:
+  install:
+    title: Install
+    description: Land Think OS on disk and wire it into Claude Code.
+    questions:
+      - id: vault_path
+        prompt: "Where do you want your vault?"
+        kind: single
+        options:
+          - label: "Recommended"
+            description: "~/ThinkOS/vault. Clean and out of the way."
+            value: "~/ThinkOS/vault"
+          - label: "Under Documents"
+            description: "~/Documents/ThinkOS. May need Files & Folders access."
+            value: "~/Documents/ThinkOS"
+          - label: "Custom path"
+            description: "Pick a different location."
+            value: "__custom__"
+      - id: install_basic_memory
+        prompt: "Do you want me to install Basic Memory?"
+        skip_if: "command -v basic-memory >/dev/null"
+        kind: single
+        options:
+          - label: "Yes, install it"
+            description: "Takes about 30 seconds via uv."
+            value: true
+          - label: "Skip for now"
+            description: "I'll install it myself later."
+            value: false
+      - id: bundle
+        prompt: "Which bundle do you want?"
+        kind: single
+        options:
+          - { label: "Product Management", value: "pm",     description: "Slack, Gmail, Notion, Linear, Granola, Figma + PM and Productivity skills." }
+          - { label: "Engineering",        value: "eng",    description: "Slack, Gmail, Atlassian Rovo, Linear + Engineering and Productivity skills." }
+          - { label: "Design",             value: "design", description: "Slack, Gmail, Notion, Figma, Granola + Design and Productivity skills." }
+          - { label: "Operations",         value: "ops",    description: "Slack, Gmail, Microsoft 365, Notion, QuickBooks + Productivity skills." }
+          - { label: "Skip",               value: null,     description: "Add tools individually later." }
+      - id: vault_id
+        prompt: "What do you want to call your vault?"
+        kind: single
+        options:
+          - { label: "personal (work)", value: "personal", description: "Your own vault, not shared with a team." }
+          - { label: "Custom",          value: "__custom__", description: "Pick your own id." }
+
+  optional_capabilities:
+    title: Optional capabilities
+    description: |
+      Capability add-ons that extend what Think OS can do during Phase 2 seeding
+      and beyond. Offered as a single chip-picker question after install, before
+      Phase 2. Defaults to none — pick zero or more.
+    question:
+      id: capabilities
+      prompt: "Add any optional capabilities? Pick none, one, or more."
+      kind: multi
+      default: []
+      options:
+        - id: playwright
+          label: "Browser capture"
+          description: "Install Playwright so Phase 2 can pull from your personal site, public Notion pages, or LinkedIn profile."
+          install: |
+            npm install -g playwright
+            npx playwright install chromium
+          verify: "npx playwright --version"
+          time_estimate: "2 min"
+        - id: gh_cli
+          label: "GitHub CLI (auth now)"
+          description: "Authenticate the GitHub CLI so project vaults, the self-healing feedback loop, and /thinkos-update all work without a second hop."
+          install: |
+            brew list gh >/dev/null 2>&1 || brew install gh
+            gh auth status >/dev/null 2>&1 || gh auth login
+          verify: "gh auth status"
+          time_estimate: "3 min"
+
+  phase_2:
+    title: Context seeding
+    description: Draft Identity, Project Index, Current Focus, People from connected tools.
+    slash_command: /thinkos-continue
+    playbook: docs/phase-2-seeding-playbook.md
+
+  phase_3:
+    title: Automations
+    description: Optional scheduled triggers — daily reindex, weekly review, quarterly archive, optional morning brief.
+    slash_command: /thinkos-automate
+    playbook: docs/phase-3-automations-playbook.md
+    required: false
+    recommended: true
+
+# ---------------------------------------------------------------------------
+# Managed files — used by /thinkos-update to detect drift and re-apply.
+#
+# Each entry declares: where it lives on the user's machine, where it comes
+# from in the repo, and how it should be replaced. Drift detection compares
+# the current on-disk sha256 to the shipped_sha recorded in
+# ~/.thinkos/install-manifest.json. If they match → safe to overwrite.
+# If they don't → user edited the file → backup + ask.
+# ---------------------------------------------------------------------------
+
+managed_files:
+  # Curated instructions block (BEGIN/END THINK OS) in user-global agent files.
+  - id: claude-code-block
+    target: ~/.claude/CLAUDE.md
+    source_template: adapters/claude-code/instructions.md
+    composed_with:
+      - templates/instructions/00-think-os-priority.md
+      - templates/instructions/05-global-rules.md
+      - templates/instructions/10-token-efficiency.md
+      - templates/instructions/20-skill-routing.md
+      - templates/instructions/30-think-os-write-targets.md
+    mode: block         # replaced between BEGIN THINK OS / END THINK OS markers
+    products: [claude-code]
+
+  - id: codex-block
+    target: ~/.codex/AGENTS.md
+    source_template: adapters/codex/AGENTS.md
+    mode: block
+    products: [codex]
+
+  # Slash commands — one file per command, glob-expanded at update time.
+  - id: claude-code-commands
+    target_dir: ~/.claude/commands/
+    source_glob: adapters/claude-code/commands/*.md
+    exclude: [README.md]
+    mode: file          # whole file replaced
+    products: [claude-code]
+
+# ---------------------------------------------------------------------------
+# Schema migrations — one entry per breaking change to a state file.
+# /thinkos-update runs any migration whose `from_version` matches the user's
+# current install-manifest.version, in order.
+# ---------------------------------------------------------------------------
+
+migrations:
+  - from_version: 1
+    to_version: 2
+    target: install-manifest.json
+    description: |
+      Add managed_files (with shipped_sha + current_sha per file), thinkos_version,
+      channel, repo_path, last_updated_at, optional_capabilities. Existing v1
+      "files" array is preserved as "files_legacy" for one release.
+    script: scripts/thinkos-migrate-manifest-v1-to-v2.sh
+

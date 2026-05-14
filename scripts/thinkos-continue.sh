@@ -29,10 +29,14 @@ if [[ ! -f "$STATE_FILE" ]]; then
   No setup state found. It looks like Phase 1 hasn't run yet (or the
   state file at $STATE_FILE was removed).
 
-  Run the wizard first:
+  Run Phase 1 first — easiest path:
 
-      bash $SCRIPT_DIR/thinkos-wizard.sh             # apply
-      bash $SCRIPT_DIR/thinkos-wizard.sh --preview   # walk through, no changes
+      In Claude Code, paste:
+        Install Think OS for me from https://github.com/dhirajsapkal/think-os
+
+  Or the script directly:
+
+      bash $SCRIPT_DIR/thinkos-setup.sh --os-home ~/ThinkOS/vault --yes
 
 EOF
   exit 1

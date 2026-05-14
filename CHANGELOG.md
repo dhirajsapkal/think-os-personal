@@ -2,6 +2,35 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [0.4.0] — 2026-05-14
+
+### Added
+
+- **Continuous capture — three-layer system.** Layer A is live; Layers B and C are opt-in.
+  - **Layer A: Session capture.** A launchd job runs every 2 hours and appends a stub entry to `01 Now/Work Log.md` (cwd, file count, last commit). No LLM call. No file contents leave the machine. Toggle via `/thinkos-autosave on|off|status|now`.
+  - **Layer B: Audit & trust.** Append-only JSONL ledger at `~/.thinkos/capture-log.jsonl`. `/thinkos-recent` shows captures by source and timestamp. `/thinkos-undo-capture` removes any captured entry from both the vault and the ledger. Four new `capture:*` doctor checks.
+  - **Layer C: External ingestion (opt-in per source).** Hourly Granola, daily Calendar/Linear/ClickUp/Gmail, hourly Slack. Per-source filter rules. Keywords (`comp`, `salary`, `HR`, `health`, `family`, `performance`, `1:1`) are privacy-routed to the personal hub only. Configure via `/thinkos-capture-setup`. Source playbooks at `docs/continuous-capture/sources/`.
+  - Design docs: `docs/continuous-capture/README.md`, `docs/continuous-capture/session-capture.md`, `docs/continuous-capture/audit.md`, `docs/continuous-capture/capture-log-schema.md`.
+
+- **`/thinkos-update` slash command.** In-place update without re-install. Fetches latest commits, summarizes the diff, detects drift on managed files via sha256, asks before overwriting, and atomically re-applies curated instructions and slash commands. Vault content is never touched. Design doc: `docs/update-protocol.md`.
+
+- **Manifest v2.** `~/.thinkos/install-manifest.json` now carries `managed_files` array, `thinkos_version`, `channel`, `repo_path`, and `last_updated_at`. Migrator: `scripts/thinkos-migrate-manifest-v1-to-v2.sh`.
+
+- **Doctor extension — 4 new `install:*` checks:** manifest-version, version, available updates, and drift on managed files.
+
+- **Phase 1.5 — optional capabilities.** After vault registration but before the post-install checklist, the agent offers a chip-picker for Playwright (browser capture for Phase 2) and GitHub CLI auth (required for project vaults and the `/thinkos-update` flow).
+
+- **Self-healing feedback loop.** When the GitHub CLI is authenticated at install time, the final install screen ends with: "If anything in this install felt off, tell me — I'll open a PR upstream so the next person doesn't hit it." Omitted if `gh` is not authenticated.
+
+- **Declarative install manifest** `setup/manifest.yaml` — source of truth for setup steps, optional capabilities, managed files, and migration paths.
+
+### Changed
+
+- **README setup section** updated to a 3-step flow: Install (5 min, includes Phase 1.5), Restart + authenticate (2 min), Continue setup via `/thinkos-continue` (~15–30 min). "Staying current" section now documents `/thinkos-update` as the primary flow; `scripts/thinkos-update.sh --pull` noted as a non-interactive fallback.
+- **`adapters/claude-code/INSTALL.md`** updated with Phase 1.5 step (Step 4.5), self-healing offer (Step 7), and post-install checklist harmonized with the 3-step README framing.
+
+---
+
 ## [0.3.3] — 2026-05-13
 
 ### Added

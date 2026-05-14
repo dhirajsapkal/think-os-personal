@@ -1,0 +1,94 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+  title="Continuous capture"
+  description="Three-layer passive capture: session stubs, opt-in external ingestion, and an append-only audit ledger with undo."
+  current="continuous-capture"
+>
+  <p>
+    Continuous capture is a three-layer system for passively recording what you
+    work on. Layer A is on by default after install; Layers B and C are opt-in.
+    All capture is local-first — no file contents leave your machine unless you
+    configure an external source in Layer B.
+  </p>
+
+  <h2>Layer A — Session capture</h2>
+  <p>
+    A launchd job fires every 2 hours during work hours. It scans recent Claude
+    Code session metadata and appends a one-line stub to
+    <code>01 Now/Work Log.md</code>: working directory, file count, and last
+    git commit. No LLM call. No file contents leave the machine.
+  </p>
+  <p>
+    Toggle via <code>/thinkos-autosave on|off|status|now</code>. Running
+    <code>/thinkos-autosave now</code> triggers an immediate capture outside the
+    scheduled interval.
+  </p>
+  <p>
+    Source:
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/continuous-capture/session-capture.md">
+      docs/continuous-capture/session-capture.md
+    </a>
+  </p>
+
+  <h2>Layer B — External ingestion</h2>
+  <p>
+    Opt-in per source. Each source runs on a schedule:
+  </p>
+  <ul>
+    <li><strong>Granola</strong> — hourly. Meeting titles and summaries from the last 90 days.</li>
+    <li><strong>Google Calendar</strong> — daily. Recurring events for the next 14 days.</li>
+    <li><strong>Linear / ClickUp</strong> — daily. Assigned open tickets.</li>
+    <li><strong>Gmail</strong> — daily. Starred threads.</li>
+    <li><strong>Slack</strong> — hourly. DMs and @-mentions.</li>
+  </ul>
+  <p>
+    Privacy routing: any content containing the keywords <code>comp</code>,
+    <code>salary</code>, <code>HR</code>, <code>health</code>,
+    <code>family</code>, <code>performance</code>, or <code>1:1</code> is
+    routed to your personal hub only — never into a shared project vault.
+  </p>
+  <p>
+    Configure sources via <code>/thinkos-capture-setup</code>. The command
+    offers sources one at a time, safest first (Granola before Slack DMs). Each
+    source can be toggled independently.
+  </p>
+  <p>
+    Source playbooks:
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/continuous-capture/sources/">
+      docs/continuous-capture/sources/
+    </a>
+  </p>
+
+  <h2>Layer C — Audit ledger and undo</h2>
+  <p>
+    Every capture — regardless of source — appends one line to
+    <code>~/.thinkos/capture-log.jsonl</code>. The ledger is append-only; it
+    never modifies existing entries.
+  </p>
+  <p>
+    <code>/thinkos-recent</code> shows captures from the last 24 hours, grouped
+    by source. <code>/thinkos-undo-capture</code> removes any entry from both
+    the vault and the ledger. Four new <code>capture:*</code> doctor checks
+    report ledger health, source status, and any stale entries.
+  </p>
+  <p>
+    Schema:
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/continuous-capture/capture-log-schema.md">
+      docs/continuous-capture/capture-log-schema.md
+    </a>.
+    Audit model:
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/continuous-capture/audit.md">
+      docs/continuous-capture/audit.md
+    </a>.
+    Top-level design:
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/continuous-capture/README.md">
+      docs/continuous-capture/README.md
+    </a>.
+  </p>
+
+  <p class="text-muted text-sm mt-12">
+    Rendered docs coming soon. For now, the source files in the repo are authoritative.
+  </p>
+</DocsLayout>

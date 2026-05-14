@@ -63,21 +63,26 @@ const vaultTypes = [
 ];
 
 const commands = [
-  ['/thinkos-whoami',     'Quick identity + role + current focus'],
-  ['/thinkos-morning',    'Daily brief — focus, plate, recent log'],
-  ['/thinkos-plate',      'What\'s on your plate today'],
-  ['/thinkos-log',        'Capture a timestamped note to your work log'],
-  ['/thinkos-who',        'What you know about a specific person'],
-  ['/thinkos-project',    'Load deep context for a project'],
-  ['/thinkos-decisions',  'Search your standing decisions'],
-  ['/thinkos-learnings',  'Search reusable learnings by topic'],
-  ['/thinkos-decide',     'Record a standing decision'],
-  ['/thinkos-capture',    'Capture a cross-project learning'],
-  ['/thinkos-vault',      'Manage vaults — switch, create, clone'],
-  ['/thinkos-continue',   'Resume Phase 2 context seeding'],
-  ['/thinkos-automate',   'Set up scheduled triggers'],
-  ['/thinkos-help',       'Show every Think OS command'],
-  ['/thinkos-mcp-help',   'How to query your context MCP'],
+  ['/thinkos-whoami',         'Quick identity + role + current focus'],
+  ['/thinkos-morning',        'Daily brief — focus, plate, recent log'],
+  ['/thinkos-plate',          'What\'s on your plate today'],
+  ['/thinkos-log',            'Capture a timestamped note to your work log'],
+  ['/thinkos-who',            'What you know about a specific person'],
+  ['/thinkos-project',        'Load deep context for a project'],
+  ['/thinkos-decisions',      'Search your standing decisions'],
+  ['/thinkos-learnings',      'Search reusable learnings by topic'],
+  ['/thinkos-decide',         'Record a standing decision'],
+  ['/thinkos-capture',        'Capture a cross-project learning'],
+  ['/thinkos-recent',         'Show recent captures by source — what landed and where'],
+  ['/thinkos-undo-capture',   'Remove a capture from the vault and ledger'],
+  ['/thinkos-autosave',       'Toggle periodic background session capture on/off'],
+  ['/thinkos-capture-setup',  'Enable continuous-capture sources one at a time'],
+  ['/thinkos-vault',          'Manage vaults — switch, create, clone'],
+  ['/thinkos-continue',       'Resume Phase 2 context seeding'],
+  ['/thinkos-automate',       'Set up scheduled triggers'],
+  ['/thinkos-update',         'Pull latest instructions and commands, with drift detection'],
+  ['/thinkos-help',           'Show every Think OS command'],
+  ['/thinkos-mcp-help',       'How to query your context MCP'],
 ];
 
 const faqs = [
@@ -173,7 +178,7 @@ const faqs = [
     </div>
   </section>
 
-  <!-- SETUP IS TWO STEPS -->
+  <!-- SETUP IS THREE STEPS -->
   <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-16">
@@ -183,7 +188,7 @@ const faqs = [
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
           <p class="text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            Two steps. About twenty-five minutes total. Most of it is the agent
+            Three steps. About twenty-five minutes total. Most of it is the agent
             asking you four short questions, then drafting your context files
             from the tools you already use.
           </p>
@@ -191,36 +196,51 @@ const faqs = [
       </header>
 
       <div class="grid grid-cols-12 gap-x-6 gap-y-12">
-        <article class="col-span-12 md:col-span-6 md:border-r md:border-rule md:pr-10">
+        <article class="col-span-12 md:col-span-4 md:border-r md:border-rule md:pr-8">
           <div class="flex items-baseline justify-between border-b border-rule pb-3">
-            <p class="kicker">Step one</p>
+            <p class="kicker">Step 1</p>
             <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">~5 min</p>
           </div>
           <h3 class="font-display text-2xl md:text-3xl tracking-tight mt-5">Install</h3>
           <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
             Paste the install prompt into a fresh Claude Code session. The agent
             clones the repo, asks four questions (vault location, Basic Memory,
-            plugin bundle, vault name), and runs the install.
-          </p>
-          <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-            Quit Claude Code, reopen, authorize any connector OAuth flows.
+            plugin bundle, vault name), optionally offers capability add-ons
+            (Playwright browser capture, GitHub CLI auth), and runs the install.
           </p>
         </article>
 
-        <article class="col-span-12 md:col-span-6 md:pl-4">
+        <article class="col-span-12 md:col-span-4 md:border-r md:border-rule md:px-8">
           <div class="flex items-baseline justify-between border-b border-rule pb-3">
-            <p class="kicker">Step two</p>
+            <p class="kicker">Step 2</p>
+            <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">~2 min</p>
+          </div>
+          <h3 class="font-display text-2xl md:text-3xl tracking-tight mt-5">Restart + authenticate</h3>
+          <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
+            Quit Claude Code and reopen it. MCPs and new slash commands only
+            load on startup.
+          </p>
+          <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
+            If you installed a plugin bundle, type
+            <code class="font-mono text-[14px] bg-soft px-1.5 py-0.5 rounded">/mcp</code> and
+            authorize each connector listed.
+          </p>
+        </article>
+
+        <article class="col-span-12 md:col-span-4 md:pl-8">
+          <div class="flex items-baseline justify-between border-b border-rule pb-3">
+            <p class="kicker">Step 3</p>
             <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">~15–30 min</p>
           </div>
           <h3 class="font-display text-2xl md:text-3xl tracking-tight mt-5">Continue setup</h3>
           <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
             Type <code class="font-mono text-[14px] bg-soft px-1.5 py-0.5 rounded">/thinkos-continue</code>.
-            The agent offers to import an existing markdown vault if you have one,
-            pulls from your tools (Granola, Calendar, Slack, Gmail, Linear), and
-            drafts your Identity, Project Index, Current Focus, and People files.
+            The agent offers to import an existing markdown vault, pulls from your
+            tools (Granola, Calendar, Slack, Gmail, Linear), and drafts your
+            Identity, Project Index, Current Focus, and People files.
           </p>
           <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-            At the end, optional scheduled triggers keep everything fresh.
+            At the end, optional scheduled triggers keep everything fresh on their own.
           </p>
         </article>
       </div>
@@ -321,12 +341,124 @@ const faqs = [
     </div>
   </section>
 
+  <!-- CONTINUOUS CAPTURE -->
+  <section class="border-t border-rule bg-soft/40">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+      <header class="grid grid-cols-12 gap-6 mb-16">
+        <div class="col-span-12 md:col-span-3">
+          <p class="kicker">§ VI</p>
+          <h2 class="display text-3xl md:text-4xl mt-4">Continuous capture</h2>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5">
+          <p class="text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
+            Three layers. Each is independent and opt-in beyond Layer A.
+          </p>
+        </div>
+      </header>
+
+      <div class="space-y-10">
+        <div class="grid grid-cols-12 gap-4 md:gap-6 items-baseline border-t border-rule pt-8">
+          <div class="col-span-2 md:col-span-1">
+            <span class="numeral text-2xl md:text-3xl">A</span>
+          </div>
+          <div class="col-span-10 md:col-span-6">
+            <p class="font-display text-2xl md:text-3xl tracking-tight">Session capture.</p>
+          </div>
+          <div class="col-span-12 md:col-span-5">
+            <p class="text-[16px] leading-relaxed text-muted max-w-[50ch]">
+              A launchd job runs every 2 hours and appends a one-line stub to your
+              Work Log (cwd, file count, last commit). No LLM call. No file contents
+              leave your machine. Toggle with
+              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">/thinkos-autosave</code>.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 md:gap-6 items-baseline border-t border-rule pt-8">
+          <div class="col-span-2 md:col-span-1">
+            <span class="numeral text-2xl md:text-3xl">B</span>
+          </div>
+          <div class="col-span-10 md:col-span-6">
+            <p class="font-display text-2xl md:text-3xl tracking-tight">External ingestion.</p>
+          </div>
+          <div class="col-span-12 md:col-span-5">
+            <p class="text-[16px] leading-relaxed text-muted max-w-[50ch]">
+              Opt-in per source. Hourly Granola, daily Calendar/Linear/ClickUp/Gmail,
+              hourly Slack. Privacy-routing by keyword (comp, salary, HR, health,
+              family) — those always land in your personal hub only. Configure with
+              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">/thinkos-capture-setup</code>.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-4 md:gap-6 items-baseline border-t border-rule pt-8">
+          <div class="col-span-2 md:col-span-1">
+            <span class="numeral text-2xl md:text-3xl">C</span>
+          </div>
+          <div class="col-span-10 md:col-span-6">
+            <p class="font-display text-2xl md:text-3xl tracking-tight">Audit and undo.</p>
+          </div>
+          <div class="col-span-12 md:col-span-5">
+            <p class="text-[16px] leading-relaxed text-muted max-w-[50ch]">
+              Every capture writes one line to
+              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">~/.thinkos/capture-log.jsonl</code>.
+              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">/thinkos-recent</code> shows
+              what landed and from which source.
+              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">/thinkos-undo-capture</code> removes
+              any entry from both the vault and the ledger. Full design:
+              <a href="/docs/continuous-capture" class="underline underline-offset-2">docs/continuous-capture</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAYING CURRENT -->
+  <section class="border-t border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+      <header class="grid grid-cols-12 gap-6 mb-12">
+        <div class="col-span-12 md:col-span-3">
+          <p class="kicker">§ VII</p>
+          <h2 class="display text-3xl md:text-4xl mt-4">Staying current</h2>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5">
+          <p class="text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
+            Think OS ships updates to its curated instructions and slash commands.
+            Your vault is never touched by an update.
+          </p>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-9 md:col-start-4">
+          <p class="text-[16px] leading-relaxed text-muted">
+            From any Claude Code session, run:
+          </p>
+          <pre class="mt-4 bg-soft border border-rule rounded px-5 py-4 font-mono text-[14px] overflow-x-auto">/thinkos-update</pre>
+          <p class="mt-6 text-[16px] leading-relaxed text-muted max-w-[66ch]">
+            The agent fetches the latest commits, summarizes what changed, checks
+            for drift on any managed file you edited locally (sha256 comparison),
+            asks before overwriting, and atomically re-applies. See
+            <a href="/docs/update-protocol" class="underline underline-offset-2">docs/update-protocol</a>
+            for the full flow, file categories, and backup behavior.
+          </p>
+          <p class="mt-6 text-[16px] leading-relaxed text-muted max-w-[66ch]">
+            For a non-interactive terminal refresh:
+          </p>
+          <pre class="mt-4 bg-soft border border-rule rounded px-5 py-4 font-mono text-[14px] overflow-x-auto">cd ~/code/think-os
+bash scripts/thinkos-update.sh --pull</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- FAQ -->
   <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-12">
         <div class="col-span-12 md:col-span-3">
-          <p class="kicker">§ VI</p>
+          <p class="kicker">§ VIII</p>
           <h2 class="display text-3xl md:text-4xl mt-4">Questions</h2>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">

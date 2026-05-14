@@ -4,13 +4,13 @@
 
 Think OS gives your agentic tools durable memory of who you are, what you're working on, who you work with, and how you like to work. It's a markdown vault plus a context server (Basic Memory MCP) that any modern agent can query and update.
 
-Early alpha — v0.3.0. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
+Early alpha — v0.3.3. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
 
 > **Tool support roadmap.** v0.3 focuses on **Claude Code**. Cowork and Codex adapters are preserved in this repo (`adapters/claude-cowork/`, `adapters/codex/`) and will light up in future versions. The install flow today only wires up Claude Code; the architecture is designed to extend.
 
 ---
 
-## Setup is two steps. Plan ~25 minutes total.
+## Setup is three steps. Plan ~25 minutes total.
 
 ### Step 1 — Install (5 min)
 
@@ -20,13 +20,19 @@ Open a new Claude Code session in any folder. Paste this one line:
 Install Think OS for me from https://github.com/dhirajsapkal/think-os
 ```
 
-The agent clones the repo, finds [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md), and follows it: asks you 4 short questions (vault path, Basic Memory, plugin bundle, vault name), runs the install, shows you what landed.
+The agent clones the repo, finds [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md), and follows it: asks you 4 short questions (vault path, Basic Memory, plugin bundle, vault name), optionally offers Phase 1.5 capability add-ons (browser capture via Playwright, GitHub CLI auth), runs the install, and shows you what landed.
 
-Then **quit Claude Code (Cmd+Q) and reopen it** — MCPs and new slash commands only load on startup. If you installed a plugin bundle, also `/mcp` → authorize each connector.
+### Step 2 — Restart + authenticate (2 min)
 
-### Step 2 — Continue setup (~15-30 min) — DO NOT SKIP THIS
+Quit Claude Code (Cmd+Q) and reopen it. MCPs and new slash commands only load on startup.
 
-After the restart, in a fresh Claude Code session, type:
+If you installed a plugin bundle, type `/mcp` and authorize each connector listed. Without this, the connectors are installed but can't read data.
+
+You can stay in the same fresh session for Step 3.
+
+### Step 3 — Continue setup (~15-30 min) — DO NOT SKIP THIS
+
+In the same fresh session (or a new one if you closed it), type:
 
 ```
 /thinkos-continue
@@ -42,7 +48,7 @@ The agent will:
 
 You can pause and resume anytime — state is saved.
 
-Standalone: if you skipped automations during Phase 2, you can set them up anytime with `/thinkos-automate`.
+Standalone: if you skipped automations during Phase 2, you can set them up anytime with `/thinkos-automate`. To turn on continuous capture (passive auto-logging of your work + opt-in external ingestion from Granola/Slack/Gmail/etc.), run `/thinkos-autosave on` and `/thinkos-capture-setup`.
 
 ---
 
@@ -108,7 +114,7 @@ think-os/
 │   └── codex/                  ← scaffolding for future version
 ├── docs/
 │   ├── multi-vault-architecture.md   ← personal + project + reference vault design
-│   ├── phase-2-seeding-playbook.md   ← how Phase 2 drafts HOT-tier from connectors
+│   ├── phase-2-seeding-playbook.md   ← how Phase 2 drafts your core context files from connectors
 │   └── agent-setup-playbook.md       ← first-run behavior for agents
 └── data/plugin-catalog.yaml    ← plugins/connectors per role bundle
 ```
@@ -136,28 +142,51 @@ See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for t
 | `/thinkos-decisions [topic]` | Search your standing decisions |
 | `/thinkos-learnings [topic]` | Search reusable learnings |
 | `/thinkos-decide / -capture` | Record a decision / cross-project learning |
+| `/thinkos-recent` | See what was captured in the last 24h (the audit view) |
+| `/thinkos-undo-capture` | Remove a recent capture from the vault + ledger |
+| `/thinkos-autosave on\|off\|status` | Manage periodic background session capture |
+| `/thinkos-capture-setup` | Enable continuous-capture sources (Granola, Slack, Gmail, etc.) |
 | `/thinkos-vault` | Manage vaults — list, switch, create-project, clone |
 | `/thinkos-continue` | Resume setup after restart (Phase 2 context seeding) |
 | `/thinkos-automate` | Set up scheduled triggers (Phase 3 automations) |
+| `/thinkos-update` | Pull latest curated instructions + commands, with drift detection |
 | `/thinkos-help` | Show all commands |
 | `/thinkos-mcp-help` | How to query your context MCP |
+
+## Continuous capture
+
+Once setup is done, Think OS captures what you work on without you remembering to log it:
+
+- **Session capture** — every 2 hours during work hours, a launchd job scans recent Claude Code sessions and appends a one-line entry to your Work Log (cwd, file count, commit). No LLM call. No file contents leave your machine. Toggle with `/thinkos-autosave`.
+- **External ingestion (opt-in per source)** — scheduled remote triggers pull from Granola meetings, Slack DMs + @-mentions, starred Gmail threads, Calendar, Linear, ClickUp. Configure via `/thinkos-capture-setup` — safest source (Granola) offered first, most sensitive (Slack DMs) last. Privacy-routed by keyword (anything matching `comp`, `salary`, `HR`, `health`, `family`, `performance`, `1:1` lands in your personal hub only).
+- **Audit & undo** — every capture writes one line to `~/.thinkos/capture-log.jsonl`. `/thinkos-recent` shows what landed; `/thinkos-undo-capture` removes any entry that shouldn't have been kept.
+
+Full design: [`docs/continuous-capture/README.md`](docs/continuous-capture/README.md).
 
 ## The three rules (the architecture in one screen)
 
 1. **Files are the source of truth.** Tool memory and indexes are caches.
-2. **HOT tier stays small** (~280 lines of always-loaded context). Detail lives in WARM tier, loaded on demand.
+2. **Always-loaded context stays small** (~280 lines). Detail lives in files the agent loads on demand.
 3. **Default write targets are explicit.** Memory → personal hub. Project work → that project's vault. Never write to your `~/Documents/` root.
 
 ## Staying current
 
-Think OS evolves. To pull the latest curated rules and skill-routing hints:
+Think OS evolves. From any Claude Code session:
+
+```
+/thinkos-update
+```
+
+This fetches the latest commits, summarizes what changed, detects drift on any managed file you edited locally, asks before overwriting, and atomically re-applies the curated instructions + slash commands. Your vault is never touched.
+
+The flow is fully documented in [`docs/update-protocol.md`](docs/update-protocol.md) — file categories (managed vs state vs your content), drift detection via sha256, backup-and-restore on any update.
+
+For a quick non-interactive refresh from the terminal:
 
 ```bash
 cd ~/code/think-os
 bash scripts/thinkos-update.sh --pull
 ```
-
-This refreshes the BEGIN/END THINK OS block in `~/.claude/CLAUDE.md` without touching your vault, your bundles, or your registered MCPs. Safe to run anytime.
 
 ## Product support
 
