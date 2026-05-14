@@ -23,7 +23,7 @@ What does NOT count: folders, meeting stubs with no transcript content, meetings
 
 1. Meeting must have a transcript (non-empty body from `mcp__claude_ai_Granola__get_meeting_transcript`).
 2. Meeting `start_time` must be within the past 25 hours (catches the hourly window plus a one-hour overlap for late-processing transcripts).
-3. Deduplicate against `~/.thinkos/capture-log.jsonl`: if an entry with `source: granola` and `detail.meeting_id` matching this meeting already exists, skip it.
+3. Deduplicate against the vault note "Capture Log" (`90 System/Capture Log.md`): if an entry with `source: granola` and `detail.meeting_id` matching this meeting already exists, skip it.
 4. No minimum length filter — even short check-ins are worth capturing; size is cheap.
 
 The one-hour overlap in rule 2 handles cases where Granola finishes processing a transcript after the previous hourly window closed.
@@ -70,13 +70,13 @@ This writes `~/Library/LaunchAgents/com.thinkos.granola.plist` (schedule: `0 * *
 You are the Think OS Granola capture agent. Run on this prompt hourly.
 
 Step 1 — Load last-capture cursor.
-Read ~/.thinkos/capture-log.jsonl. Find the most recent entry where source == "granola". Record its ts value as LAST_CAPTURE. If no such entry exists, use a timestamp 25 hours ago.
+Read the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__read_note`. Scan lines starting with `{` as JSON. Find the most recent entry where source == "granola". Record its ts value as LAST_CAPTURE. If no such entry exists, use a timestamp 25 hours ago.
 
 Step 2 — List recent meetings.
 Call mcp__claude_ai_Granola__list_meetings with no filter. From the result, select meetings where start_time is after (LAST_CAPTURE minus 1 hour) to catch any late-processing transcripts. If the result is paginated, fetch all pages.
 
 Step 3 — Deduplicate.
-For each candidate meeting, check ~/.thinkos/capture-log.jsonl for an existing entry with source == "granola" and detail.meeting_id == this meeting's id. Skip any that already have a ledger entry.
+For each candidate meeting, check the vault note "Capture Log" (`90 System/Capture Log.md`) for an existing entry with source == "granola" and detail.meeting_id == this meeting's id. Skip any that already have a ledger entry.
 
 Step 4 — Fetch and write each new meeting.
 For each meeting that passes dedup:
@@ -118,7 +118,7 @@ For each meeting that passes dedup:
 
   e. Write via mcp__basic-memory__write_note to the computed path. If the path already exists, append -2 to the slug and retry once.
 
-  f. Append one ledger event to ~/.thinkos/capture-log.jsonl (newline-delimited, append only):
+  f. Append one ledger event to the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__edit_note(identifier="Capture Log", operation="append", content="...")`:
      {
        "ts": "<ISO timestamp of now>",
        "source": "granola",
@@ -157,7 +157,7 @@ The command installs the launchd job via `bash scripts/install-launchd-job.sh gr
 
 Prerequisites:
 - Granola MCP (`mcp__claude_ai_Granola__*`) must be connected and authenticated. Run `claude mcp list` to verify. If not present, install via the Granola plugin and re-authenticate.
-- `~/.thinkos/capture-log.jsonl` must exist (Phase B creates it; if missing, create an empty file: `touch ~/.thinkos/capture-log.jsonl`).
+- The vault note "Capture Log" at `90 System/Capture Log.md` must exist (Phase B creates it). If missing, create it via `mcp__basic-memory__write_note(path="90 System/Capture Log.md", content="# Capture Log\n")` before enabling this source.
 
 ## How to disable
 

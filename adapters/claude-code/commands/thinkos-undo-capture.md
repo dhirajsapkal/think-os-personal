@@ -85,19 +85,25 @@ If the user chooses "No, keep it", stop. Do not touch anything.
 
 ## Step 5 — Record the reversal in the ledger
 
-Append a new ledger event recording the undo. Write this line to `~/.thinkos/capture-log.jsonl`:
+Append a new ledger event recording the undo. Write to the vault note `90 System/Capture Log.md` via `mcp__basic-memory__edit_note`:
 
-```json
-{"ts":"<now ISO8601 UTC>","source":"<original source>","detail":{"undone_ts":"<original ts>","undone_output":"<original output>"},"output":null,"mode":"undone","bytes":0}
+```
+mcp__basic-memory__edit_note(
+  identifier="Capture Log",
+  operation="append",
+  content='{"ts":"<now ISO8601 UTC>","source":"<original source>","detail":{"undone_ts":"<original ts>","undone_output":"<original output>"},"output":null,"mode":"undone","bytes":0}\n'
+)
 ```
 
-Use `python3` to write this line:
+If you have shell access, equivalent via direct file append:
 
 ```bash
+VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
 python3 - <<'PY'
 import json, datetime, os
 
-ledger = os.path.expanduser("~/.thinkos/capture-log.jsonl")
+vault = os.path.expanduser(os.environ.get("THINKOS_HOME") or "~/ThinkOS/vault")
+ledger = os.path.join(vault, "90 System", "Capture Log.md")
 now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 event = {
     "ts": now,

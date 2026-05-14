@@ -120,7 +120,7 @@ File content:
 Step 5 — Write via mcp__basic-memory__write_note to 01 Now/Signals/calendar-<YYYY-MM-DD>.md.
 Use mode: overwrite (today's snapshot replaces any previous version from a retry).
 
-Step 6 — Append one ledger event to ~/.thinkos/capture-log.jsonl:
+Step 6 — Append one ledger event to the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__edit_note(identifier="Capture Log", operation="append", content="...")`:
   {
     "ts": "<ISO timestamp of now>",
     "source": "calendar",

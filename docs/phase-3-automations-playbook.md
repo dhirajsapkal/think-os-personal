@@ -290,6 +290,6 @@ Phase 3 automations handle scheduled maintenance. For ongoing passive logging of
 
 - **Session capture** (Layer A, live) — `/thinkos-autosave on` starts a launchd job that appends a one-line stub to Work Log every 2 hours. No LLM call.
 - **External ingestion** (Layer B, opt-in per source) — Granola, Slack, Gmail, Calendar, Linear, ClickUp. Configure via `/thinkos-capture-setup`.
-- **Audit ledger** (Layer C) — every capture is recorded in `~/.thinkos/capture-log.jsonl`. Review with `/thinkos-recent`; undo with `/thinkos-undo-capture`.
+- **Audit ledger** (Layer C) — every capture is recorded in the vault note "Capture Log" at `90 System/Capture Log.md`. Review with `/thinkos-recent`; undo with `/thinkos-undo-capture`.
 
 Design: `docs/continuous-capture/README.md`.

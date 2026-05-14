@@ -17,3 +17,12 @@ Audit HOT-tier files for line counts:
 Write a quarterly summary to 99 Archive/quarterly-summary-<YYYY>-Q<N>.md
 with: what was archived, what was flagged for pruning, what looks
 healthy. The user reviews and acts on the flags manually.
+
+Finally, append one ledger event to the vault note "Capture Log" (at
+"90 System/Capture Log.md") via:
+
+  mcp__basic-memory__edit_note(
+    identifier="Capture Log",
+    operation="append",
+    content="{\"ts\":\"<ISO8601 UTC>\",\"source\":\"maintenance\",\"detail\":{\"task\":\"quarterly-archive\",\"archived_count\":<N>,\"flagged_count\":<M>},\"output\":\"99 Archive/quarterly-summary-<YYYY>-Q<N>.md\",\"mode\":\"create\",\"bytes\":<summary byte length>}\n"
+  )

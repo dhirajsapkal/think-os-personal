@@ -9,7 +9,7 @@ permalink: think-os/continuous-capture/sources/README
 
 # Continuous capture — Sources
 
-External sources that Think OS can ingest on a schedule. Each source writes to a daily or per-event vault file and appends a ledger event to `~/.thinkos/capture-log.jsonl`.
+External sources that Think OS can ingest on a schedule. Each source writes to a daily or per-event vault file and appends a ledger event to the vault note "Capture Log" at `90 System/Capture Log.md`.
 
 ---
 
@@ -50,7 +50,7 @@ All sources share this baseline rule (from `templates/instructions/30-think-os-w
 Source-specific extensions to the keyword list are documented in each source file. The Slack source has the longest keyword list; the Calendar source has the shortest.
 
 **Ledger vs vault content boundary:**
-- The capture ledger (`~/.thinkos/capture-log.jsonl`) is a lightweight audit trail. It records identifiers (meeting id, thread id, task id), titles, and timestamps — never full content.
+- The capture ledger (vault note "Capture Log" at `90 System/Capture Log.md`) is a lightweight audit trail. It records identifiers (meeting id, thread id, task id), titles, and timestamps — never full content. The ledger lives as a markdown note in the vault so both shell-based writers (Claude Code launchd) and MCP-based writers (Cowork `/schedule`) can append to it.
 - The vault files contain full content. They are subject to vault privacy routing (personal hub vs project vault).
 - If you delete a vault file, the ledger entry remains. The ledger is append-only and not cleaned by the capture system.
 
@@ -77,7 +77,7 @@ Optional fields appended when relevant: `"redacted": true`, `"redacted_events": 
 
 ## Prerequisites before enabling any source
 
-1. Phase B's audit ledger must be initialized: `~/.thinkos/capture-log.jsonl` must exist (can be empty). Create it if missing: `touch ~/.thinkos/capture-log.jsonl`.
+1. Phase B's audit ledger must be initialized: the vault note "Capture Log" at `90 System/Capture Log.md` must exist. Create it if missing via `mcp__basic-memory__write_note(path="90 System/Capture Log.md", content="# Capture Log\n")`.
 2. The relevant MCP must be connected and authenticated. Check via `claude mcp list`.
 3. Basic Memory (`mcp__basic-memory__write_note`, `mcp__basic-memory__edit_note`) must be operational.
 

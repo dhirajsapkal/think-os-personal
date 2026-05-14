@@ -16,23 +16,25 @@ If the user passes a specific source name (e.g., `/thinkos-capture-setup granola
 Run these silently. Don't paste output to the user. Branch on results.
 
 ```bash
-# Check audit ledger exists
-test -f ~/.thinkos/capture-log.jsonl && echo "ledger_ok" || echo "ledger_missing"
+# Resolve the vault-backed ledger path and check it exists
+VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
+LEDGER="$VAULT/90 System/Capture Log.md"
+test -f "$LEDGER" && echo "ledger_ok" || echo "ledger_missing"
 
 # Check Basic Memory is operational
 # (attempt a read; if it fails, surface the error)
 ```
 
 If the ledger is missing:
-> The Phase B audit ledger (`~/.thinkos/capture-log.jsonl`) doesn't exist yet. This file is required before enabling any capture source — it's the deduplication cursor every trigger reads.
+> The Phase B audit ledger (`90 System/Capture Log.md` in your vault) doesn't exist yet. This file is required before enabling any capture source — it's the deduplication cursor every trigger reads.
 >
-> I can create it now (it starts empty). Want me to do that, or stop here?
+> I can create it now (it starts empty with a small markdown header). Want me to do that, or stop here?
 
 Use `AskUserQuestion` (load via `ToolSearch select:AskUserQuestion`):
 - chips: `["Create it now", "Stop — I'll set up Phase B first"]`
 
 If user picks Stop, exit and direct them to Phase B setup.
-If user picks Create: run `touch ~/.thinkos/capture-log.jsonl` via Bash.
+If user picks Create: call `mcp__basic-memory__write_note` with `title: "Capture Log"`, `directory: "90 System"`, and a short body explaining "append-only audit ledger; do not edit by hand" followed by an empty events section. The path resolves to `90 System/Capture Log.md` in the active vault.
 
 Show a single framing message to the user (no chip, just text):
 
@@ -254,7 +256,7 @@ Run `launchctl list | grep thinkos` to confirm which jobs are loaded. Show the u
 > To view installed jobs: `/thinkos-automate list`
 > To disable a source: `/thinkos-automate remove <source>`
 >
-> Your vault will start receiving external signals as jobs fire. Check `01 Now/Signals/` in your vault, or read `~/.thinkos/capture-log.jsonl` to verify captures are landing.
+> Your vault will start receiving external signals as jobs fire. Check `01 Now/Signals/` in your vault, or read `90 System/Capture Log.md` to verify captures are landing.
 
 ---
 

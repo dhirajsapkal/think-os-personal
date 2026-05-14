@@ -2,6 +2,24 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.4.2] — 2026-05-14 — Ledger moves into the vault; Cowork can now drive autonomous capture
+
+### Changed
+
+- **Capture ledger relocated** from `~/.thinkos/capture-log.jsonl` to the vault note `90 System/Capture Log.md`. The new file is a markdown note with a short header and JSONL events on subsequent lines (parsers skip lines that don't start with `{`). Existing events migrated automatically by the install path; the old file is renamed to `capture-log.jsonl.migrated` as a safety net.
+- **Why**: Cowork agents can write to the vault via `mcp__basic-memory__edit_note` but cannot reach `~/.thinkos/` without filesystem MCP (which is org-blocked for many enterprise Cowork users). Moving the ledger to a vault note gives both surfaces — Claude Code (shell `>>`) and Cowork (`edit_note` append) — first-class write access to the same file.
+- **Phase A session capture, Phase B reader (`thinkos-recent.sh`), Phase B doctor checks, and Phase C source playbooks (granola, calendar, gmail, clickup, slack)** updated to read/write the new path. Phase 3 maintenance prompts (weekly-review, quarterly-archive, morning-brief) gained explicit ledger-append steps so events also surface from Cowork-scheduled fires.
+
+### Added
+
+- **Cowork can now drive autonomous capture** via Cowork's native `/schedule` primitive. New section in `adapters/claude-cowork/README.md` documents the workflow: paste any `scripts/cron-prompts/<name>.txt` into a Cowork task, type `/schedule`, pick the cadence. The ledger lives in the vault so both Cowork-scheduled and Claude Code launchd fires merge cleanly in `/thinkos-recent`.
+- **Sidecar pattern clarified** — Cowork's `/schedule` requires Claude Desktop to be open. Claude Code's launchd jobs fire whenever the Mac is awake regardless of app state. Users who close Claude Desktop overnight should keep Claude Code as the autonomy driver; users who live in Claude Desktop can choose either.
+
+### Known limits
+
+- **Rotation strategy is TBD.** With the ledger living as a Basic Memory note, the existing `thinkos-capture-rotate.sh` (which gzip-rotated the old JSONL file) is stale. Until rotation is reworked, the ledger note grows append-only — same size budget as any other Basic Memory note.
+- **Stale `thinkos-capture-rotate.sh`** kept in the repo for the moment; will be reworked or removed in a follow-up.
+
 ## [v0.4.1] — 2026-05-14 — Claude Cowork support (Option A)
 
 ### Added

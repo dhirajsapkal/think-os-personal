@@ -5,7 +5,7 @@ permalink: think-os/docs/continuous-capture/capture-log-schema
 
 # Capture Log Schema
 
-Canonical contract for `~/.thinkos/capture-log.jsonl`. Every script that writes to or reads from this file (Phase A session-capture, Phase C external-ingest playbooks, `thinkos-recent.sh`, `thinkos-doctor.sh`) must conform to this schema.
+Canonical contract for the vault note "Capture Log" at `90 System/Capture Log.md`. Every writer and reader (Phase A session-capture, Phase C external-ingest playbooks, `thinkos-recent.sh`, `thinkos-doctor.sh`) must conform to this schema. The ledger lives as a markdown note in the vault so both shell-based writers (Claude Code launchd) and MCP-based writers (Cowork `/schedule`) can append to it. Lines starting with `{` are parseable as JSON.
 
 ---
 
@@ -297,8 +297,4 @@ Readers and writers must enforce:
 
 ## Rotation
 
-When the ledger exceeds 10 MB, `thinkos-capture-rotate.sh` gzip-rotates it to `capture-log-YYYY-MM-DD.jsonl.gz` in the same directory. The active file is truncated in-place (not deleted) to preserve open file descriptors. Rotated archives follow the same schema and can be inspected with:
-
-```bash
-zcat ~/.thinkos/capture-log-2026-05-14.jsonl.gz | python3 -m json.tool --no-indent | head -20
-```
+Rotation: TBD. With the ledger now living in the vault as a markdown note (`90 System/Capture Log.md`), rotation will eventually split the note by quarter (e.g., `90 System/Capture Log 2026-Q2.md`). For now the single note grows append-only; size budget is the same as any other Basic Memory note. `thinkos-capture-rotate.sh` is a no-op until a quarterly-split strategy is implemented.

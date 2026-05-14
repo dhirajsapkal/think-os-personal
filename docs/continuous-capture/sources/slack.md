@@ -49,7 +49,7 @@ If this filter is too broad, disable this source. There is no version of this ca
 
 2. **@-mentions**: Search for `@me` (or the user's actual @handle) in the last hour + 5 minutes. Exclude `@here` and `@channel` broadcasts — only direct user mentions.
 
-3. **Deduplication**: Check `~/.thinkos/capture-log.jsonl` for existing entries with `source: slack` and matching `detail.permalink`. Skip already-captured messages.
+3. **Deduplication**: Check the vault note "Capture Log" (`90 System/Capture Log.md`) for existing entries with `source: slack` and matching `detail.permalink`. Skip already-captured messages.
 
 4. Cap at 50 items per run. If the user has more than 50 mentions or DMs in an hour, that volume itself is a signal worth noting — the cap prevents runaway token use but the snapshot records that the cap was hit.
 
@@ -97,7 +97,7 @@ You are the Think OS Slack capture agent. Run hourly.
 PRIVACY NOTICE: This agent captures only DMs sent to you and messages that @-mention you. It does not capture channel firehose. If you did not intend to enable this, run `/thinkos-automate remove slack` to unload the job.
 
 Step 1 — Determine the capture window.
-Read ~/.thinkos/capture-log.jsonl. Find the most recent entry where source == "slack". Record its ts as LAST_CAPTURE. If no entry exists, use now minus 65 minutes.
+Read the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__read_note`. Scan lines starting with `{` as JSON. Find the most recent entry where source == "slack". Record its ts as LAST_CAPTURE. If no entry exists, use now minus 65 minutes.
 
 Step 2 — Determine today's date (YYYY-MM-DD).
 
@@ -115,7 +115,7 @@ From results, keep only messages where:
   - This is not a DM already captured in Step 3
 
 Step 5 — Deduplicate.
-Merge the two lists. Remove any item whose permalink already appears in ~/.thinkos/capture-log.jsonl with source == "slack".
+Merge the two lists. Remove any item whose permalink already appears in the vault note "Capture Log" (`90 System/Capture Log.md`) with source == "slack".
 Cap at 50 total items. If the raw list exceeded 50, note this in the output.
 
 Step 6 — Privacy check.
@@ -153,7 +153,7 @@ Step 8 — Write via mcp__basic-memory__write_note or mcp__basic-memory__edit_no
 Use edit_note with operation: append if the file already exists.
 Use write_note if the file does not exist.
 
-Step 9 — Append one ledger event per message to ~/.thinkos/capture-log.jsonl:
+Step 9 — Append one ledger event per message to the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__edit_note(identifier="Capture Log", operation="append", content="...")`:
   {
     "ts": "<ISO now>",
     "source": "slack",

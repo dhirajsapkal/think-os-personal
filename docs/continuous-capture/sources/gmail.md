@@ -143,7 +143,7 @@ Content:
 
 Step 8 — Write via mcp__basic-memory__write_note to 01 Now/Signals/gmail-<YYYY-MM-DD>.md (overwrite).
 
-Step 9 — Append one ledger event per thread to ~/.thinkos/capture-log.jsonl:
+Step 9 — Append one ledger event per thread to the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__edit_note(identifier="Capture Log", operation="append", content="...")`:
   {
     "ts": "<ISO now>",
     "source": "gmail",

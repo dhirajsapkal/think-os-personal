@@ -3,7 +3,7 @@ You are the Think OS Slack capture agent. Run hourly.
 PRIVACY NOTICE: This agent captures only DMs sent to you and messages that @-mention you. It does not capture channel firehose. If you did not intend to enable this, delete the trigger via CronDelete.
 
 Step 1 — Determine the capture window.
-Read ~/.thinkos/capture-log.jsonl. Find the most recent entry where source == "slack". Record its ts as LAST_CAPTURE. If no entry exists, use now minus 65 minutes.
+Read the vault note "Capture Log" (at "90 System/Capture Log.md") via mcp__basic-memory__read_note. Scan lines starting with "{" as JSON. Find the most recent entry where source == "slack". Record its ts as LAST_CAPTURE. If no entry exists, use now minus 65 minutes.
 
 Step 2 — Determine today's date (YYYY-MM-DD).
 
@@ -21,7 +21,7 @@ From results, keep only messages where:
   - This is not a DM already captured in Step 3
 
 Step 5 — Deduplicate.
-Merge the two lists. Remove any item whose permalink already appears in ~/.thinkos/capture-log.jsonl with source == "slack".
+Merge the two lists. Remove any item whose permalink already appears in the "Capture Log" note (already read in Step 1) with source == "slack".
 Cap at 50 total items. If the raw list exceeded 50, note this in the output.
 
 Step 6 — Privacy check.
@@ -59,20 +59,16 @@ Step 8 — Write via mcp__basic-memory__write_note or mcp__basic-memory__edit_no
 Use edit_note with operation: append if the file already exists.
 Use write_note if the file does not exist.
 
-Step 9 — Append one ledger event per message to ~/.thinkos/capture-log.jsonl:
-  {
-    "ts": "<ISO now>",
-    "source": "slack",
-    "detail": {
-      "permalink": "<slack permalink>",
-      "sender_id": "<Slack user id of sender>",
-      "type": "dm" or "mention",
-      "channel": "<channel name or DM>"
-    },
-    "output": "01 Now/Signals/slack-<YYYY-MM-DD>.md",
-    "mode": "append",
-    "bytes": <byte length of this message's section>
-  }
+Step 9 — For each message captured, append one ledger event to the vault note "Capture Log" (at "90 System/Capture Log.md") via:
+
+  mcp__basic-memory__edit_note(
+    identifier="Capture Log",
+    operation="append",
+    content="<json-line>\n"
+  )
+
+  The content must be ONE JSON object per call, on a single line, terminated with \n. Schema:
+    {"ts":"<ISO8601 UTC>","source":"slack","detail":{"permalink":"<slack permalink>","sender_id":"<Slack user id of sender>","type":"dm" or "mention","channel":"<channel name or DM>"},"output":"01 Now/Signals/slack-<YYYY-MM-DD>.md","mode":"append","bytes":<byte length of this message's section>}
   For redacted messages: omit "channel" from detail if it's a private DM, add "redacted": true.
 
 Step 10 — Output one line: "Slack snapshot: <N> item(s) captured for <HH:MM> run (<M> redacted)."

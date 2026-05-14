@@ -69,7 +69,9 @@ cat ~/.thinkos/last-session-capture 2>/dev/null || echo "(never run)"
 And the last few entries in the capture log:
 
 ```bash
-tail -5 ~/.thinkos/capture-log.jsonl 2>/dev/null || echo "(no capture log)"
+VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
+grep -c '^{' "$VAULT/90 System/Capture Log.md" 2>/dev/null || echo "0"
+tail -5 "$VAULT/90 System/Capture Log.md" 2>/dev/null | grep '^{' || echo "(no capture log)"
 ```
 
 Format the output for the user like:

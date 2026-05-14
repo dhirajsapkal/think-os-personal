@@ -88,7 +88,7 @@ Using the Atlassian MCP (Jira/Linear sync path):
 
 Step 4 — Filter for actual status changes.
 For each returned ticket:
-  a. Read ~/.thinkos/capture-log.jsonl for the most recent entry where source == "linear" and detail contains this issue_id. Extract the previous status value if present.
+  a. Read the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__read_note`. Scan lines starting with `{` as JSON. Find the most recent entry where source == "linear" and detail contains this issue_id. Extract the previous status value if present.
   b. If the current status differs from the previous status (or no previous entry exists), include this ticket.
   c. If status is identical to the last captured state, skip it.
 
@@ -126,7 +126,7 @@ Content:
 
 Step 7 — Write via mcp__basic-memory__write_note to 01 Now/Signals/linear-<YYYY-MM-DD>.md (overwrite mode).
 
-Step 8 — Append one ledger event per captured ticket to ~/.thinkos/capture-log.jsonl:
+Step 8 — Append one ledger event per captured ticket to the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__edit_note(identifier="Capture Log", operation="append", content="...")`:
   {
     "ts": "<ISO now>",
     "source": "linear",

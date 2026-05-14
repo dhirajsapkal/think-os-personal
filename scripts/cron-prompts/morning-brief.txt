@@ -19,3 +19,12 @@ mcp__basic-memory__write_note.
 
 Keep it under 30 lines. Lead with the answer to "what should I
 start on?" — no preamble.
+
+Finally, append one ledger event to the vault note "Capture Log" (at
+"90 System/Capture Log.md") via:
+
+  mcp__basic-memory__edit_note(
+    identifier="Capture Log",
+    operation="append",
+    content="{\"ts\":\"<ISO8601 UTC>\",\"source\":\"maintenance\",\"detail\":{\"task\":\"morning-brief\"},\"output\":\"01 Now/briefs/<YYYY-MM-DD>-brief.md\",\"mode\":\"create\",\"bytes\":<brief byte length>}\n"
+  )

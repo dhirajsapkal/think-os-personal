@@ -58,21 +58,16 @@ Content:
 
 Step 8 — Write via mcp__basic-memory__write_note to 01 Now/Signals/gmail-<YYYY-MM-DD>.md (overwrite).
 
-Step 9 — Append one ledger event per thread to ~/.thinkos/capture-log.jsonl:
-  {
-    "ts": "<ISO now>",
-    "source": "gmail",
-    "detail": {
-      "thread_id": "<thread id>",
-      "subject": "<subject>",
-      "sender": "<sender email>",
-      "starred": <true|false>,
-      "message_count": <N>
-    },
-    "output": "01 Now/Signals/gmail-<YYYY-MM-DD>.md",
-    "mode": "append",
-    "bytes": <byte length of this thread's section>
-  }
+Step 9 — For each thread captured, append one ledger event to the vault note "Capture Log" (at "90 System/Capture Log.md") via:
+
+  mcp__basic-memory__edit_note(
+    identifier="Capture Log",
+    operation="append",
+    content="<json-line>\n"
+  )
+
+  The content must be ONE JSON object per call, on a single line, terminated with \n. Schema:
+    {"ts":"<ISO8601 UTC>","source":"gmail","detail":{"thread_id":"<thread id>","subject":"<subject>","sender":"<sender email>","starred":<true|false>,"message_count":<N>},"output":"01 Now/Signals/gmail-<YYYY-MM-DD>.md","mode":"append","bytes":<byte length of this thread's section>}
   For redacted threads: omit "subject" and "sender" from detail, add "redacted": true.
 
 Step 10 — Output one line: "Gmail snapshot written: <N> thread(s) for <YYYY-MM-DD> (<M> redacted)."

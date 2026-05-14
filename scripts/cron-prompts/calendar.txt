@@ -50,19 +50,16 @@ File content:
 Step 5 — Write via mcp__basic-memory__write_note to 01 Now/Signals/calendar-<YYYY-MM-DD>.md.
 Use mode: overwrite (today's snapshot replaces any previous version from a retry).
 
-Step 6 — Append one ledger event to ~/.thinkos/capture-log.jsonl:
-  {
-    "ts": "<ISO timestamp of now>",
-    "source": "calendar",
-    "detail": {
-      "date": "<YYYY-MM-DD>",
-      "event_count": <N>,
-      "redacted_events": <M>
-    },
-    "output": "01 Now/Signals/calendar-<YYYY-MM-DD>.md",
-    "mode": "overwrite",
-    "bytes": <byte length of written content>
-  }
+Step 6 — Append one ledger event to the vault note "Capture Log" (at "90 System/Capture Log.md") via:
+
+  mcp__basic-memory__edit_note(
+    identifier="Capture Log",
+    operation="append",
+    content="<json-line>\n"
+  )
+
+  The content must be ONE JSON object per call, on a single line, terminated with \n. Schema:
+    {"ts":"<ISO8601 UTC>","source":"calendar","detail":{"date":"<YYYY-MM-DD>","event_count":<N>,"redacted_events":<M>},"output":"01 Now/Signals/calendar-<YYYY-MM-DD>.md","mode":"overwrite","bytes":<byte length of written content>}
 
 Step 7 — Output one line: "Calendar snapshot written: <N> events for <YYYY-MM-DD> (<M> redacted)."
 Do not output anything else.

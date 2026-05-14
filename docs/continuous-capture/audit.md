@@ -11,7 +11,7 @@ Think OS captures context automatically: session summaries every two hours, and 
 
 ## What the ledger records
 
-Every capture writes one JSON line to `~/.thinkos/capture-log.jsonl`. The ledger records **metadata only**:
+Every capture appends one JSON line to the vault note "Capture Log" (at `90 System/Capture Log.md`) via `mcp__basic-memory__edit_note(identifier="Capture Log", operation="append", content="...")`. The ledger records **metadata only**:
 
 - When the capture happened (`ts`)
 - Which integration produced it (`source`)
@@ -88,22 +88,9 @@ If the destination file was edited manually after the capture, the undo will ref
 
 ## Rotation
 
-When `capture-log.jsonl` exceeds 10 MB, it is gzip-rotated:
+Rotation: TBD. With the ledger now living in the vault as a markdown note (`90 System/Capture Log.md`), rotation will eventually split the note by quarter (e.g., `90 System/Capture Log 2026-Q2.md`). For now the single note grows append-only; size budget is the same as any other Basic Memory note.
 
-```
-~/.thinkos/capture-log.jsonl          ← current (active)
-~/.thinkos/capture-log-2026-05-14.jsonl.gz  ← rotated archive
-```
-
-Rotation is triggered by `scripts/thinkos-capture-rotate.sh`, which is called automatically before each capture. It is idempotent — if the file is under the threshold, it exits immediately without touching anything.
-
-To manually check or trigger rotation:
-```bash
-bash scripts/thinkos-capture-rotate.sh --dry-run
-bash scripts/thinkos-capture-rotate.sh
-```
-
-Rotated archives are kept indefinitely unless you delete them. They are not indexed by Basic Memory.
+`scripts/thinkos-capture-rotate.sh` and `thinkos-doctor.sh`'s `capture:ledger` check are aware of this change. Rotation is a no-op until a quarterly-split strategy is implemented.
 
 ---
 

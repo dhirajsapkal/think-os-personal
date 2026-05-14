@@ -162,7 +162,7 @@ Once setup is done, Think OS captures what you work on without you remembering t
 
 - **Session capture** — every 2 hours during work hours, a launchd job scans recent Claude Code sessions and appends a one-line entry to your Work Log (cwd, file count, commit). No LLM call. No file contents leave your machine. Toggle with `/thinkos-autosave`.
 - **External ingestion (opt-in per source)** — local launchd jobs pull from Granola meetings, Slack DMs + @-mentions, starred Gmail threads, Calendar, Linear, ClickUp. Jobs run when your Mac is awake. Configure via `/thinkos-capture-setup` — safest source (Granola) offered first, most sensitive (Slack DMs) last. Privacy-routed by keyword (anything matching `comp`, `salary`, `HR`, `health`, `family`, `performance`, `1:1` lands in your personal hub only).
-- **Audit & undo** — every capture writes one line to `~/.thinkos/capture-log.jsonl`. `/thinkos-recent` shows what landed; `/thinkos-undo-capture` removes any entry that shouldn't have been kept.
+- **Audit & undo** — every capture writes one line to the vault note `90 System/Capture Log.md`. `/thinkos-recent` shows what landed; `/thinkos-undo-capture` removes any entry that shouldn't have been kept.
 
 Full design: [`docs/continuous-capture/README.md`](docs/continuous-capture/README.md).
 

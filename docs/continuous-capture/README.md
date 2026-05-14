@@ -36,7 +36,7 @@ Continuous capture has three layers. Each layer builds on the previous one.
 
 ### Layer 2 — Audit ledger (Phase B)
 
-**What**: Every capture event across all three layers writes a structured JSON line to `~/.thinkos/capture-log.jsonl`. The ledger is the trust layer — it answers "what did Think OS write, when, from what source, and where."
+**What**: Every capture event across all three layers writes a structured JSON line to the vault note "Capture Log" (at `90 System/Capture Log.md`) via `mcp__basic-memory__edit_note`. The ledger is the trust layer — it answers "what did Think OS write, when, from what source, and where."
 
 **Format (one line per event)**:
 ```json
@@ -78,7 +78,7 @@ Continuous capture has three layers. Each layer builds on the previous one.
 
 Run `/thinkos-capture-setup` from Claude Code. The command:
 
-1. Checks that the audit ledger (`~/.thinkos/capture-log.jsonl`) exists.
+1. Checks that the audit ledger (vault note "Capture Log" at `90 System/Capture Log.md`) exists.
 2. Checks that Basic Memory is operational.
 3. Offers each source in the safe→sensitive order above (Granola first, Slack last).
 4. For each source: shows the filter, asks "Enable?" (chip picker: Enable / Skip / Show me the filter rules first).
@@ -91,7 +91,7 @@ See `adapters/claude-code/commands/thinkos-capture-setup.md` for the full comman
 
 ## How to audit captures
 
-- **View recent captures**: read `~/.thinkos/capture-log.jsonl` — one JSON event per line, newest at the bottom.
+- **View recent captures**: read the vault note "Capture Log" (at `90 System/Capture Log.md`) via `mcp__basic-memory__read_note`. Scan lines starting with `{` as JSON — one event per line, newest at the bottom.
 - **View a day's Signals**: read `01 Now/Signals/<source>-<date>.md` via Basic Memory.
 - **List installed capture jobs**: run `/thinkos-automate list` (shows all launchd jobs including capture ones).
 - **Disable a source**: run `/thinkos-automate remove <source>`.

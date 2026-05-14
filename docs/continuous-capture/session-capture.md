@@ -39,7 +39,7 @@ Entries are appended to `01 Now/Work Log.md` in your vault under a date header:
 - Active in `/Users/you/dev/my-other-project` (no file edits recorded)
 ```
 
-A secondary ledger at `~/.thinkos/capture-log.jsonl` records one JSON entry per cwd per run, in the format:
+A secondary ledger — the vault note "Capture Log" at `90 System/Capture Log.md` — records one JSON entry per cwd per run, in the format:
 
 ```json
 {"ts":"2026-05-14T14:30:00Z","source":"session","detail":{"cwd":"/path","files_touched":6,"commit":"abc1234","session_count":2},"output":"01 Now/Work Log.md","mode":"append","bytes":234}

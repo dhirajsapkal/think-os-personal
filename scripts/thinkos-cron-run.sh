@@ -37,12 +37,15 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-LEDGER="$HOME/.thinkos/capture-log.jsonl"
 LOG_DIR="$HOME/Library/Logs/ThinkOS"
-mkdir -p "$LOG_DIR" "$(dirname "$LEDGER")"
+mkdir -p "$LOG_DIR"
 
 # Resolve vault path. Personal hub by default.
 VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
+# Ledger lives in the vault so both shell (launchd) and basic-memory MCP
+# (Cowork scheduled tasks) can append to it.
+LEDGER="$VAULT/90 System/Capture Log.md"
+mkdir -p "$(dirname "$LEDGER")"
 
 iso_now() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
 

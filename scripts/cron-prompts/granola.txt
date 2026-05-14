@@ -1,13 +1,13 @@
 You are the Think OS Granola capture agent. Run on this prompt hourly.
 
 Step 1 — Load last-capture cursor.
-Read ~/.thinkos/capture-log.jsonl. Find the most recent entry where source == "granola". Record its ts value as LAST_CAPTURE. If no such entry exists, use a timestamp 25 hours ago.
+Read the vault note "Capture Log" (at "90 System/Capture Log.md") via mcp__basic-memory__read_note. Scan each line that starts with "{" as JSON. Find the most recent entry where source == "granola". Record its ts value as LAST_CAPTURE. If no such entry exists, use a timestamp 25 hours ago.
 
 Step 2 — List recent meetings.
 Call mcp__claude_ai_Granola__list_meetings with no filter. From the result, select meetings where start_time is after (LAST_CAPTURE minus 1 hour) to catch any late-processing transcripts. If the result is paginated, fetch all pages.
 
 Step 3 — Deduplicate.
-For each candidate meeting, check ~/.thinkos/capture-log.jsonl for an existing entry with source == "granola" and detail.meeting_id == this meeting's id. Skip any that already have a ledger entry.
+For each candidate meeting, check the "Capture Log" note (already read in Step 1) for an existing entry with source == "granola" and detail.meeting_id == this meeting's id. Skip any that already have a ledger entry.
 
 Step 4 — Fetch and write each new meeting.
 For each meeting that passes dedup:
@@ -49,19 +49,17 @@ For each meeting that passes dedup:
 
   e. Write via mcp__basic-memory__write_note to the computed path. If the path already exists, append -2 to the slug and retry once.
 
-  f. Append one ledger event to ~/.thinkos/capture-log.jsonl (newline-delimited, append only):
-     {
-       "ts": "<ISO timestamp of now>",
-       "source": "granola",
-       "detail": {
-         "meeting_id": "<id>",
-         "title": "<title>"
-       },
-       "output": "<vault path written>",
-       "mode": "create",
-       "bytes": <byte length of written content>,
-       "redacted": <true if PERSONAL, omit if false>
-     }
+  f. Append one ledger event to the vault note "Capture Log" (at "90 System/Capture Log.md") via:
+
+       mcp__basic-memory__edit_note(
+         identifier="Capture Log",
+         operation="append",
+         content="<json-line>\n"
+       )
+
+     The content must be ONE JSON object per call, on a single line, terminated with \n. Schema:
+       {"ts":"<ISO8601 UTC>","source":"granola","detail":{"meeting_id":"<id>","title":"<title>"},"output":"<vault path written>","mode":"create","bytes":<byte length of written content>}
+     Add "redacted": true to detail when PERSONAL == true.
 
 Step 5 — If zero new meetings were found and written, exit silently (no output).
 If one or more were written, output a single line: "Captured N Granola meeting(s): <titles joined by comma>."

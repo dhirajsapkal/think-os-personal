@@ -418,7 +418,7 @@ fi
 # ---------------------------------------------------------------------------
 # Capture ledger checks
 # ---------------------------------------------------------------------------
-CAPTURE_LEDGER="$HOME/.thinkos/capture-log.jsonl"
+CAPTURE_LEDGER="$OS_HOME/90 System/Capture Log.md"
 
 if [[ ! -f "$CAPTURE_LEDGER" ]]; then
   add_check "capture:ledger" ok "no ledger yet — will be created on first capture"
@@ -430,7 +430,7 @@ bad = 0
 with open(sys.argv[1]) as fh:
     for line in fh:
         line = line.strip()
-        if not line:
+        if not line or not line.startswith("{"):
             continue
         try:
             json.loads(line)
@@ -444,10 +444,10 @@ PY
   elif [[ "$CORRUPT_LINES" == "0" ]]; then
     LINE_COUNT="$(python3 -c "
 import sys
-n = sum(1 for l in open(sys.argv[1]) if l.strip())
+n = sum(1 for l in open(sys.argv[1]) if l.strip().startswith('{'))
 print(n)
 " "$CAPTURE_LEDGER" 2>/dev/null || echo "?")"
-    add_check "capture:ledger" ok "$LINE_COUNT line(s), all valid JSONL"
+    add_check "capture:ledger" ok "$LINE_COUNT event(s), all valid JSONL (vault-backed)"
   else
     add_check "capture:ledger" warn "$CORRUPT_LINES corrupt line(s) in $CAPTURE_LEDGER; run thinkos-recent.sh to see details"
   fi
@@ -461,7 +461,7 @@ newest_ts = None
 with open(ledger) as fh:
     for line in fh:
         line = line.strip()
-        if not line:
+        if not line or not line.startswith("{"):
             continue
         try:
             evt = json.loads(line)
@@ -510,7 +510,7 @@ count = 0
 with open(ledger) as fh:
     for line in fh:
         line = line.strip()
-        if not line:
+        if not line or not line.startswith("{"):
             continue
         try:
             evt = json.loads(line)
@@ -541,7 +541,7 @@ count = 0
 with open(ledger) as fh:
     for line in fh:
         line = line.strip()
-        if not line:
+        if not line or not line.startswith("{"):
             continue
         try:
             evt = json.loads(line)

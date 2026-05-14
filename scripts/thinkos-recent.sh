@@ -2,7 +2,7 @@
 # =============================================================================
 # scripts/thinkos-recent.sh — Show recent capture-log events
 # =============================================================================
-# Reads ~/.thinkos/capture-log.jsonl and summarises events in the last N hours.
+# Reads the vault note "90 System/Capture Log.md" and summarises events in the last N hours.
 # No vault reads — this layer is purely the ledger (metadata, not content).
 #
 # Usage:
@@ -17,7 +17,8 @@
 # =============================================================================
 set -uo pipefail
 
-LEDGER="$HOME/.thinkos/capture-log.jsonl"
+VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
+LEDGER="$VAULT/90 System/Capture Log.md"
 HOURS=24
 SOURCE_FILTER=""
 JSON=0
@@ -126,6 +127,11 @@ with open(ledger_path) as fh:
     for lineno, raw in enumerate(fh, 1):
         raw = raw.strip()
         if not raw:
+            continue
+        # The ledger lives inside a markdown note; only lines that look like
+        # JSON objects are events. Everything else (frontmatter, prose,
+        # the "---" separator) is the human-readable header and is ignored.
+        if not raw.startswith("{"):
             continue
         try:
             evt = json.loads(raw)

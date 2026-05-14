@@ -23,7 +23,7 @@ What does NOT count: tasks assigned to others even if you're a watcher, tasks th
 
 1. Tasks where the current user is an assignee (`mcp__claude_ai_ClickUp__clickup_get_workspace_members` to resolve user ID, then `mcp__claude_ai_ClickUp__clickup_filter_tasks` with `assignees` filter).
 2. `date_updated` within the past 25 hours (one-hour overlap).
-3. A status change must have occurred — compare current status against the last-captured status from `~/.thinkos/capture-log.jsonl`. Tasks not previously seen are always included (new assignment counts as a status change from "none").
+3. A status change must have occurred — compare current status against the last-captured status from the vault note "Capture Log" (`90 System/Capture Log.md`). Tasks not previously seen are always included (new assignment counts as a status change from "none").
 4. Skip tasks in `closed` status where `date_done` is more than 7 days ago — captured on the day they closed; no need to re-surface.
 
 The `mcp__clickup__get_tasks` tool (the MCP server-side ClickUp integration) and `mcp__claude_ai_ClickUp__clickup_filter_tasks` (the claude.ai plugin) are both available. The trigger uses `mcp__claude_ai_ClickUp__clickup_filter_tasks` as the primary path because it supports the `date_updated_gt` filter parameter. The `mcp__clickup__*` tools are used for fallback reads (`mcp__clickup__get_task`) if specific task details are needed.
@@ -85,7 +85,7 @@ If the result has 100 items (the max page size), fetch page 1 as well. Stop at p
 
 Step 4 — Filter for actual status changes.
 For each task:
-  a. Check ~/.thinkos/capture-log.jsonl for the most recent entry with source == "clickup" and detail.task_id == this task's id. Extract previous_status.
+  a. Read the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__read_note`. Scan lines starting with `{` as JSON. Find the most recent entry with source == "clickup" and detail.task_id == this task's id. Extract previous_status.
   b. If current status != previous_status (or no prior entry), include this task.
   c. Otherwise skip.
 
@@ -127,7 +127,7 @@ Content:
 
 Step 8 — Write via mcp__basic-memory__write_note to 01 Now/Signals/clickup-<YYYY-MM-DD>.md (overwrite).
 
-Step 9 — Append one ledger event per captured task to ~/.thinkos/capture-log.jsonl:
+Step 9 — Append one ledger event per captured task to the vault note "Capture Log" (at "90 System/Capture Log.md") via `mcp__basic-memory__edit_note(identifier="Capture Log", operation="append", content="...")`:
   {
     "ts": "<ISO now>",
     "source": "clickup",

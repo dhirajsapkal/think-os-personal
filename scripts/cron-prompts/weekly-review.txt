@@ -16,3 +16,12 @@ approves on Monday.
 
 Append a brief one-paragraph summary of this session to
 01 Now/Work Log.md noting the review ran.
+
+Finally, append one ledger event to the vault note "Capture Log" (at
+"90 System/Capture Log.md") via:
+
+  mcp__basic-memory__edit_note(
+    identifier="Capture Log",
+    operation="append",
+    content="{\"ts\":\"<ISO8601 UTC>\",\"source\":\"maintenance\",\"detail\":{\"task\":\"weekly-review\"},\"output\":\"01 Now/Current Focus.md.draft\",\"mode\":\"create\",\"bytes\":<draft byte length>}\n"
+  )

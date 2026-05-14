@@ -8,7 +8,9 @@ set -uo pipefail
 VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
 THINKOS_DIR="$HOME/.thinkos"
 MARKER_FILE="$THINKOS_DIR/last-session-capture"
-CAPTURE_LOG="$THINKOS_DIR/capture-log.jsonl"
+# Ledger lives in the vault so both shell (this script) and basic-memory MCP
+# (Cowork scheduled tasks) can append to it.
+CAPTURE_LOG="$VAULT/90 System/Capture Log.md"
 CLAUDE_PROJECTS_DIR="$HOME/.claude/projects"
 LOOKBACK_SECONDS=7200  # 2 hours default
 DRY_RUN=0

@@ -20,7 +20,7 @@ If the result has 100 items (the max page size), fetch page 1 as well. Stop at p
 
 Step 4 — Filter for actual status changes.
 For each task:
-  a. Check ~/.thinkos/capture-log.jsonl for the most recent entry with source == "clickup" and detail.task_id == this task's id. Extract previous_status.
+  a. Read the vault note "Capture Log" (at "90 System/Capture Log.md") via mcp__basic-memory__read_note. Scan lines starting with "{" as JSON. Find the most recent entry with source == "clickup" and detail.task_id == this task's id. Extract previous_status.
   b. If current status != previous_status (or no prior entry), include this task.
   c. Otherwise skip.
 
@@ -62,21 +62,16 @@ Content:
 
 Step 8 — Write via mcp__basic-memory__write_note to 01 Now/Signals/clickup-<YYYY-MM-DD>.md (overwrite).
 
-Step 9 — Append one ledger event per captured task to ~/.thinkos/capture-log.jsonl:
-  {
-    "ts": "<ISO now>",
-    "source": "clickup",
-    "detail": {
-      "task_id": "<id>",
-      "title": "<name>",
-      "status": "<current status>",
-      "previous_status": "<prior status or null>",
-      "list": "<list name>"
-    },
-    "output": "01 Now/Signals/clickup-<YYYY-MM-DD>.md",
-    "mode": "append",
-    "bytes": <byte length of this task's section>
-  }
+Step 9 — For each captured task, append one ledger event to the vault note "Capture Log" (at "90 System/Capture Log.md") via:
+
+  mcp__basic-memory__edit_note(
+    identifier="Capture Log",
+    operation="append",
+    content="<json-line>\n"
+  )
+
+  The content must be ONE JSON object per call, on a single line, terminated with \n. Schema:
+    {"ts":"<ISO8601 UTC>","source":"clickup","detail":{"task_id":"<id>","title":"<name>","status":"<current status>","previous_status":"<prior status or null>","list":"<list name>"},"output":"01 Now/Signals/clickup-<YYYY-MM-DD>.md","mode":"append","bytes":<byte length of this task's section>}
   For redacted tasks, omit "title" from detail and add "redacted": true.
 
 Step 10 — Output one line: "ClickUp snapshot written: <N> task(s) with status changes for <YYYY-MM-DD>."
