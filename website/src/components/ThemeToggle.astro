@@ -1,0 +1,31 @@
+---
+// Theme toggle — minimal text label, no icons.
+---
+<button
+  id="theme-toggle"
+  type="button"
+  aria-label="Toggle theme"
+  class="font-mono text-[11px] tracking-[0.18em] uppercase text-muted link-anim"
+>
+  <span data-theme-label></span>
+</button>
+
+<script is:inline>
+  (function () {
+    const btn = document.getElementById('theme-toggle');
+    const labelEl = btn.querySelector('[data-theme-label]');
+    const html = document.documentElement;
+    const setLabel = () => {
+      const t = html.getAttribute('data-theme') || 'light';
+      labelEl.textContent = t === 'dark' ? 'Light' : 'Dark';
+    };
+    setLabel();
+    btn.addEventListener('click', () => {
+      const current = html.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('thinkos-theme', next);
+      setLabel();
+    });
+  })();
+</script>

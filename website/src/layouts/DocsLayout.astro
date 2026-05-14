@@ -1,0 +1,101 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  current: string;
+}
+
+const { title, description, current } = Astro.props;
+
+const nav = [
+  { group: 'Getting started', items: [
+    { href: '/docs',         label: 'Overview',   id: 'overview' },
+    { href: '/docs/install', label: 'Install',    id: 'install' },
+  ]},
+  { group: 'Phases', items: [
+    { href: '/docs/phase-2',              label: 'Phase 2 · Context seeding', id: 'phase-2' },
+    { href: '/docs/phase-3-automations',  label: 'Phase 3 · Automations',    id: 'phase-3' },
+  ]},
+  { group: 'Architecture', items: [
+    { href: '/docs/multi-vault', label: 'Multi-vault', id: 'multi-vault' },
+  ]},
+  { group: 'Lifecycle', items: [
+    { href: '/docs/uninstall', label: 'Uninstall', id: 'uninstall' },
+  ]},
+];
+
+const path = Astro.url.pathname.replace(/\/$/, '');
+
+// breadcrumbs
+const crumbs = [
+  { href: '/',     label: 'Think OS' },
+  { href: '/docs', label: 'Docs' },
+];
+if (current !== 'overview') crumbs.push({ href: path, label: title });
+---
+<BaseLayout title={`${title} · Think OS Docs`} description={description}>
+  <div class="mx-auto max-w-[1280px] px-6 md:px-10 py-12 md:py-16">
+    <div class="grid grid-cols-12 gap-8 md:gap-12">
+
+      <!-- Sidebar -->
+      <aside class="col-span-12 md:col-span-3 lg:col-span-3">
+        <div class="md:sticky md:top-8">
+          <nav class="space-y-8">
+            {nav.map((group) => (
+              <div>
+                <p class="kicker mb-3">{group.group}</p>
+                <ul class="space-y-1.5">
+                  {group.items.map((item) => {
+                    const active = item.id === current;
+                    return (
+                      <li>
+                        <a
+                          href={item.href}
+                          class={`block text-[14px] leading-snug -mx-2 px-2 py-1 rounded transition-colors ${
+                            active
+                              ? 'text-accent font-medium'
+                              : 'text-muted hover:text-ink'
+                          }`}
+                        >{item.label}</a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Body -->
+      <article class="col-span-12 md:col-span-9 lg:col-span-9 min-w-0">
+
+        <!-- breadcrumbs -->
+        <nav class="font-mono text-[11px] tracking-[0.18em] uppercase text-muted mb-8">
+          {crumbs.map((c, i) => (
+            <span>
+              {i > 0 && <span class="mx-2 opacity-50">/</span>}
+              {i === crumbs.length - 1
+                ? <span class="text-ink/80">{c.label}</span>
+                : <a href={c.href} class="link-anim">{c.label}</a>}
+            </span>
+          ))}
+        </nav>
+
+        <h1 class="font-display text-4xl md:text-5xl tracking-tightest mb-4">{title}</h1>
+        {description && (
+          <p class="text-[17px] text-muted max-w-[60ch] mb-10">{description}</p>
+        )}
+
+        <hr class="hrule mb-10" />
+
+        <div class="prose">
+          <slot />
+        </div>
+
+      </article>
+    </div>
+  </div>
+</BaseLayout>

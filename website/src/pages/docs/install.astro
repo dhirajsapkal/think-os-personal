@@ -1,0 +1,44 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+  title="Install"
+  description="One line, four questions, about five minutes."
+  current="install"
+>
+  <p>
+    Open a fresh Claude Code session in any folder. Paste:
+  </p>
+
+  <pre><code>Install Think OS for me from https://github.com/dhirajsapkal/think-os</code></pre>
+
+  <p>
+    The agent clones the repo, finds <code>adapters/claude-code/INSTALL.md</code>,
+    and follows it. You'll be asked four short questions — vault location,
+    Basic Memory, plugin bundle, vault name — each with a recommended default
+    you can click without typing.
+  </p>
+
+  <h2>What it touches</h2>
+  <ul>
+    <li>Creates your vault at the chosen path (default <code>~/ThinkOS/vault</code>).</li>
+    <li>Installs Basic Memory via <code>uv</code> if it isn't already there.</li>
+    <li>Registers the basic-memory MCP at user scope in Claude Code.</li>
+    <li>Writes a Think OS block into <code>~/.claude/CLAUDE.md</code> (between explicit BEGIN/END markers — never overwrites surrounding content).</li>
+    <li>Copies Think OS slash commands to <code>~/.claude/commands/</code>.</li>
+    <li>Optionally installs a curated plugin bundle (pm / eng / design / ops).</li>
+  </ul>
+
+  <h2>Full playbook</h2>
+  <p>
+    For the agent-facing playbook the install follows, see
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/adapters/claude-code/INSTALL.md">
+      adapters/claude-code/INSTALL.md
+    </a>
+    in the repo.
+  </p>
+
+  <p class="text-muted text-sm mt-12">
+    Rendered docs coming soon. For now, the source files in the repo are authoritative.
+  </p>
+</DocsLayout>

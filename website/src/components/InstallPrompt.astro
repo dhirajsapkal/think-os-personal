@@ -1,0 +1,48 @@
+---
+const command = 'Install Think OS for me from https://github.com/dhirajsapkal/think-os';
+---
+<div class="install-card">
+  <div class="flex items-baseline justify-between px-5 md:px-7 pt-4 pb-3 border-b border-rule/70">
+    <div class="flex items-baseline gap-3">
+      <span class="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">
+        Setup prompt
+      </span>
+      <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted/70">
+        — paste into Claude Code
+      </span>
+    </div>
+    <button
+      type="button"
+      data-copy-trigger
+      aria-label="Copy install prompt"
+      class="copy-btn font-mono text-[11px] tracking-[0.18em] uppercase text-muted"
+    >
+      <span data-copy-label>Copy</span>
+    </button>
+  </div>
+  <pre class="px-5 md:px-7 py-6 md:py-7 font-mono text-[15px] md:text-[17px] leading-relaxed text-ink whitespace-pre-wrap break-words m-0"><code data-copy-source>{command}</code></pre>
+</div>
+
+<script is:inline>
+  (function () {
+    const trigger = document.querySelector('[data-copy-trigger]');
+    const source  = document.querySelector('[data-copy-source]');
+    const label   = trigger?.querySelector('[data-copy-label]');
+    if (!trigger || !source || !label) return;
+
+    trigger.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(source.textContent.trim());
+        trigger.setAttribute('data-copied', 'true');
+        label.textContent = 'Copied';
+        setTimeout(() => {
+          trigger.removeAttribute('data-copied');
+          label.textContent = 'Copy';
+        }, 1800);
+      } catch (e) {
+        label.textContent = 'Failed';
+        setTimeout(() => (label.textContent = 'Copy'), 1800);
+      }
+    });
+  })();
+</script>

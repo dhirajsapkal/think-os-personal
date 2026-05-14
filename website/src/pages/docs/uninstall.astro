@@ -1,0 +1,52 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+  title="Uninstall"
+  description="Clean removal. Vault data is preserved by default."
+  current="uninstall"
+>
+  <p>From your cloned repo:</p>
+
+  <pre><code>bash scripts/thinkos-uninstall.sh --dry-run    # see the plan
+bash scripts/thinkos-uninstall.sh              # apply it</code></pre>
+
+  <p>
+    The uninstaller reads <code>~/.thinkos/install-manifest.json</code> —
+    written when you installed — and undoes exactly what was installed.
+    If the manifest is missing (old installs from before manifest-writing),
+    it falls back to repo enumeration.
+  </p>
+
+  <h2>Flags</h2>
+  <ul>
+    <li><code>--dry-run</code> — print the plan; don't touch anything.</li>
+    <li><code>--keep-vault</code> (default) — your vault folder stays on disk.</li>
+    <li><code>--remove-vault</code> — also delete the vault directory.</li>
+    <li><code>--keep-mcps</code> (default) — leave bundle MCPs (Slack, Gmail, etc.) registered.</li>
+    <li><code>--remove-mcps</code> — also unregister bundle MCPs.</li>
+    <li><code>--keep-basic-memory</code> (default) — leave Basic Memory installed.</li>
+    <li><code>--remove-basic-memory</code> — also unregister the BM project and offer to uninstall the binary.</li>
+    <li><code>--all</code> — equivalent to <code>--remove-vault --remove-mcps --remove-basic-memory</code>.</li>
+  </ul>
+
+  <h2>Backups</h2>
+  <p>
+    If <code>~/.claude/CLAUDE.md</code> or <code>~/.claude/commands/</code> had
+    content before Think OS was installed, the original is backed up to
+    <code>~/.claude/CLAUDE.md.pre-thinkos-backup-&lt;date&gt;</code> and
+    <code>~/.claude/commands.pre-thinkos-backup-&lt;date&gt;/</code>.
+    Those backups stay in place after uninstall — remove them yourself if
+    you're sure you don't need them.
+  </p>
+
+  <h2>What you'll need to do manually</h2>
+  <ul>
+    <li>If you installed plugins via a bundle, run <code>/plugin remove &lt;slug&gt;@&lt;marketplace&gt;</code> in Claude Code for each one — there's no CLI for plugin removal.</li>
+    <li>If you set up scheduled triggers, list them with <code>/thinkos-automate list</code> before uninstalling and remove each with <code>/thinkos-automate remove &lt;name&gt;</code>.</li>
+  </ul>
+
+  <p class="text-muted text-sm mt-12">
+    Rendered docs coming soon. For now, the source files in the repo are authoritative.
+  </p>
+</DocsLayout>

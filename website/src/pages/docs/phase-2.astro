@@ -1,0 +1,41 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+  title="Phase 2 — Context seeding"
+  description="Where Think OS becomes actually useful. The agent drafts your HOT-tier files from your connected tools."
+  current="phase-2"
+>
+  <p>
+    After install and a restart, run <code>/thinkos-continue</code> in a fresh Claude
+    Code session. The agent walks through, in order:
+  </p>
+
+  <ol>
+    <li><strong>Welcome &amp; auth check</strong> — verifies any plugin connectors needing OAuth are authorized.</li>
+    <li><strong>Import an existing vault</strong> (optional) — if you have a markdown vault from Obsidian or an older Think OS install, point at it. The agent maps filenames to Think OS slots and copies content over, marking those files as seeded.</li>
+    <li><strong>File picker</strong> — choose which un-seeded files to populate next.</li>
+    <li><strong>Per-file flow</strong> — chip-pick which connectors to read from, see the draft, approve / edit / regenerate. Nothing writes to the vault without your OK.</li>
+    <li><strong>Automations offer</strong> — at the end, optionally set up scheduled triggers (Phase 3).</li>
+  </ol>
+
+  <h2>Files seeded</h2>
+  <ul>
+    <li><code>05 Profile/Identity.md</code> — role, working style, comm preferences.</li>
+    <li><code>02 Projects/Project Index.md</code> — your active and dormant projects.</li>
+    <li><code>01 Now/Current Focus.md</code> — what this week is actually about.</li>
+    <li><code>03 People/People.md</code> — frequent collaborators with context.</li>
+  </ul>
+
+  <h2>Full playbook</h2>
+  <p>
+    For the agent-facing playbook this flow follows, see
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/phase-2-seeding-playbook.md">
+      docs/phase-2-seeding-playbook.md
+    </a>.
+  </p>
+
+  <p class="text-muted text-sm mt-12">
+    Rendered docs coming soon. For now, the source files in the repo are authoritative.
+  </p>
+</DocsLayout>

@@ -1,0 +1,48 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+  title="Phase 3 — Automations"
+  description="Scheduled triggers that keep your vault fresh on their own."
+  current="phase-3"
+>
+  <p>
+    Think OS offers four pre-built scheduled triggers via
+    <code>/thinkos-automate</code> (also offered inline at the end of Phase 2).
+    They run remotely on Anthropic's infrastructure — your local machine
+    can be asleep when they fire.
+  </p>
+
+  <h2>The four triggers</h2>
+
+  <ul>
+    <li><strong>Daily reindex</strong> · 4 a.m. every day — runs <code>basic-memory reindex</code> so external edits (Obsidian, your editor) flow into the index.</li>
+    <li><strong>Weekly review</strong> · Sunday 8 p.m. — reads your past week's Work Log, drafts an updated Current Focus for next week as a <code>.draft</code> file for you to approve Monday.</li>
+    <li><strong>Quarterly archive</strong> · first Sunday of each quarter — rotates Work Log entries older than 90 days into the Archive, flags stale projects, audits HOT-tier files for bloat.</li>
+    <li><strong>Daily morning brief</strong> · 7 a.m. Mon–Fri (optional) — reads Current Focus + Tasks + Calendar; writes a one-page brief into <code>01 Now/briefs/</code>.</li>
+  </ul>
+
+  <h2>Cost</h2>
+  <p>
+    Each fire spawns a Claude session that consumes Anthropic API tokens.
+    Whether those tokens are covered by your Claude subscription quota or
+    counted as pay-as-you-go API spend depends on your plan — check your
+    account.
+  </p>
+  <p>
+    Basic Memory itself is fully local; no cloud mode, no recurring
+    infrastructure cost.
+  </p>
+
+  <h2>Full playbook</h2>
+  <p>
+    For the trigger prompts and cron expressions, see
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/phase-3-automations-playbook.md">
+      docs/phase-3-automations-playbook.md
+    </a>.
+  </p>
+
+  <p class="text-muted text-sm mt-12">
+    Rendered docs coming soon. For now, the source files in the repo are authoritative.
+  </p>
+</DocsLayout>

@@ -1,0 +1,68 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+<DocsLayout
+  title="Multi-vault architecture"
+  description="Personal hub, project vaults, reference vaults. The privacy boundary is the schema."
+  current="multi-vault"
+>
+  <p>
+    Think OS has one personal hub vault, zero-or-more project vaults shared
+    via git, and zero-or-more reference vaults that are read-only.
+    Privacy is enforced <em>structurally</em> — a project vault's schema has
+    no slot for personal content, so the agent cannot write your work log
+    into a shared repo because there is no destination.
+  </p>
+
+  <h2>Three types</h2>
+  <ul>
+    <li>
+      <strong>Personal hub</strong> — your individual knowledge. Identity,
+      current focus, work log, decisions, learnings, people. Lives on disk,
+      never shared. Always loaded in HOT context.
+    </li>
+    <li>
+      <strong>Project vault</strong> — shared with teammates via git. Reduced
+      schema: project home, team activity (one file per entry, append-only),
+      decisions (ADR-style, immutable), specs, learnings, roster. No personal
+      slots.
+    </li>
+    <li>
+      <strong>Reference vault</strong> — a folder of someone else's markdown
+      you want indexed for search. Marked <code>[reference]</code> in agent
+      output. Read-only.
+    </li>
+  </ul>
+
+  <h2>Vault registry</h2>
+  <p>
+    <code>~/.thinkos/vaults.json</code> lists all registered vaults with their
+    type, label, path, and Basic Memory project name. Managed via the
+    <code>thinkos vault</code> CLI or <code>/thinkos-vault</code> slash command —
+    never edited by hand.
+  </p>
+
+  <h2>Active-vault resolution</h2>
+  <p>
+    The agent decides which vault is "active" in this order:
+  </p>
+  <ol>
+    <li>Sticky override at <code>~/.thinkos/active-vault</code> (set by <code>thinkos vault use &lt;id&gt;</code>).</li>
+    <li>CWD-derived — if <code>pwd</code> is inside a registered vault path.</li>
+    <li>The vault marked <code>default: true</code> (always the personal hub).</li>
+  </ol>
+
+  <h2>Full design</h2>
+  <p>
+    The complete architecture, including planned encryption tiers, schema
+    enforcement, and the future <code>thinkos vault import-existing</code>
+    flow for layering Think OS over a team's pre-existing repo:
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/multi-vault-architecture.md">
+      docs/multi-vault-architecture.md
+    </a>.
+  </p>
+
+  <p class="text-muted text-sm mt-12">
+    Rendered docs coming soon. For now, the source files in the repo are authoritative.
+  </p>
+</DocsLayout>

@@ -1,0 +1,29 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+const path = Astro.url.pathname;
+const onDocs = path.startsWith('/docs');
+---
+<header class="border-b border-rule">
+  <div class="mx-auto max-w-[1200px] px-6 md:px-10">
+    <div class="h-16 flex items-center justify-between">
+      <a href="/" class="flex items-baseline gap-2 group">
+        <span class="font-display text-[22px] tracking-tightest leading-none">Think OS</span>
+        <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">v0.3 · alpha</span>
+      </a>
+
+      <nav class="flex items-center gap-7">
+        <a
+          href="/docs"
+          class={`font-mono text-[11px] tracking-[0.18em] uppercase link-anim ${onDocs ? 'text-ink' : 'text-muted'}`}
+        >Docs</a>
+        <a
+          href="https://github.com/dhirajsapkal/think-os"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-mono text-[11px] tracking-[0.18em] uppercase text-muted link-anim"
+        >GitHub ↗</a>
+        <ThemeToggle />
+      </nav>
+    </div>
+  </div>
+</header>

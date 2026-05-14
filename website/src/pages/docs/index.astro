@@ -1,0 +1,66 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+const sections = [
+  {
+    title: 'Install',
+    href: '/docs/install',
+    body: 'The one-line install prompt, what it actually does, and the five-question setup flow.',
+  },
+  {
+    title: 'Phase 2 · Context seeding',
+    href: '/docs/phase-2',
+    body: 'How the agent imports existing vaults, pulls from connectors, and drafts your HOT-tier files.',
+  },
+  {
+    title: 'Phase 3 · Automations',
+    href: '/docs/phase-3-automations',
+    body: 'Scheduled triggers — daily reindex, weekly review, quarterly archive, optional morning brief.',
+  },
+  {
+    title: 'Multi-vault architecture',
+    href: '/docs/multi-vault',
+    body: 'Personal hub, project vaults, reference vaults. Privacy boundary enforced by schema.',
+  },
+  {
+    title: 'Uninstall',
+    href: '/docs/uninstall',
+    body: 'How to remove Think OS cleanly. Vault data is preserved by default.',
+  },
+];
+---
+<DocsLayout
+  title="Docs"
+  description="Reference for installing, configuring, and using Think OS."
+  current="overview"
+>
+  <p>
+    Think OS is documented as it's built. The canonical reference for any
+    behavior lives in the repo's <code>docs/</code> and <code>adapters/claude-code/INSTALL.md</code>.
+    These pages are entry points; each links out to the source file on GitHub
+    while we get the in-site rendering wired up.
+  </p>
+
+  <h2 class="mt-12 mb-6 font-display text-3xl tracking-tight">Sections</h2>
+
+  <div class="not-prose space-y-px bg-rule border border-rule">
+    {sections.map((s) => (
+      <a href={s.href} class="block bg-paper p-5 md:p-6 hover:bg-soft transition-colors group">
+        <div class="flex items-baseline justify-between gap-6">
+          <div>
+            <h3 class="font-display text-xl md:text-2xl tracking-tight group-hover:text-accent transition-colors">{s.title}</h3>
+            <p class="mt-2 text-[15px] text-muted max-w-[60ch]">{s.body}</p>
+          </div>
+          <span class="font-mono text-[11px] tracking-[0.18em] uppercase text-muted shrink-0 self-center">Read →</span>
+        </div>
+      </a>
+    ))}
+  </div>
+
+  <h2 class="mt-16 mb-6 font-display text-3xl tracking-tight">Source</h2>
+  <p>
+    The full repository:
+    <a href="https://github.com/dhirajsapkal/think-os">github.com/dhirajsapkal/think-os</a>.
+    Open issues for anything confusing, broken, or missing.
+  </p>
+</DocsLayout>

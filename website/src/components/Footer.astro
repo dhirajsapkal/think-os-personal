@@ -1,0 +1,27 @@
+---
+const year = new Date().getFullYear();
+---
+<footer class="mt-32 border-t border-rule">
+  <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
+      <div class="md:col-span-6">
+        <p class="font-display italic text-2xl leading-tight">
+          A markdown vault that travels<br />with you, between agents.
+        </p>
+      </div>
+      <div class="md:col-span-6 md:text-right">
+        <p class="font-mono text-[11px] tracking-[0.18em] uppercase text-muted">
+          Think OS · v0.3.3 · alpha
+        </p>
+        <p class="mt-2 text-sm text-muted">
+          <a href="https://github.com/dhirajsapkal/think-os" class="link-anim hover:text-accent">
+            github.com/dhirajsapkal/think-os
+          </a>
+        </p>
+        <p class="mt-1 text-xs text-muted">
+          Built by Dhiraj Sapkal at Think Company · {year}
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
