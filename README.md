@@ -10,7 +10,7 @@ Early alpha — v0.3.0. Poke at it, break it, [tell me what's confusing](https:/
 
 ---
 
-## Setup is three steps. Plan ~30 minutes total.
+## Setup is two steps. Plan ~25 minutes total.
 
 ### Step 1 — Install (5 min)
 
@@ -20,7 +20,7 @@ Open a new Claude Code session in any folder. Paste this one line:
 Install Think OS for me from https://github.com/dhirajsapkal/think-os
 ```
 
-The agent clones the repo, finds [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md), and follows it: asks you 5 short questions (vault path, Basic Memory, plugin bundle, vault id, display label), runs the install, shows you what landed.
+The agent clones the repo, finds [`adapters/claude-code/INSTALL.md`](adapters/claude-code/INSTALL.md), and follows it: asks you 4 short questions (vault path, Basic Memory, plugin bundle, vault name), runs the install, shows you what landed.
 
 Then **quit Claude Code (Cmd+Q) and reopen it** — MCPs and new slash commands only load on startup. If you installed a plugin bundle, also `/mcp` → authorize each connector.
 
@@ -35,26 +35,14 @@ After the restart, in a fresh Claude Code session, type:
 This is Phase 2 — **the step that makes Think OS actually useful.** Without it, your vault is empty markdown templates and the agent has nothing personalized to read.
 
 The agent will:
-- Ask which project folders to scan (filesystem indexing; cheap, local, no LLM cost)
-- Ask permission per connector (Granola, Calendar, Slack, Gmail, Linear/Jira/ClickUp)
-- Pull and cache data from consented sources, then synthesize drafts of your Identity, Project Index, Current Focus, and People files
-- Show you each draft for review before committing
+- Offer to import from an existing markdown vault (Obsidian, old Think OS, etc.) if you have one
+- Pull and cache data from your consented connectors (Granola, Calendar, Slack, Gmail, Linear/Jira/ClickUp)
+- Synthesize drafts of your Identity, Project Index, Current Focus, and People files for review
+- Offer to set up scheduled triggers at the end (daily reindex, weekly review, quarterly archive, optional morning brief) — runs on Anthropic's cloud, your machine doesn't need to stay on
 
 You can pause and resume anytime — state is saved.
 
-### Step 3 — Set up automations (~5 min, optional but recommended)
-
-In any Claude Code session:
-
-```
-/thinkos-automate
-```
-
-The agent will offer scheduled triggers that keep your OS fresh on its own: daily reindex, weekly Current Focus refresh, quarterly archive rotation, optional daily morning brief.
-
-**Important — Claude Code triggers run remotely.** They fire on Anthropic's infrastructure on a cron schedule. You do NOT need to keep Claude Code or any app open or any terminal running. Your machine can be asleep.
-
-Each trigger fire uses Anthropic API tokens. Whether that's covered by your Claude subscription quota (Max/Pro) or pay-as-you-go API depends on your account — check your plan. Basic Memory itself stays fully local; no cloud mode, no recurring infrastructure cost.
+Standalone: if you skipped automations during Phase 2, you can set them up anytime with `/thinkos-automate`.
 
 ---
 
@@ -69,7 +57,7 @@ cd think-os
 bash scripts/thinkos-setup.sh --install-basic-memory --yes
 ```
 
-Then continue with Steps 2 + 3 above from a Claude Code session.
+Then continue with Step 2 above from a Claude Code session.
 
 ## Uninstall cleanly
 

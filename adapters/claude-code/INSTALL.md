@@ -205,24 +205,12 @@ Then present the post-install checklist as a clear numbered list. Emphasize thes
 > ```
 >
 > The agent will:
-> - Ask you which project folders to scan (filesystem indexing — pure local, no LLM cost)
-> - Ask permission per connector (Granola, Calendar, Slack, Gmail, Linear/Jira/ClickUp)
-> - Pull data from consented sources, cache to disk, synthesize draft Identity / Project Index / Current Focus / People files
-> - Show you each draft for review and edits before committing
+> - Offer to import from an existing markdown vault (Obsidian, old Think OS install, etc.)
+> - Pull data from your consented connectors (Granola, Calendar, Slack, Gmail, Linear/Jira/ClickUp)
+> - Synthesize drafts of Identity / Project Index / Current Focus / People files for your review
+> - At the end, offer to set up scheduled triggers (daily reindex, weekly review, quarterly archive, optional morning brief) so your OS stays fresh on its own
 >
-> Plan ~15-30 minutes. You can pause and resume anytime — state is saved.
->
-> ### Step D — (Optional but recommended) Set up automations
->
-> After Phase 2, run:
->
-> ```
-> /thinkos-automate
-> ```
->
-> The agent will offer to set up scheduled triggers that keep your OS fresh: daily reindex, weekly Current Focus refresh, quarterly archive rotation, optional daily morning brief. These run remotely on Anthropic's infrastructure — your machine doesn't need to stay on.
->
-> Each trigger fire uses Anthropic API tokens. Whether that's covered by your Claude subscription or counts as pay-as-you-go API spend depends on your account; check your plan.
+> Plan ~15-30 minutes. You can pause and resume anytime.
 
 ---
 

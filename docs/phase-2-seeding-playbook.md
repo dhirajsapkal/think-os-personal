@@ -522,9 +522,27 @@ After approval: write file, `mark-seeded people`.
 
 ---
 
-## Section 3 — Wrap-up
+## Section 3 — Offer scheduled triggers (optional)
 
-When all consented files are seeded:
+After all chosen files are seeded but BEFORE marking phase complete, offer to set up scheduled triggers. The user is already in flow — easier to opt in here than to remember to run `/thinkos-automate` later.
+
+`AskUserQuestion`:
+- Header: "Scheduled triggers"
+- Question: "Want me to set up automations that keep your OS fresh on its own? They run on a cron schedule (no local app needed)."
+- multiSelect: false
+- Options:
+  | label | description |
+  |---|---|
+  | "Yes, set them up now" | "I'll offer four pre-built triggers (daily reindex, weekly review, quarterly archive, optional morning brief)." |
+  | "Skip — I'll do it later" | "You can run `/thinkos-automate` anytime." |
+
+If "Yes, set them up now": follow `docs/phase-3-automations-playbook.md` Steps 2 and 3 (offer each trigger via `AskUserQuestion`, register the chosen ones via `CronCreate`). When done, return here for the final wrap-up below.
+
+If "Skip — I'll do it later": move directly to Section 4.
+
+---
+
+## Section 4 — Final wrap-up
 
 1. Set phase to `complete`:
    ```bash
@@ -538,21 +556,19 @@ When all consented files are seeded:
    > - Project Index.md ✓
    > - Current Focus.md ✓
    > - People.md ✓
-   > (Decisions.md and Learnings.md: skipped — these populate over time as you make decisions and capture learnings.)
+   > (Decisions.md and Learnings.md populate over time as you capture them.)
    >
-   > Try it out — open a fresh session in your agent and ask:
+   > Try it out — open a fresh session and ask:
    > *"Who am I and what am I working on this week?"*
-   >
-   > You should now get a specific, cited answer.
 
-3. Run the doctor one last time to confirm everything is healthy:
+3. Run the doctor:
    ```bash
    bash scripts/thinkos-doctor.sh --deep --os-home "$(bash scripts/thinkos-state.sh get vault)"
    ```
 
-4. Suggest the first real workflow command they might try (one of):
+4. Suggest a first command to try:
    - `/thinkos-morning` — daily brief
-   - `/thinkos-plate` — what's on my plate today
+   - `/thinkos-plate` — what's on your plate today
    - `/thinkos-whoami` — quick identity dump
 
 ---
