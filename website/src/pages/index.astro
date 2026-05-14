@@ -98,8 +98,8 @@ const faqs = [
     a: 'Basic Memory itself is free and runs locally — no cloud mode, no recurring infrastructure cost. Phase 3 maintenance jobs run as local launchd jobs. The daily reindex uses no API tokens. The weekly review, quarterly archive, and morning brief each spawn a local claude session when they fire — those consume Anthropic API tokens; whether that\'s included in your Claude subscription or charged as pay-as-you-go depends on your account.',
   },
   {
-    q: 'Is this only for Claude Code?',
-    a: 'For now, yes. v0.3 wires up Claude Code. Cowork comes in v0.4, Codex in v0.5 — adapters for both already live in the repo (adapters/claude-cowork/, adapters/codex/) as the design contract. The install flow today only sets up Claude Code.',
+    q: 'Which agent surfaces does Think OS support?',
+    a: 'Claude Code is the primary target — full feature set: slash commands, autonomous launchd capture, drift-aware updates. Claude Cowork (the agentic tab in Claude Desktop) is also supported as of v0.4 with a thinner integration — same vault, same MCP, native onboarding chips, but no slash commands (Cowork uses a different plugin format) and one manual paste step for the curated instructions. Cowork can drive its own /schedule-based autonomous capture; Claude Code\'s launchd is more reliable since it doesn\'t require the app to stay open. Codex adapter is scaffolding only — install not yet wired.',
   },
   {
     q: 'How do I uninstall?',
@@ -131,7 +131,7 @@ const faqs = [
         </h1>
 
         <p class="lift lift-3 mt-10 md:mt-12 max-w-[58ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
-          Think OS is a markdown vault and a context MCP server. It gives Claude Code
+          Think OS is a markdown vault and a context MCP server. It gives Claude Code and Claude Cowork
           durable memory of who you are, what you're working on, and how you like to
           work — across projects, sessions, and time.
         </p>
@@ -141,7 +141,7 @@ const faqs = [
         </div>
 
         <p class="lift lift-5 mt-6 font-mono text-[11px] tracking-[0.18em] uppercase text-muted">
-          Works in Claude Code · Cowork &amp; Codex coming
+          Works in Claude Code &amp; Claude Cowork · Codex coming
         </p>
       </div>
     </div>
