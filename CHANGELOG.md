@@ -2,6 +2,21 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.4.4] — 2026-05-15 — Multi-instance dedup fix
+
+### Changed
+
+- **`/thinkos-save` Step 0 now uses topic-overlap comparison instead of blunt timestamp proximity.** The original logic blocked on ANY recent `source: manual` event in the ledger and surfaced "recent save detected — save anyway?" prompts even when the recent save was from a concurrent session doing unrelated work. New flow: triage candidates silently with topic slugs (Step 0a), then check for *semantic* overlap with recent ledger topics (Step 0b). Only prompt the user when topics actually overlap; otherwise proceed silently. Per-draft chip-pickers in Step 1 are still the user's final approval gate.
+- **Step 3 ledger event template now explicitly requires the `topic` field** in `detail`. This is what enables future invocations to detect overlap without re-reading vault content.
+
+### Added
+
+- **Multi-instance awareness rule in the curated priority preamble** (`templates/instructions/00-think-os-priority.md`). New core operating rule: "Multi-instance Claude is normal. Shared state will reflect activity from other concurrent sessions. For any dedup check, compare semantic overlap, not timestamp proximity." Applies to `/thinkos-save`, `/thinkos-log`, `/thinkos-decide`, `/thinkos-capture`, and any future capture-dedup logic — gets it right at the platform layer, not per-command.
+
+### Why this matters
+
+Users routinely run Claude Code in several terminals, Cowork tabs, Desktop, and mobile across a day. Each instance writes to the same vault and ledger. The original dedup logic treated parallel work as duplication — false-positive prompts that erode trust faster than occasional small redundancies. The fix aligns the agent's behavior with how the OS is actually used.
+
 ## [v0.4.3] — 2026-05-14 — `/thinkos-save` — manual substance capture
 
 ### Added

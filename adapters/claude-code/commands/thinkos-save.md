@@ -18,28 +18,51 @@ The agent does NOT trigger this automatically — capture timing is user-decided
 
 ---
 
-## Step 0 — Check for recent saves (avoid duplicates)
+## Step 0 — Triage candidates + topic-overlap dedup check
 
-Read the last 30 minutes of the capture ledger to detect recent manual saves:
+> **Important context:** Multi-instance Claude usage is normal. A user can run Claude Code in multiple terminals, Cowork tabs, Desktop, and mobile throughout the day. `/thinkos-save` from any one of those will see ledger entries from OTHER concurrent sessions. **That's parallel work, not a conflict.** Don't treat it as duplication unless the *topics* of recent saves actually overlap with what THIS session would save.
+
+### 0a. Silent triage (do this before asking the user anything)
+
+Read the recent conversation context (you already have it loaded — no fetching). Following the format rules in Step 1 below, internally compose:
+
+- 0 or 1 candidate Work Log entry, each with a one-line **topic slug** (5–10 words)
+- 0–3 candidate Decisions, each with a topic slug
+- 0–3 candidate Learnings, each with a topic slug
+- 0–3 candidate People mentions, each with a name
+
+If triage produces zero candidates across all four categories, exit cleanly:
+
+> Session looks trivial — no substantive items to capture this round.
+
+### 0b. Topic-overlap dedup check (silent unless real overlap found)
+
+Read recent manual-save topics from the capture ledger:
 
 ```bash
 VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
-tail -30 "$VAULT/90 System/Capture Log.md" 2>/dev/null | grep '"source":"manual"' | tail -5
+tail -50 "$VAULT/90 System/Capture Log.md" 2>/dev/null \
+  | grep '"source":"manual"' \
+  | grep -oE '"topic":"[^"]+"' \
+  | sort -u \
+  | tail -15
 ```
 
-If there are recent `source: manual` events with `via: thinkos-save` in the last 30 min, use `AskUserQuestion`:
+For each topic from the ledger, judge semantically whether it overlaps with any of THIS session's candidate topics from 0a.
 
-- Header: "Recent save detected"
-- Question: "Substantive content was already saved <N> minutes ago via `/thinkos-save`. Save again anyway?"
-- Options:
-  | label | description |
-  |---|---|
-  | "Save additional items" | "Capture anything new since the last save." |
-  | "Skip — recent saves cover this" | "Exit without saving." |
+- **No semantic overlap** → proceed silently to Step 1. Do NOT surface the recent saves to the user. (They're from concurrent sessions doing different work.)
+- **Semantic overlap on one or more candidates** → use `AskUserQuestion` (one question per overlapping pair):
+  - Header: "Possible duplicate"
+  - Question: `Topic "<your candidate slug>" looks similar to a recent save: "<matching ledger topic>". Save anyway, or skip this one?`
+  - Options:
+    | label | description |
+    |---|---|
+    | "Save anyway" | "Different angle / additional detail not in the prior save." |
+    | "Skip — duplicate" | "Prior save covers this." |
 
-If "Skip" → exit cleanly. If "Save additional items" → proceed.
+  Non-overlapping candidates proceed to Step 1 without prompting.
 
-If no recent manual saves, proceed silently.
+When in doubt about overlap, lean toward NOT prompting. False positives (asking about a non-duplicate) are worse than false negatives (saving something redundant) — the user can still decline at Step 1's per-draft chip-picker. The earlier blunt "any recent save → prompt" rule was wrong; correct it by using meaning, not timestamps.
 
 ---
 
@@ -129,15 +152,17 @@ For each queued draft, append via `mcp__basic-memory__edit_note`:
 | Learning | `Learnings` | `append` |
 | Person | `People` | `append` |
 
-For each write, also append one ledger event to the Capture Log:
+For each write, also append one ledger event to the Capture Log. **Include the `topic` slug** from Step 0a — it's what enables the next `/thinkos-save` invocation (or future capture-dedup logic) to detect semantic overlap without re-reading vault content:
 
 ```
 mcp__basic-memory__edit_note(
   identifier="Capture Log",
   operation="append",
-  content='{"ts":"<ISO8601 UTC now>","source":"manual","detail":{"type":"<work_log|decision|learning|person>","via":"thinkos-save"},"output":"<vault relative path>","mode":"append","bytes":<bytes of this draft>}\n'
+  content='{"ts":"<ISO8601 UTC now>","source":"manual","detail":{"type":"<work_log|decision|learning|person>","via":"thinkos-save","topic":"<short slug, same one used in Step 0a>"},"output":"<vault relative path>","mode":"append","bytes":<bytes of this draft>}\n'
 )
 ```
+
+The `topic` field is required, not optional. Without it, the topic-overlap dedup in Step 0b can't function — and capture-dedup falls back to noisy timestamp-only checks.
 
 Privacy keywords: if a draft contains any of `comp, salary, compensation, bonus, raise, offer letter, HR, performance review, PIP, health, medical, family, personal, confidential, private`, write the entry to the vault but add `"redacted": true` to the ledger event and omit detail content fields. The vault file itself is the personal hub — content is fine there; the ledger just doesn't surface the sensitive label.
 

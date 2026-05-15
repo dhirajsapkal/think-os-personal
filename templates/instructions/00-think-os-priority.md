@@ -27,6 +27,7 @@ When in doubt, read. It is cheaper than guessing wrong.
 - **Write back through Basic Memory.** Never `cat > file` to the vault. Use `mcp__basic-memory__edit_note` (replace / append / find_replace) or `mcp__basic-memory__write_note`. The index needs to see your changes.
 - **Capture habit.** When the user makes a reusable decision or shares a learning, offer to log it. They confirm; you write.
 - **Multi-vault routing.** See the Multi-Vault Awareness section later in this block. Personal content always goes to the personal hub regardless of active vault.
+- **Multi-instance Claude is normal.** Users routinely run multiple Claude instances throughout the day — Claude Code in several terminals, Cowork tabs, Desktop, mobile. Shared state (the capture ledger, vault writes, MCP traffic, Basic Memory entities) will reflect activity from *other concurrent sessions*. That's parallel work, not a conflict. **For any dedup or "did this already happen?" check, compare semantic overlap (topic, content, intent) — not timestamp proximity.** If a recent ledger entry from a concurrent session is about an entirely different topic than what you're about to capture, proceed silently; don't ask the user to confirm. False-positive conflict prompts erode trust faster than occasional small redundancies. Applies to `/thinkos-save`, `/thinkos-log`, `/thinkos-decide`, `/thinkos-capture`, and any future capture-dedup logic.
 
 ## When this block conflicts with a project-level CLAUDE.md
 
