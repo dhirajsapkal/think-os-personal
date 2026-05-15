@@ -6,17 +6,25 @@ export async function GET(context) {
     (a, b) => b.data.date.getTime() - a.data.date.getTime()
   );
 
+  const site = context.site ?? new URL('https://thinkos.dev');
+
   return rss({
     title: 'Think OS — Changelog',
     description:
       'What shipped, in reverse chronological order. Personal context for every agent session.',
-    site: context.site ?? 'https://thinkos.dev',
-    items: entries.map((entry) => ({
-      title: `v${entry.data.version} — ${entry.data.title}`,
-      pubDate: entry.data.date,
-      description: entry.data.summary,
-      link: `/changelog/#v${entry.data.version.replace(/\./g, '-')}`,
-    })),
+    site,
+    items: entries.map((entry) => {
+      const slug = entry.data.version.replace(/\./g, '-');
+      // Build the full URL ourselves so the fragment isn't normalized
+      // with a trailing slash by the rss helper.
+      const link = `${new URL('/changelog/', site).href.replace(/\/$/, '/')}#v${slug}`;
+      return {
+        title: `v${entry.data.version} — ${entry.data.title}`,
+        pubDate: entry.data.date,
+        description: entry.data.summary,
+        link,
+      };
+    }),
     customData: '<language>en-us</language>',
   });
 }

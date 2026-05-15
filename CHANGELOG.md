@@ -2,6 +2,17 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.7.2] — 2026-05-15 — Changelog anchors + RSS link cleanup
+
+### Fixed
+
+- **`/changelog` page now has working anchors** for each release. Previously, links like `/changelog/#v0-7-0` resolved nowhere because the rendered `<article>` elements had no `id` attribute. Each entry now carries `id="v0-7-0"` (etc.), and `scroll-mt-24` keeps the target from landing under the header. The version stamp in each entry is now a self-link — click it to copy the per-release URL.
+- **RSS link normalization**. `@astrojs/rss` was emitting URLs like `https://thinkos.dev/changelog/#v0-7-0/` with a trailing slash *after* the fragment, which some feed readers tolerated and some treated as a broken link. The slash came from the package's `new URL(link, site)` normalization; the feed now constructs URLs explicitly with `new URL('/changelog/', site)` and appends the fragment after — output is clean `https://thinkos.dev/changelog/#v0-7-0`.
+
+### Added
+
+- **`:target` flash on changelog anchors.** When you land on `#v0-7-0`, the entry briefly highlights so the eye finds it. Respects `prefers-reduced-motion` — no animation if the user has it set.
+
 ## [v0.7.1] — 2026-05-15 — Documentation truth pass + website refresh + public changelog
 
 ### Added
