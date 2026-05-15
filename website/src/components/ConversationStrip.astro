@@ -1,0 +1,128 @@
+---
+// ConversationStrip — three panels showing real Claude Code dialogue:
+//  1. Cold start: agent loads identity before responding
+//  2. Mid-session capture offer (the agent proposes, user confirms)
+//  3. /thinkos-morning output
+//
+// Static, monospace, CSS-only. No fabricated quotes — every line mirrors
+// behavior described in the first-action protocol and shipped slash commands.
+---
+<section class="border-t border-rule">
+  <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-24 md:py-32">
+
+    <header class="grid grid-cols-12 gap-6 mb-12">
+      <div class="col-span-12 md:col-span-3">
+        <p class="kicker">In a session</p>
+      </div>
+      <div class="col-span-12 md:col-span-8 md:col-start-5">
+        <h2 class="display text-3xl md:text-4xl mb-5">What it looks like.</h2>
+        <p class="text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
+          Three moments from a real workday. Cold start in a new terminal,
+          a capture mid-flow, and the morning brief. Every line below mirrors
+          the shipped first-action protocol — nothing simulated.
+        </p>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-rule border border-rule">
+
+      <!-- PANEL 1 — cold start -->
+      <article class="bg-paper p-6 md:p-7 flex flex-col">
+        <div class="flex items-baseline justify-between border-b border-rule pb-3 mb-4">
+          <p class="kicker">01 · Cold start</p>
+          <p class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">~2s</p>
+        </div>
+        <pre class="font-mono text-[12px] md:text-[12.5px] leading-[1.65] text-ink whitespace-pre-wrap break-words m-0 flex-1">
+<span class="text-muted">$</span> <span class="text-accent">claude</span>
+
+<span class="text-muted">&gt;</span> who am i, and what am i on this week?
+
+<span class="text-muted">// reading vault before responding</span>
+<span class="text-muted">mcp__basic-memory__search_notes("identity")</span>
+<span class="text-muted">mcp__basic-memory__read_note("Current Focus")</span>
+
+You're Dhiraj — Director of AI Engagement
+at Think Company, Philadelphia. Designer
+background, eight years across consultancy
+and in-house. You write terse, you dislike
+consultancy-speak.
+
+This week's focus (covers_week 2026-W20):
+
+  · ship Think OS v0.7 (cut dead adapters)
+  · prep Q3 internal AI roadmap
+  · close two stuck performance reviews
+
+Two stale notes flagged — run /thinkos-vitals
+when you have a sec.</pre>
+      </article>
+
+      <!-- PANEL 2 — capture offer mid-session -->
+      <article class="bg-paper p-6 md:p-7 flex flex-col">
+        <div class="flex items-baseline justify-between border-b border-rule pb-3 mb-4">
+          <p class="kicker">02 · Capture, mid-flow</p>
+          <p class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">~30s</p>
+        </div>
+        <pre class="font-mono text-[12px] md:text-[12.5px] leading-[1.65] text-ink whitespace-pre-wrap break-words m-0 flex-1">
+<span class="text-muted">&gt;</span> from now on, capture decisions go in
+<span class="text-muted">&gt;</span> the personal hub, never the project
+<span class="text-muted">&gt;</span> vault. project vault is for team
+<span class="text-muted">&gt;</span> activity only.
+
+Got it. That sounds like a standing
+decision — worth logging in
+04 Knowledge/Decisions.md so it
+survives this session?
+
+  Tags I'd suggest:
+    [capture] [privacy] [vault-routing]
+
+<span class="text-muted">&gt;</span> yes
+
+<span class="text-muted">// writing</span>
+<span class="text-muted">mcp__basic-memory__edit_note(</span>
+<span class="text-muted">  "Decisions", operation="append"</span>
+<span class="text-muted">)</span>
+
+Logged. /thinkos-decisions will surface
+it; /thinkos-undo-capture if you want
+it gone.</pre>
+      </article>
+
+      <!-- PANEL 3 — /thinkos-morning -->
+      <article class="bg-paper p-6 md:p-7 flex flex-col">
+        <div class="flex items-baseline justify-between border-b border-rule pb-3 mb-4">
+          <p class="kicker">03 · /thinkos-morning</p>
+          <p class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">~3s</p>
+        </div>
+        <pre class="font-mono text-[12px] md:text-[12.5px] leading-[1.65] text-ink whitespace-pre-wrap break-words m-0 flex-1">
+<span class="text-muted">&gt;</span> /thinkos-morning
+
+<span class="text-accent">Tuesday, May 19 — between client weeks.</span>
+
+This week (top 3):
+  1. cut v0.7 — dead adapter scrub
+  2. Q3 AI roadmap, first draft Friday
+  3. close perf reviews (M. + S.)
+
+On your plate today:
+  · v0.7 release notes — public framing
+  · 1:1 with Sarah, 2pm
+  · ship /changelog page
+
+Awaiting your reply:
+  · Maya — Q3 budget question (3d)
+  · J. Park — Granola plugin spec
+
+Calendar: 2 meetings, both afternoon.
+No fresh sync overnight — Mac was asleep.</pre>
+      </article>
+
+    </div>
+
+    <p class="mt-8 font-mono text-[11px] tracking-[0.18em] uppercase text-muted">
+      Names and project slugs above are illustrative — your vault, your content.
+    </p>
+
+  </div>
+</section>

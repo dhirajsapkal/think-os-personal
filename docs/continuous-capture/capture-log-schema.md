@@ -5,7 +5,7 @@ permalink: think-os/docs/continuous-capture/capture-log-schema
 
 # Capture Log Schema
 
-Canonical contract for the vault note "Capture Log" at `90 System/Capture Log.md`. Every writer and reader (Phase A session-capture, Phase C external-ingest playbooks, `thinkos-recent.sh`, `thinkos-doctor.sh`) must conform to this schema. The ledger lives as a markdown note in the vault so both shell-based writers (Claude Code launchd) and MCP-based writers (Cowork `/schedule`) can append to it. Lines starting with `{` are parseable as JSON.
+Canonical contract for the vault note "Capture Log" at `90 System/Capture Log.md`. Every writer and reader (Phase A session-capture, Phase C external-ingest playbooks, `thinkos-recent.sh`, `thinkos-doctor.sh`) must conform to this schema. The ledger lives as a markdown note in the vault so any MCP-based writer (via `mcp__basic-memory__edit_note`) or shell-based writer (Claude Code launchd) can append to it. Lines starting with `{` are parseable as JSON.
 
 ---
 

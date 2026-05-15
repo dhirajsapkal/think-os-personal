@@ -149,12 +149,12 @@ Keep the user-facing explanation small: say what failed, why it matters, and the
 
 ---
 
-## Setup flow reference (3 steps)
+## Setup flow reference (2+1 steps)
 
-The current user-facing flow is three steps, not two. See `README.md` for the canonical wording:
+The current user-facing flow. See `README.md` for the canonical wording:
 
 1. **Install** (~5 min) — 4 questions + optional Phase 1.5 capability add-ons (Playwright, GitHub CLI auth). This playbook covers that step.
 2. **Restart + authenticate** (~2 min) — quit and reopen; run `/mcp` to authorize any bundle connectors.
-3. **Continue setup via `/thinkos-continue`** (~15–30 min) — Phase 2 context seeding. See `docs/phase-2-seeding-playbook.md`.
+3. **Context seeding** — the default is **emergent seeding** (`docs/emergent-seeding.md`): HOT files fill in from natural conversation over the first few sessions, no bulk connector reads required. Users with rich connector data can instead run `/thinkos-continue` for opt-in bulk-seed (Phase 2). See `docs/phase-2-seeding-playbook.md`.
 
-After Phase 2, users can optionally set up Phase 3 automations (`/thinkos-automate`) and continuous capture (`/thinkos-autosave`, `/thinkos-capture-setup`). See `docs/phase-3-automations-playbook.md` and `docs/continuous-capture/README.md`.
+After seeding, users can optionally set up Phase 3 automations (`/thinkos-automate`) and continuous capture (`/thinkos-autosave`, `/thinkos-capture-setup`). See `docs/phase-3-automations-playbook.md` and `docs/continuous-capture/README.md`.

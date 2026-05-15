@@ -170,7 +170,7 @@ The agent then runs `scripts/thinkos-index.sh <folder1> <folder2> ...` which wri
 
 ---
 
-## Ongoing updates (not v0.3)
+## Ongoing updates
 
 Once a folder is registered as a Think OS source, ongoing updates happen via:
 
@@ -214,19 +214,17 @@ Capture behavior:
 
 ## Implementation status
 
-### Shipped in v0.3
+### Shipped (v0.7.0 current)
 - `templates/05 Profile/Business Brain.md` — sanitized Think Co shared template
 - `data/plugin-catalog.yaml` — full connector catalog with OAuth flags
-- The MCP-driven Phase 2 playbook (`docs/phase-2-seeding-playbook.md`)
-
-### Shipping next slice (v0.3.1 candidate)
+- The MCP-driven Phase 2 playbook (`docs/phase-2-seeding-playbook.md`) — now opt-in; default is emergent seeding (`docs/emergent-seeding.md`)
 - `scripts/thinkos-index.sh` — filesystem + git + manifest indexer
-- Updated Phase 2 playbook: indexer runs first, agent reads `.index/*.json`
+- Phase 2 playbook updated: indexer runs first, agent reads `.index/*.json`
 - Folder selector UX in `/thinkos-continue`
+- Connector polling for ongoing context refresh (continuous capture, `docs/continuous-capture/`)
+- `/thinkos-reindex` for manual re-index
 
-### Future (v0.4+)
-- Periodic re-index command (`/thinkos-reindex --sources`)
-- Stop-hook auto-log
-- Connector polling for ongoing context refresh
+### Future
+- Stop-hook auto-log (deferred)
 - Cross-vault search hub
 

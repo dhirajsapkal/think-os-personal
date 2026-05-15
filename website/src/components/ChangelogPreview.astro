@@ -1,0 +1,21 @@
+---
+// ChangelogPreview — a quiet "See what's new" line under the install prompt.
+// Hard-coded to the latest release to avoid pulling the content collection
+// into the homepage build; the /changelog page renders the real list.
+const latest = {
+  version: '0.7.0',
+  title: 'Honest tool support — adapters that don\'t ship are off main',
+};
+---
+<a
+  href="/changelog"
+  class="group inline-flex items-baseline gap-3 link-anim"
+>
+  <span class="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">
+    See what's new
+  </span>
+  <span class="font-mono text-[11px] tracking-[0.05em] text-ink/80">
+    v{latest.version} — {latest.title}
+  </span>
+  <span class="font-mono text-[11px] text-muted group-hover:text-accent transition-colors">→</span>
+</a>

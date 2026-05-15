@@ -215,11 +215,11 @@ Then present the post-install checklist as a clear numbered list. Emphasize thes
 >
 > Without OAuth, those connectors are installed but can't read data.
 >
-> ### Step C — Run Phase 2 (context seeding) — DO THIS NEXT
+> ### Step C — Context seeding (two paths)
 >
-> **This is the step that makes Think OS useful.** Without Phase 2, your vault is empty markdown templates and the agent has nothing personalized to read.
+> **Default — emergent seeding.** Your vault starts with stub templates. The agent detects them and proposes facts turn-by-turn from natural conversation, with explicit per-fact approval. No bulk connector reads. Just start using Think OS — context fills in over the first few sessions. See `docs/emergent-seeding.md`.
 >
-> In a fresh Claude Code session (after the restart in Step A), type:
+> **Opt-in — bulk seed via `/thinkos-continue`.** If you have rich connector data (Slack, Granola, Calendar, Notion) and want to front-load your HOT files in one session, open a fresh Claude Code session and type:
 >
 > ```
 > /thinkos-continue

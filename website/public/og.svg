@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0.09  0 0 0 0 0.19  0 0 0 0 0.27  0 0 0 0.025 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+  </defs>
+
+  <!-- paper background -->
+  <rect width="1200" height="630" fill="#FFFFFF"/>
+
+  <!-- subtle grain -->
+  <rect width="1200" height="630" fill="#FFFFFF" filter="url(#grain)" opacity="0.5"/>
+
+  <!-- hairline frame -->
+  <rect x="60" y="60" width="1080" height="510" fill="none" stroke="#E2E6EB" stroke-width="1"/>
+
+  <!-- top-left kicker -->
+  <text x="96" y="118"
+        font-family="'Geist Mono', ui-monospace, monospace"
+        font-size="13"
+        letter-spacing="2.4"
+        fill="#5A6B7C"
+        text-transform="uppercase">A PROJECT FROM THINK COMPANY</text>
+
+  <!-- wordmark -->
+  <text x="96" y="280"
+        font-family="'Newsreader', 'Georgia', serif"
+        font-size="120"
+        font-weight="400"
+        letter-spacing="-3"
+        fill="#173145">Think OS.</text>
+
+  <!-- tagline -->
+  <text x="96" y="370"
+        font-family="'Newsreader', 'Georgia', serif"
+        font-size="44"
+        font-weight="300"
+        letter-spacing="-1"
+        fill="#173145">Personal context that follows you</text>
+  <text x="96" y="424"
+        font-family="'Newsreader', 'Georgia', serif"
+        font-size="44"
+        font-style="italic"
+        font-weight="300"
+        letter-spacing="-1"
+        fill="#173145">into every agent session.</text>
+
+  <!-- bottom-left meta -->
+  <text x="96" y="540"
+        font-family="'Geist Mono', ui-monospace, monospace"
+        font-size="14"
+        letter-spacing="2.4"
+        fill="#5A6B7C">v0.7.0 · ALPHA</text>
+
+  <!-- bottom-right accent dot + url -->
+  <circle cx="1014" cy="535" r="5" fill="#0058CC"/>
+  <text x="1030" y="540"
+        font-family="'Geist Mono', ui-monospace, monospace"
+        font-size="14"
+        letter-spacing="2"
+        fill="#5A6B7C">THINKOS.DEV</text>
+
+  <!-- decorative ornament middle-right -->
+  <text x="1044" y="280"
+        font-family="'Newsreader', 'Georgia', serif"
+        font-size="40"
+        font-style="italic"
+        fill="#0058CC"
+        opacity="0.7">❦</text>
+</svg>

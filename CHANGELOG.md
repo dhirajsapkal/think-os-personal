@@ -2,6 +2,44 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.7.1] — 2026-05-15 — Documentation truth pass + website refresh + public changelog
+
+### Added
+
+- **`/changelog` page on the website** rendered from a new Astro content collection (`website/src/content/changelog/`). Five entries — v0.4.4, v0.4.5, v0.5.0, v0.6.0, v0.7.0 — newest-first, each with a 3-bullet highlights section, 1–3 short paragraphs for headline features, flat list for smaller items, and an "Upgrade" footer. Different from `CHANGELOG.md` in purpose: this one is the public, user-facing read; CHANGELOG.md stays the maintainer-facing inventory.
+- **RSS feed at `/rss.xml`** generated from the changelog content collection. Linked from `BaseLayout.astro` `<head>` so feed readers auto-discover it. ISO datetimes with hour granularity used in frontmatter so reverse-chronological sort is stable.
+- **Five new website components.** `ConversationStrip.astro` (three-panel realistic Claude Code transcript showing cold-start vault read, mid-flow capture offer, `/thinkos-morning` output — uses real `mcp__basic-memory__*` tool names, no fabrication), `VaultTree.astro` (CSS-only folder structure with two files "open" showing realistic frontmatter from `templates/05 Profile/Identity.md` shape), `TrustBar.astro` (one-line mono: `v0.7.0 · Built at Think Company · Open source on GitHub`), `WorksWith.astro` ("Plays well with" row — Claude Code · Basic Memory · Granola · Calendar · Slack · Gmail · Linear · Notion · GitHub), `ChangelogPreview.astro` (quiet "See what's new →" line below the install prompt).
+- **OG image** at `website/public/og.png` (1200×630, rendered from `og.svg` via `qlmanage` + `sips`). `og:image` and `twitter:image` meta tags wired into `BaseLayout.astro`.
+- **`Changelog` link in the header nav** between Docs and GitHub.
+
+### Changed
+
+- **Website version stamps corrected.** Header was `v0.4 · alpha`, Footer was `v0.4.2 · alpha`. Both now `v0.7.0 · alpha`.
+- **Website slash-command list regrouped into six workflow groups** instead of a flat 24-entry list. Groups: Morning ritual, Capture & recall, People & projects, Vault health & maintenance, Setup/lifecycle/automations, Discovery. `/thinkos-vitals`, `/thinkos-sync`, `/thinkos-shared` added. `/thinkos-log`, `/thinkos-decide`, `/thinkos-save` explicitly labeled as aliases. Footer note added pointing at `~/.claude/commands/` to surface that commands are plain editable markdown files.
+- **Website FAQ "which agent surfaces does Think OS support?"** rewritten — removed the v0.4 Cowork-support claim, pointed at the `roadmap/cowork-codex` branch.
+- **Website hero subhead** reframed to lead with human behavior ("durable memory of who you are, what you're working on, and how you like to work") instead of infrastructure terms.
+- **Documentation sweep across 12 files** to reflect current v0.7.0 state:
+  - `README.md` — version stamp `v0.4.1` → `v0.7.0`; Step 3 reframed from "DO NOT SKIP THIS / the step that makes Think OS actually useful" to opt-in emergent seeding as the default
+  - `AGENTS.md` — body updated; curated-instructions list now includes blocks 40/50/60 with descriptions
+  - `MAINTENANCE.md` — "Stop hook" replaced with the accurate launchd job; `/thinkos-vitals` added to the on-demand freshness checks
+  - `LIMITATIONS.md` — `/thinkos-index-projects` (a command that doesn't exist) replaced with `bash scripts/thinkos-index.sh` and the `/index-projects` skill
+  - `adapters/claude-code/INSTALL.md` — Step C reframed: emergent seeding default, `/thinkos-continue` opt-in; "DO THIS NEXT" imperative removed
+  - `docs/agent-setup-playbook.md` — Step 3 updated to match the new opt-in framing
+  - `docs/automation-roadmap.md` — implementation-status section updated (indexer shipped, continuous capture shipped, Phase 2 opt-in)
+  - `docs/multi-vault-architecture.md` — Slice 2 marked `tier:` + `/thinkos-shared` as shipped in v0.5.0; Slice 4 marked `/thinkos-sync` as shipped in v0.6.0
+  - `docs/setup-basic-memory.md` — cross-machine bullet now references `/thinkos-sync` and the opt-in launchd job instead of "choose an explicit sync strategy"
+  - `docs/update-protocol.md` — channel-switch example bumped from `v0.4.0` to `v0.7.0`
+  - `docs/continuous-capture/{capture-log-schema.md,sources/README.md}` — "Cowork `/schedule`" references generalized to "MCP-based writer"
+- **`website/astro.config.mjs`** — added `site: 'https://thinkos.dev'` (required by `@astrojs/rss`).
+
+### Why this matters
+
+The three earlier releases this cycle shipped a lot of real surface (vitals, sync, emergent seeding, shared mode, capture consolidation, the scaffolding cut), but the docs and website were narrating an older version of the product. A new visitor reading the README or the landing page wouldn't have seen most of what changed.
+
+v0.7.1 closes that gap. Same week's shipping, now reflected in everything a reader actually reads first: the README's version stamp, the website's hero, the commands table, the FAQ that no longer overpromises Cowork. The public `/changelog` page (+ RSS) gives ongoing releases a surface that doesn't require reading a maintainer-facing markdown file — and gives the project a "active" signal that quietly compounds over time.
+
+Pure documentation + presentation release. No code paths changed; no manifest entries added; existing installs see zero drift from this release.
+
 ## [v0.7.0] — 2026-05-15 — Cowork/Codex moved to roadmap branch
 
 ### Removed

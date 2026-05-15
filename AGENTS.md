@@ -12,7 +12,7 @@ Read in this order (skip what you don't need):
 
 1. `README.md` for the product overview.
 2. `docs/agent-setup-playbook.md` for first-run setup behavior (Phase 1).
-3. `docs/phase-2-seeding-playbook.md` for Phase 2 (drafting HOT-tier files from connected tools).
+3. `docs/phase-2-seeding-playbook.md` for Phase 2 (opt-in bulk-seed from connected tools; default path is emergent seeding — see `docs/emergent-seeding.md`).
 4. `docs/multi-vault-architecture.md` for the multi-vault design (privacy tiers, schema enforcement, git integration).
 5. `docs/automation-roadmap.md` for the source-matrix + indexer-first pattern that Phase 2 uses.
 6. `adapters/claude-code/README.md` for the Claude Code adapter.
@@ -34,10 +34,13 @@ Be a guided installer, not a scavenger hunt.
 The agent instruction block installed into `~/.claude/CLAUDE.md` is assembled from two layers:
 
 1. **Curated, product-independent guidance** in `templates/instructions/`:
-   - `00-think-os-priority.md` — "this user has Think OS, query Basic Memory first, core rules"
+   - `00-think-os-priority.md` — "this user has Think OS, query Basic Memory first, core rules" (includes multi-instance dedup rule and cost-of-context skip rule)
    - `10-token-efficiency.md` — tool-use defaults (Grep over Read+grep, Edit over Write, batching, etc.)
    - `20-skill-routing.md` — topic → skill mapping (design → `frontend-design`, etc.)
    - `30-think-os-write-targets.md` — content type → vault destination
+   - `40-emergent-seeding.md` — HOT-file stub detection, propose-then-save, per-file draft state
+   - `50-drift-detection.md` — four contradiction types flagged mid-flow; bounded one-line nudge
+   - `60-shared-mode.md` — `tier: sensitive` frontmatter, shared-mode flag file, `/thinkos-shared on|off`
 2. **Adapter-specific instructions** in `adapters/claude-code/instructions.md`.
 
 `scripts/thinkos-setup.sh` concatenates layer 1 then layer 2 between `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` markers. `scripts/thinkos-update.sh` re-applies the same block (use after editing curated content or pulling new content from this repo).
@@ -53,12 +56,13 @@ When working on Think OS itself, prefer editing the curated files over duplicati
 
 - After basic setup, offer the bundle wizard (`--bundle <preset>`); see `data/plugin-catalog.yaml`.
 
-## Phase 1 vs Phase 2
+## Phase 1 vs Phase 2 vs Emergent Seeding
 
-Onboarding splits into two phases. The line between them matters:
+Onboarding has three paths. The line between them matters:
 
 - **Phase 1** — Infrastructure. Setup installs vault templates, Basic Memory MCP, the Claude Code adapter, and the plugin bundle. No connector data is read. Ends by writing `~/.thinkos/wizard-state.json` with `phase: awaiting_oauth_and_restart`.
-- **Phase 2** — Content seeding. After OAuth + restart, the user runs `/thinkos-continue`. The agent follows `docs/phase-2-seeding-playbook.md` and *does* read from connectors — but only with per-source consent, only the minimum needed, and only drafts content (the user approves before each commit).
+- **Emergent seeding (default)** — After Phase 1, HOT-tier files start as stubs. The agent detects the `<!-- thinkos:stub -->` marker, proposes facts from conversation turn-by-turn, and saves with explicit per-fact confirmation. Per-file draft state lives at `~/.thinkos/emergent-state.json`. No bulk connector reads required. See `docs/emergent-seeding.md`.
+- **Phase 2 (opt-in bulk-seed)** — For users with rich connector data who want to front-load. After OAuth + restart, the user runs `/thinkos-continue`. The agent follows `docs/phase-2-seeding-playbook.md` and *does* read from connectors — but only with per-source consent, only the minimum needed, and only drafts content (the user approves before each commit).
 
 On every new session, check whether setup is in progress:
 

@@ -39,7 +39,7 @@ Two channels, both served from the same repo:
 - **`stable`** (default) — latest tagged release. `/thinkos-update` resolves to the latest `vX.Y.Z` tag on origin.
 - **`next`** — latest commit on `origin/main`. Opt-in via `/thinkos-update --channel next`. Tracked persistently in `install-manifest.json` so subsequent updates stay on the same channel until the user opts out.
 
-Channel switch is just a checkout: `git checkout v0.4.0` for stable, `git checkout main` for next. No special tooling.
+Channel switch is just a checkout: `git checkout v0.7.0` for stable, `git checkout main` for next. No special tooling.
 
 ---
 

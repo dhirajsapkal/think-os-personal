@@ -421,11 +421,11 @@ New slash commands (mirror shell commands for in-agent use):
 - README + AGENTS.md updates
 - `docs/multi-vault-architecture.md` (this doc)
 
-### Slice 2 (future PR) — Privacy tiers
+### Slice 2 — Privacy tiers (partially shipped)
 
-- `.private/` automation: setup script writes `tmutil addexclusion`, ensures `.gitignore`
-- `.vault/` automation: `thinkos vault setup-encrypted` creates APFS volume, stores key in Keychain
-- Personal mode (`/personal` slash command, session flag, write-blocking on project vaults)
+- `tier: standard | sensitive` frontmatter field shipped in v0.5.0 — see `docs/privacy-tiers.md` and curated block `60-shared-mode.md`.
+- `/thinkos-shared on|off` activates shared-mode (hides `tier: sensitive` notes from agent reads).
+- `.private/` filesystem automation, `.vault/` APFS encrypted volume, and `/personal` mode: **still future** — deferred to a later slice.
 
 ### Slice 3 (future PR) — Schema enforcement
 
@@ -434,11 +434,11 @@ New slash commands (mirror shell commands for in-agent use):
 - Agent honors schema at write time
 - ULID injection into all new note frontmatter
 
-### Slice 4 (future PR) — Conflict & sync ergonomics
+### Slice 4 — Conflict & sync ergonomics (partially shipped)
 
-- `thinkos vault sync` (pull + reindex + push)
-- `/thinkos-vault resolve-conflicts` agent playbook
-- Filesystem watcher for auto-reindex on pull
+- **`/thinkos-sync` shipped in v0.6.0** — commit + pull --rebase + push for the personal hub vault. Conflicts pause to the user; never auto-resolved. Opt-in launchd job (18:00 weekdays) via `bash scripts/install-sync-job.sh`. See `docs/cross-machine-sync.md`.
+- `/thinkos-vault resolve-conflicts` agent playbook: **still future**.
+- Filesystem watcher for auto-reindex on pull: **still future**.
 
 ### Slice 5 (future PR) — Cross-vault search hub
 

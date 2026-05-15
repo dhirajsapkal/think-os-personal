@@ -4,7 +4,7 @@
 
 Think OS gives your agentic tools durable memory of who you are, what you're working on, who you work with, and how you like to work. It's a markdown vault plus a context server (Basic Memory MCP) that any modern agent can query and update.
 
-Early alpha — v0.4.1. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
+Early alpha — v0.7.0. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
 
 ---
 
@@ -28,15 +28,15 @@ If you installed a plugin bundle, type `/mcp` and authorize each connector liste
 
 You can stay in the same fresh session for Step 3.
 
-### Step 3 — Continue setup (~15-30 min) — DO NOT SKIP THIS
+### Step 3 — Continue setup (opt-in, ~15–30 min)
 
-In the same fresh session (or a new one if you closed it), type:
+The default path after install is **emergent seeding** — the agent drafts HOT-tier files (Identity, Project Index, Current Focus, People) turn-by-turn from natural conversation, with explicit per-fact approval. Start using Think OS immediately; context fills in over the first few sessions. See `docs/emergent-seeding.md` for how that works.
+
+If you have rich connector data already (Slack, Notion, Granola, calendar) and prefer to front-load your HOT files in one session, run `/thinkos-continue` — that's Phase 2, the opt-in bulk-seed path:
 
 ```
 /thinkos-continue
 ```
-
-This is Phase 2 — **the step that makes Think OS actually useful.** Without it, your vault is empty markdown templates and the agent has nothing personalized to read.
 
 The agent will:
 - Offer to import from an existing markdown vault (Obsidian, old Think OS, etc.) if you have one
