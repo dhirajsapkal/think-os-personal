@@ -139,17 +139,23 @@ See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for t
 | `/thinkos-whoami` | Quick identity + role + current focus |
 | `/thinkos-morning` | Daily brief — focus, plate, recent log |
 | `/thinkos-plate` | What's on your plate today |
+| `/thinkos-save` | End-of-session: drafts Work Log + Decisions + Learnings + People entries from session context, approve each |
 | `/thinkos-log <message>` | Capture a timestamped note |
 | `/thinkos-who <name>` | What you know about a specific person |
 | `/thinkos-project <slug>` | Load deep context for a project |
 | `/thinkos-decisions [topic]` | Search your standing decisions |
 | `/thinkos-learnings [topic]` | Search reusable learnings |
-| `/thinkos-decide / -capture` | Record a decision / cross-project learning |
+| `/thinkos-decide <decision>` | Record a standing decision |
+| `/thinkos-capture <learning>` | Capture a cross-project learning |
+| `/thinkos-stale` | List notes past their freshness window |
+| `/thinkos-voice <text>` | Rewrite a draft in your voice profile |
 | `/thinkos-recent` | See what was captured in the last 24h (the audit view) |
 | `/thinkos-undo-capture` | Remove a recent capture from the vault + ledger |
 | `/thinkos-autosave on\|off\|status` | Manage periodic background session capture |
 | `/thinkos-capture-setup` | Enable continuous-capture sources (Granola, Slack, Gmail, etc.) |
+| `/thinkos-reindex` | Refresh Basic Memory's index after external vault edits |
 | `/thinkos-vault` | Manage vaults — list, switch, create-project, clone |
+| `/thinkos-setup` | Run the Think OS first-time setup |
 | `/thinkos-continue` | Resume setup after restart (Phase 2 context seeding) |
 | `/thinkos-automate` | Set up scheduled triggers (Phase 3 automations) |
 | `/thinkos-update` | Pull latest curated instructions + commands, with drift detection |

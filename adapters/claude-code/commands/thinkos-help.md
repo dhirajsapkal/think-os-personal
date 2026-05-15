@@ -27,6 +27,7 @@ Show the full index of Think OS slash commands grouped by category, plus key scr
 | `/thinkos-morning` | Daily brief — focus, plate, recent log, calendar |
 | `/thinkos-plate` | What's on your plate today (tasks + current focus) |
 | `/thinkos-whoami` | Quick identity + role + current focus |
+| `/thinkos-save` | Save the substance of the current session — Work Log + Decisions + Learnings + People, approved per item. Manual analog of autosave for substance (not metadata). |
 | `/thinkos-log <message>` | Capture a timestamped note to your work log |
 | `/thinkos-decide <decision>` | Record a standing decision in your vault |
 | `/thinkos-capture <learning>` | Capture a cross-project learning into your vault |
@@ -41,6 +42,18 @@ Show the full index of Think OS slash commands grouped by category, plus key scr
 | `/thinkos-decisions [topic]` | Search your standing decisions, optionally by topic |
 | `/thinkos-learnings [topic]` | Search reusable learnings by topic or tag |
 | `/thinkos-project <slug>` | Load deep context for a project by slug or name |
+
+---
+
+## Automation & capture
+
+| Command | What it does |
+|---|---|
+| `/thinkos-autosave on\|off\|status\|now` | Manage the periodic launchd job that appends session-activity metadata to your vault every 2h |
+| `/thinkos-automate` | Set up Phase 3 maintenance jobs (daily reindex, weekly review, quarterly archive, morning brief) |
+| `/thinkos-capture-setup` | Enable Phase C continuous-capture sources (Granola, Calendar, Linear, ClickUp, Gmail, Slack) |
+| `/thinkos-recent [--hours N] [--source X]` | Show recent captures from the audit ledger |
+| `/thinkos-undo-capture` | Remove a recent capture from the vault + ledger |
 
 ---
 

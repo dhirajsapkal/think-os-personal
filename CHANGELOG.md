@@ -2,6 +2,14 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.4.3] — 2026-05-14 — `/thinkos-save` — manual substance capture
+
+### Added
+
+- **`/thinkos-save`** — new slash command that captures the substance of the current session (Work Log + Decisions + Learnings + People entries) with per-item chip-picker approval. Complementary to the autosave launchd job, which captures metadata (cwd, file counts, commits) every 2h. Autosave handles "what files were touched"; `/thinkos-save` handles "what was decided / learned / shipped."
+- The playbook checks for recent manual saves (last 30 min) to avoid duplicates; routes everything to the personal hub vault; appends ledger events with `source: manual` and `via: thinkos-save` so the audit trail differentiates manual saves from automated captures.
+- Privacy filter applies (comp/HR/health/family/etc.) — entries land in the vault but ledger detail is redacted.
+
 ## [v0.4.2] — 2026-05-14 — Ledger moves into the vault; Cowork can now drive autonomous capture
 
 ### Changed
