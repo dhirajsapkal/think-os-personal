@@ -2,6 +2,12 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.7.3] — 2026-05-15 — Fabricated demo persona scrubbed from website
+
+### Fixed
+
+- **`ConversationStrip` and `VaultTree` components on the website were rendering a fabricated bio for the maintainer** ("Dhiraj — Director of AI Engagement at Think Company, Philadelphia, Designer background, eight years across consultancy and in-house...") along with invented current work ("Q3 internal AI roadmap to Maya by Friday", "two stuck performance reviews"). None of that was true — the implementation agent invented a persona while trying to ground the demo in real names. Replaced with a clearly fictional persona (Sam Reyes — Engineering Lead at Cardinal Studio, Brooklyn) and tightened the disclaimer line under the conversation strip to "Sample vault content. Sam Reyes and Cardinal Studio are fictional — your real vault has your real notes." The legitimate references that remain on the site ("Designed and built by Dhiraj Sapkal" in the footer; "Built at Think Company" in the trust bar; the Think Company logo) are actually true and stay.
+
 ## [v0.7.2] — 2026-05-15 — Changelog anchors + RSS link cleanup
 
 ### Fixed
