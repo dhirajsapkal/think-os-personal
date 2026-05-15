@@ -18,6 +18,11 @@ Then layer in project, people, decisions, and learnings as the question demands.
 - Generic factual questions where personal context is irrelevant.
 - The user explicitly says "skip context" / "no context" / "fast answer".
 - You are continuing an existing thread in the same session and the context is already loaded.
+- **Project-local generic question.** If ALL of the following are true, skip the mandatory reads and answer directly:
+  - CWD is a registered project (matches a path in `vaults.json` with `type: project`), AND
+  - the question does not mention any of: "I", "me", "my", "we", "our", a person's proper name, the words "identity"/"focus"/"decisions"/"learnings"/"vault"/"focus"/"week"/"last week", AND
+  - the question is a how-to / factual / single-file pattern ("how does this function work?", "what does this script do?", "where is X defined?", "fix this typo").
+  - When ANY criterion is uncertain, read. Conservative bias: false negatives (skipping when context would have helped) are recoverable; false positives (skipping in personal contexts) are not.
 
 When in doubt, read. It is cheaper than guessing wrong.
 
@@ -41,7 +46,10 @@ The remaining sections are concatenated below in this order:
 2. **Token efficiency** (`10-token-efficiency.md`) — tool-use defaults.
 3. **Skill routing** (`20-skill-routing.md`) — which skill to invoke for which topic.
 4. **Write targets** (`30-think-os-write-targets.md`) — where new content goes by type.
-5. **Adapter-specific instructions** — the rest of this block (Basic Memory tool examples, multi-vault awareness, mid-setup detection).
+5. **Emergent seeding** (`40-emergent-seeding.md`) — fill empty HOT stubs from natural conversation.
+6. **Drift detection** (`50-drift-detection.md`) — flag contradictions and staleness mid-flow.
+7. **Shared mode** (`60-shared-mode.md`) — hide `tier: sensitive` notes when screen-sharing.
+8. **Adapter-specific instructions** — the rest of this block (Basic Memory tool examples, multi-vault awareness, mid-setup detection).
 
 For end-user help in a live session, `/thinkos-help` lists every command. `/thinkos-mcp-help` is a tutorial for using the MCP itself.
 

@@ -122,6 +122,9 @@ managed_files:
       - templates/instructions/10-token-efficiency.md
       - templates/instructions/20-skill-routing.md
       - templates/instructions/30-think-os-write-targets.md
+      - templates/instructions/40-emergent-seeding.md
+      - templates/instructions/50-drift-detection.md
+      - templates/instructions/60-shared-mode.md
     mode: block         # replaced between BEGIN THINK OS / END THINK OS markers
     products: [claude-code]
 

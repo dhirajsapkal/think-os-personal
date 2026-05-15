@@ -1,22 +1,14 @@
 ---
-description: Capture a timestamped note to your work log
+description: Capture a timestamped note to your work log (alias for /thinkos-capture --mode log)
 permalink: think-os/adapters/claude-code/commands/thinkos-log
 ---
 
-Append a manual log entry to `01 Now/Work Log.md` via Basic Memory:
+**This command now delegates to `/thinkos-capture` with `--mode log`. Result is identical; one fewer command to remember.**
 
-```
-mcp__basic-memory__edit_note(
-  identifier="Work Log",
-  operation="append",
-  content="\n## YYYY-MM-DD HH:MM — <project-or-context>\nSession: $ARGUMENTS\n"
-)
-```
+Follow `adapters/claude-code/commands/thinkos-capture.md` with `$ARGUMENTS` treated as if the user had typed `/thinkos-capture --mode log $ARGUMENTS`. The canonical playbook handles formatting, ledger event, and confirmation.
 
-Use:
-- Today's date and current time
-- The current working directory's project name as `<project-or-context>` if cwd is under a known project root, otherwise infer from $ARGUMENTS or use "CLI agent session"
+Show this one-line hint to the user exactly once per session (track via the session-scoped reasoning; do not re-surface on every invocation):
 
-Confirm the entry was appended. Don't write a summary preamble — keep the log entry verbatim from the user.
+> Routing through /thinkos-capture (same behavior, one fewer command to remember).
 
 User message: $ARGUMENTS

@@ -3,6 +3,8 @@ description: Resume Think OS onboarding (Phase 2 — seed your context from conn
 permalink: think-os/adapters/claude-code/commands/thinkos-continue
 ---
 
+Phase 2 is the **opt-in bulk-seed flow**. If the user invoked you, they want it — proceed with the playbook below. Otherwise, the default path is **emergent seeding** via natural conversation (see `templates/instructions/40-emergent-seeding.md` and `docs/emergent-seeding.md`): the agent drafts HOT files turn-by-turn as the user mentions facts, and saves with explicit per-fact approval. Phase 2 is for users who already have rich connector data (Slack, Notion, calendar, etc.) and want to front-load.
+
 Resume Think OS setup. The user finished Phase 1 (install) and is ready for Phase 2 — drafting their HOT-tier files from connected tools.
 
 ## Follow the canonical playbook

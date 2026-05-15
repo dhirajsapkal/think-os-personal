@@ -11,6 +11,8 @@ permalink: think-os/phase-2-seeding-playbook
 
 # Phase 2 Seeding Playbook
 
+> **Note (v0.5+):** Phase 2 is now an **opt-in bulk-seed flow** for users who already have rich connector data (Slack, Notion, calendar, etc.) and want to front-load their HOT files. The **default path** for new installs is **emergent seeding** — the agent drafts HOT files turn-by-turn from natural conversation, with explicit per-fact approval. See `docs/emergent-seeding.md` for that flow. This playbook stays fully valid for users who explicitly invoke `/thinkos-continue`.
+
 This is the canonical agent playbook for Phase 2 of Think OS onboarding — populating the user's HOT-tier markdown files from their connected tools.
 
 Phase 1 installs the infrastructure: vault folder, templates, Basic Memory MCP, Claude Code adapter, the chosen plugin/connector bundle. Phase 1 leaves the markdown files as blank skeletons. Phase 2 is where the user becomes a *user*: their actual identity, projects, focus, and people are drafted from real sources — with citations — and committed to the vault only after explicit approval.

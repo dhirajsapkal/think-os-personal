@@ -8,6 +8,7 @@ permalink: think-os/people
 tier: WARM
 last_reviewed: {{YYYY-MM-DD}}
 ---
+<!-- thinkos:stub -->
 
 # People
 

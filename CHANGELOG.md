@@ -2,6 +2,36 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.7.0] — Unreleased — Cowork/Codex moved to roadmap branch
+
+## [v0.6.0] — Unreleased — Vitals + cross-machine sync
+
+## [v0.5.0] — 2026-05-15 — Emergent seeding + drift detection + capture consolidation + shared-mode
+
+### Added
+
+- **Emergent seeding (curated rule block `40-emergent-seeding.md`).** HOT files now fill in from natural conversation over the first few real sessions. Shipped HOT-file templates (`Identity`, `Project Index`, `Current Focus`, `People`) carry a `<!-- thinkos:stub -->` marker so the agent can detect empty state, draft proposals from conversation, and propose-then-save with explicit confirmation. Per-file draft state lives in `~/.thinkos/emergent-state.json`. Capped at 3 deferrals per file before going silent. New doc: `docs/emergent-seeding.md`.
+- **Agent-initiated drift detection (curated rule block `50-drift-detection.md`).** The agent flags four contradiction types mid-flow — Identity vs. recent Work Log, stale `covers_week`, unknown-person mentions, project not in index — with a bounded one-line nudge. Auto-muted after `/weekly-review` until the next Sunday, and silent in shared-mode. Max one nudge per session, max one re-surface per topic per week. New doc: `docs/drift-detection.md`.
+- **Cost-of-context skip rule** in `00-think-os-priority.md`. Conservative exception: when CWD is a registered project AND the question is project-local factual (no first-person pronouns, no identity/focus/decisions/learnings keywords), the agent skips the two mandatory first-action MCP reads. False negatives (skipping when context would have helped) are recoverable; false positives are not — so the heuristic biases conservative. New doc: `docs/cost-of-context-heuristic.md` with 10 worked examples.
+- **Privacy tiers + shared-mode (curated rule block `60-shared-mode.md`).** New optional `tier: standard | sensitive` frontmatter field (default `standard`). When shared-mode is active, the agent post-filters search results to drop `tier: sensitive` notes and refuses reads with a redaction message. Activation: presence of `~/.thinkos/shared-mode` flag file, or `THINKOS_SHARED=1` env var (env overrides file). New slash command `/thinkos-shared on|off`. Writes are unaffected by shared-mode. New doc: `docs/privacy-tiers.md`.
+- **Three new entries in `setup/manifest.yaml` `composed_with`** for the new curated instruction blocks. Existing v0.4.5 baseline-refresh on update absorbs the change cleanly — users on v0.4.5 → v0.5.0 see one expected drift on `~/.claude/CLAUDE.md` (the BEGIN/END block), no false drift on existing slash commands.
+
+### Changed
+
+- **Capture surface consolidated to one canonical command.** `/thinkos-capture` is now the canonical multi-type handler with type inference: decision (verb phrasing like "from now on", "we'll always") → learning ("noticed that", generalizable) → log (first-person past-tense single event) → session-recap (multi-paragraph or empty $ARGUMENTS). `/thinkos-log`, `/thinkos-decide`, `/thinkos-save` reshaped as ~14-line soft aliases that set the `--mode` and delegate, with a one-line hint shown once per session ("Routing through /thinkos-capture — same behavior, one fewer command to remember"). Vault output format unchanged per type. **v0.4.4 topic-overlap dedup semantics preserved verbatim** in the session-recap section (Step 0a triage + Step 0b semantic-overlap check + ledger `topic` field).
+- **`/thinkos-continue` reframed: Phase 2 is now opt-in.** The playbook content is unchanged for users who explicitly invoke `/thinkos-continue`; the default onboarding path is now emergent seeding. `docs/phase-2-seeding-playbook.md` gains a top-of-file note explaining the new positioning.
+- **README "Step 3 — DO NOT SKIP THIS" framing retired** (deferred to a follow-up README pass). The product now defaults to empty-templates-then-emerge, with `/thinkos-continue` available as an opt-in bulk-seed path.
+
+### Why this matters
+
+Two structural shifts. First, **onboarding stops being a 30-minute wall.** The previous Phase 2 step was framed as required; users who didn't complete it got an empty-feeling vault and an under-personalized agent. Emergent seeding inverts the contract: start empty, let the agent surface what it learns, save on confirmation. Phase 2 is still there for power users with rich connector data — it just isn't blocking.
+
+Second, **the capture surface stops fragmenting.** Four slash commands (`log`, `capture`, `decide`, `save`) became four ways to do the same thing. Now there's one canonical name with three soft aliases that keep working forever. Reduces decision fatigue without breaking muscle memory.
+
+Drift detection and shared-mode are smaller but pay compounding interest: the OS catches its own stale state without waiting for `/weekly-review`, and you can hand a screen to a collaborator without leaking 1:1 notes.
+
+
+
 ## [v0.4.5] — 2026-05-15 — Drift handling: auto-baseline refresh + system-caused drift option
 
 ### Fixed

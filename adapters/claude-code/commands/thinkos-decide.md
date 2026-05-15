@@ -1,27 +1,14 @@
 ---
-description: Record a standing decision in your vault
+description: Record a standing decision in your vault (alias for /thinkos-capture --mode decision)
 permalink: think-os/adapters/claude-code/commands/thinkos-decide
 ---
 
-Append a structured decision entry to `04 Knowledge/Decisions.md` via Basic Memory.
+**This command now delegates to `/thinkos-capture` with `--mode decision`. Result is identical; one fewer command to remember.**
 
-Take the user's message ($ARGUMENTS) and shape it into the standard format:
+Follow `adapters/claude-code/commands/thinkos-capture.md` with `$ARGUMENTS` treated as if the user had typed `/thinkos-capture --mode decision $ARGUMENTS`. The canonical playbook handles formatting, ledger event, and confirmation.
 
-```markdown
-## YYYY-MM-DD — <topic>
-**Decision**: <what was decided>
-**Why**: <reasoning at the time>
-**Context**: <what prompted it>
-**Applies to**: <project / general / specific tool>
-**Supersedes**: <link to earlier decision if any>
-```
+Show this one-line hint to the user exactly once per session (track via the session-scoped reasoning; do not re-surface on every invocation):
 
-Use today's date. Extract topic, decision, why, context, applies-to from $ARGUMENTS. If anything is unclear, ask ONCE for the most missing piece before writing.
-
-Then call `mcp__basic-memory__edit_note(identifier="Standing Decisions", operation="append", content="<formatted entry>")`.
-
-Per `04 Knowledge/Decisions.md` convention, NEWER entries go above older ones — find the right insertion point or append after the format guide block.
-
-Confirm written.
+> Routing through /thinkos-capture (same behavior, one fewer command to remember).
 
 User message: $ARGUMENTS
