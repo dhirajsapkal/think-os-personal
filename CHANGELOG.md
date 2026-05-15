@@ -2,6 +2,20 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.4.5] — 2026-05-15 — Drift handling: auto-baseline refresh + system-caused drift option
+
+### Fixed
+
+- **`scripts/thinkos-update.sh` now refreshes the install-manifest baselines at the end of every run.** Previously, `shipped_sha` values were only updated during the v1→v2 migration; subsequent `--skip-pull` runs touched files but left stale baselines, accumulating false-positive drift over time. Each successful update now recomputes `shipped_sha` + `current_sha` for every managed file, bumps `thinkos_version` to the current git HEAD, and updates `last_updated_at`. Idempotent and respects `--dry-run`.
+
+### Added
+
+- **`/thinkos-update` playbook now offers four chip options when drift is detected** (was three): "Back up and replace" (safe default), "Just replace, no backup" (new — for system-caused drift cases or when bloat avoidance matters more than rollback safety), "Keep mine", "Show diff first". The playbook explains when system-caused drift is likely so the user can choose the no-backup path without guilt.
+
+### Why this matters
+
+Yesterday's first real `/thinkos-update` test surfaced both quirks: drift was reported on a file the user never touched (baseline lag), and the only path forward forced a backup of a stale intermediate version. v0.4.5 closes both gaps — drift detection now reflects reality, and the user has a clean path for cases where the safe-default backup is just noise.
+
 ## [v0.4.4] — 2026-05-15 — Multi-instance dedup fix
 
 ### Changed

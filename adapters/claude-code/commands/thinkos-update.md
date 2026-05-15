@@ -112,17 +112,22 @@ Three states per file:
 - **Drift** — disk differs from `shipped_sha`. The user edited it. Don't overwrite without asking.
 - **Missing** — disk file doesn't exist. Treat as clean; install fresh.
 
-If any drift is detected, present it as a short list with one chip-picker question per drifted file (or one batched question if there are more than three):
+If any drift is detected, distinguish two cases:
+
+**System-caused drift** — likely if the manifest's `last_updated_at` is recent (within the last ~30 days) and there's no obvious reason the user would have edited the file. Mention this in the question so the user can pick the no-backup option without guilt:
+
+> Note: this drift may be system-caused (prior `--skip-pull` runs touched the file without refreshing the baseline). If you haven't manually edited it, the backup is mostly noise — pick "Just replace, no backup."
 
 `AskUserQuestion`:
 
 - Header: "Drift detected"
-- Question: "`<file path>` was edited locally since install. What should I do?"
+- Question: "`<file path>` differs from the shipped baseline. What should I do?"
 - multiSelect: false
 - Options:
   | label | description |
   |---|---|
-  | "Back up and replace" | "Save your version to `~/.thinkos/backups/<timestamp>/` and apply the new one." |
+  | "Back up and replace" | "Save your version to `~/.thinkos/backups/<timestamp>/` and apply the new one. Safe default." |
+  | "Just replace, no backup" | "Skip the backup. Use when you know the drift is system-caused or you don't need to preserve the local version." |
   | "Keep mine" | "Skip this file. The new version is not applied." |
   | "Show diff first" | "Print the diff so I can decide." |
 

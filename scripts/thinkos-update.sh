@@ -289,6 +289,68 @@ fi
 
 log
 log "Updated: $UPDATED_COUNT product(s)."
+
+# ---------------------------------------------------------------------------
+# Refresh the install-manifest baselines.
+#
+# Without this, shipped_sha values accumulate "lag" — they were set at install
+# (or migration) time and never refreshed by subsequent --skip-pull runs.
+# Result: false-positive drift on files the user never manually edited.
+#
+# Runs only when:
+#   - The install-manifest is v2+ (has managed_files array)
+#   - We're not in --dry-run mode
+#   - The repo is a git checkout (so we can read HEAD)
+# ---------------------------------------------------------------------------
+MANIFEST="$HOME/.thinkos/install-manifest.json"
+if [[ "$DRY_RUN" -eq 0 ]] && [[ -f "$MANIFEST" ]] && [[ -d "$REPO_ROOT/.git" ]]; then
+  HEAD_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "")"
+  if [[ -n "$HEAD_SHA" ]]; then
+    python3 - "$MANIFEST" "$HEAD_SHA" 2>/dev/null <<'PY' || log "Note: manifest baseline refresh skipped (manifest may be v1)."
+import json, sys, hashlib, os, re
+from datetime import datetime, timezone
+
+manifest_path, new_version = sys.argv[1], sys.argv[2]
+BEGIN = "<!-- BEGIN THINK OS -->"
+END   = "<!-- END THINK OS -->"
+
+m = json.load(open(manifest_path))
+files = m.get("managed_files")
+if not files:
+    sys.exit(0)  # v1 manifest — nothing to refresh
+
+updated = 0
+for f in files:
+    target = f.get("target")
+    mode = f.get("mode", "file")
+    if not target or not os.path.exists(target):
+        continue
+    if mode == "block":
+        text = open(target).read()
+        match = re.search(re.escape(BEGIN) + r"(.*?)" + re.escape(END), text, re.DOTALL)
+        h = hashlib.sha256(match.group(1).encode("utf-8")).hexdigest() if match else None
+    else:
+        h = hashlib.sha256(open(target, "rb").read()).hexdigest()
+    if h:
+        f["shipped_sha"] = h
+        f["current_sha"] = h
+        updated += 1
+
+m["thinkos_version"] = new_version
+m["last_updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+# Atomic write
+tmp = manifest_path + ".tmp"
+with open(tmp, "w") as fp:
+    json.dump(m, fp, indent=2)
+    fp.write("\n")
+os.rename(tmp, manifest_path)
+
+print(f"[manifest] thinkos_version → {new_version[:10]}, shipped_sha refreshed for {updated} files")
+PY
+  fi
+fi
+
 if [[ "$DRY_RUN" -eq 1 ]]; then
   log "(Dry run — no files were modified.)"
 fi
