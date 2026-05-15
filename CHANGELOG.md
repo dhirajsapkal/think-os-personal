@@ -4,7 +4,27 @@ All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-M
 
 ## [v0.7.0] — Unreleased — Cowork/Codex moved to roadmap branch
 
-## [v0.6.0] — Unreleased — Vitals + cross-machine sync
+## [v0.6.0] — 2026-05-15 — Vitals + cross-machine sync
+
+### Added
+
+- **`/thinkos-vitals` — vault-health snapshot.** New script `scripts/thinkos-vitals.sh` plus slash command. Reports per-HOT-file `last_reviewed` age vs. today, `covers_week` expiry, WARM-file mtime staleness (>30d threshold), line counts vs. budgets (Project Index 200, People 300, Current Focus 200, Identity 150 — overrideable via frontmatter `budget:`), unreviewed-autocapture count from `90 System/Capture Log.md` (`source != manual` AND `reviewed: true` absent, last 30 days), ledger volume 7d/30d, broken cross-links (wikilink + Markdown link patterns) scoped to HOT files + `02 Projects/*.md`, and section ages for append-only logs (`Decisions.md`, `Learnings.md`, `Work Log.md`). Two output modes: `--json` for tooling, default human-readable for terminals. Robust on empty/stub vaults — emits `status: stub` instead of crashing. New doc: `docs/vitals-design.md` (rationale for why vitals is separate from doctor; full JSON schema; heuristic catalog).
+- **`/thinkos-vitals` chip-picker follow-through.** After surfacing the report, offers four actions: "Address oldest stale file" → routes through `/thinkos-capture --mode session-recap`; "Mark autocaptures reviewed" → one-by-one prompts to set `reviewed: true` via Basic Memory `edit_note`; "Fix broken links" → list-and-decide flow per link; "Just close".
+- **`/thinkos-sync` — cross-machine sync, first-class.** New slash command + new `sync-vault` subcommand on `scripts/thinkos-git.sh`. Behavior: `git status --porcelain` short-circuit on clean+up-to-date; auto-commit unstaged changes with `chore(vault): sync <YYYY-MM-DD HH:MM>` (overrideable via `--message`); `fetch && pull --rebase`; `push`. **Merge conflicts pause to the user — never auto-resolved.** Recovery options surfaced verbatim: edit and re-sync, or `git rebase --abort`. Flags: `--vault <path>`, `--message <msg>`, `--dry-run`.
+- **Opt-in launchd job for scheduled vault sync.** `scripts/install-sync-job.sh` + `scripts/uninstall-sync-job.sh`, mirroring the `install-session-capture.sh` pattern. Plist template at `templates/LaunchAgents/com.thinkos.sync.plist.template`. Default schedule: weekday 18:00 local (end-of-workday) — single fire per workday, matches the existing daily-reindex / weekly-review cadence. `RunAtLoad: false` so installation doesn't immediately fire. Idempotent (unloads existing plist before reloading). Customizable by editing the rendered plist post-install. New doc: `docs/cross-machine-sync.md` covers UX, conflict handling, multi-machine notes (each machine runs its own Basic Memory index — reindex on next session pulls in remote-pushed notes), and non-git alternatives.
+
+### Changed
+
+- **`LIMITATIONS.md` cross-machine bullet rewritten.** "Cross-machine sync is now first-class via `/thinkos-sync` (manual) or the opt-in launchd job (default 18:00 weekdays). For non-git sync strategies (Syncthing, iCloud), see `docs/cross-machine-sync.md`." Other limitations bullets preserved verbatim.
+- **`README.md` Slash commands table updated.** Adds `/thinkos-vitals`, `/thinkos-sync`, and (deferred from v0.5.0) `/thinkos-shared`. Recasts `/thinkos-log`, `/thinkos-decide`, `/thinkos-save` as "soft alias → /thinkos-capture --mode X" entries. Adds a "multi-machine sync" sentence to the "Staying current" section pointing at `/thinkos-sync` and the launchd installer.
+
+### Why this matters
+
+Cross-machine sync was the highest-pain unsolved item in `LIMITATIONS.md` — punted to the user with "choose an explicit sync strategy." Now there's a first-class option that integrates with the existing launchd cadence pattern and pauses cleanly on conflict instead of silently breaking. Two-machine round-trip on the personal hub takes one command (or zero, if you install the job).
+
+Vitals fills a different gap: the OS could rot silently before this release. Stale `Current Focus`, growing autocapture backlog, broken cross-links — none of it visible until you ran `/thinkos-stale` (narrow) or `/weekly-review` (Sunday-only). `/thinkos-vitals` makes vault health a queryable surface, so the OS itself has a reason to flag its own decay.
+
+
 
 ## [v0.5.0] — 2026-05-15 — Emergent seeding + drift detection + capture consolidation + shared-mode
 

@@ -139,14 +139,14 @@ See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for t
 | `/thinkos-whoami` | Quick identity + role + current focus |
 | `/thinkos-morning` | Daily brief — focus, plate, recent log |
 | `/thinkos-plate` | What's on your plate today |
-| `/thinkos-save` | End-of-session: drafts Work Log + Decisions + Learnings + People entries from session context, approve each |
-| `/thinkos-log <message>` | Capture a timestamped note |
+| `/thinkos-capture <text>` | Canonical capture — type-infers decision / learning / log / session-recap |
+| `/thinkos-save` | Soft alias → `/thinkos-capture --mode session-recap` |
+| `/thinkos-log <message>` | Soft alias → `/thinkos-capture --mode log` |
 | `/thinkos-who <name>` | What you know about a specific person |
 | `/thinkos-project <slug>` | Load deep context for a project |
 | `/thinkos-decisions [topic]` | Search your standing decisions |
 | `/thinkos-learnings [topic]` | Search reusable learnings |
-| `/thinkos-decide <decision>` | Record a standing decision |
-| `/thinkos-capture <learning>` | Capture a cross-project learning |
+| `/thinkos-decide <decision>` | Soft alias → `/thinkos-capture --mode decision` |
 | `/thinkos-stale` | List notes past their freshness window |
 | `/thinkos-voice <text>` | Rewrite a draft in your voice profile |
 | `/thinkos-recent` | See what was captured in the last 24h (the audit view) |
@@ -154,9 +154,12 @@ See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for t
 | `/thinkos-autosave on\|off\|status` | Manage periodic background session capture |
 | `/thinkos-capture-setup` | Enable continuous-capture sources (Granola, Slack, Gmail, etc.) |
 | `/thinkos-reindex` | Refresh Basic Memory's index after external vault edits |
+| `/thinkos-vitals` | Vault-health snapshot — staleness, budgets, broken links, ledger volume |
+| `/thinkos-sync` | Commit + pull --rebase + push your personal-hub vault state |
+| `/thinkos-shared on\|off` | Toggle shared-mode — hides `tier: sensitive` notes from agent reads |
 | `/thinkos-vault` | Manage vaults — list, switch, create-project, clone |
 | `/thinkos-setup` | Run the Think OS first-time setup |
-| `/thinkos-continue` | Resume setup after restart (Phase 2 context seeding) |
+| `/thinkos-continue` | Resume setup after restart (Phase 2 — now opt-in bulk-seed) |
 | `/thinkos-automate` | Set up scheduled triggers (Phase 3 automations) |
 | `/thinkos-update` | Pull latest curated instructions + commands, with drift detection |
 | `/thinkos-help` | Show all commands |
@@ -187,6 +190,8 @@ Think OS evolves. From any Claude Code session:
 ```
 
 This fetches the latest commits, summarizes what changed, detects drift on any managed file you edited locally, asks before overwriting, and atomically re-applies the curated instructions + slash commands. Your vault is never touched.
+
+For multi-machine sync, `/thinkos-sync` commits + pull --rebases + pushes your personal-hub vault on demand. The opt-in `bash scripts/install-sync-job.sh` schedules an automatic 18:00 weekday sync via launchd. Merge conflicts pause to you — never auto-resolved. See [`docs/cross-machine-sync.md`](docs/cross-machine-sync.md).
 
 The flow is fully documented in [`docs/update-protocol.md`](docs/update-protocol.md) — file categories (managed vs state vs your content), drift detection via sha256, backup-and-restore on any update.
 

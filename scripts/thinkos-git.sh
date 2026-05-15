@@ -10,10 +10,16 @@
 #   check-auth         Check GitHub auth (gh preferred, ssh fallback)
 #   setup-ssh          Interactive ed25519 keygen + GitHub paste walkthrough
 #   setup-gh           Install + auth `gh` CLI (brew + gh auth login)
+#   sync-vault         Commit local changes, pull --rebase, push
 #   -h, --help
 #
 # Flags (where applicable):
 #   --yes              Non-interactive; fail rather than prompt
+#
+# sync-vault flags:
+#   --vault <path>     Vault to sync (default: active personal hub)
+#   --message <msg>    Commit message (default: auto-generated)
+#   --dry-run          Preview planned actions without executing
 #
 # Exit codes:
 #   0 — all good
@@ -26,7 +32,7 @@ YES=0
 
 usage() {
   cat <<'EOF'
-Usage: scripts/thinkos-git.sh <subcommand> [--yes]
+Usage: scripts/thinkos-git.sh <subcommand> [flags]
 
 Subcommands:
   check-or-install   Verify git is installed and user.name/user.email are set.
@@ -37,12 +43,27 @@ Subcommands:
   setup-ssh          Walk through ed25519 keygen, copy public key, open
                      GitHub's "Add SSH key" page, verify with ssh -T.
   setup-gh           Install gh via brew (if missing), then `gh auth login`.
+  sync-vault         Commit local vault changes, pull --rebase from remote,
+                     then push. Pauses on conflict — never auto-resolves.
   -h, --help         Show this help.
+
+Global flags:
+  --yes              Non-interactive; fail rather than prompt.
+
+sync-vault flags:
+  --vault <path>     Path to the vault git repo (default: active personal hub
+                     resolved from ~/.thinkos/active-vault or vaults.json).
+  --message <msg>    Commit message for local changes (default: auto-generated
+                     "chore(vault): sync YYYY-MM-DD HH:MM").
+  --dry-run          Print planned actions without executing any git commands.
 
 Examples:
   scripts/thinkos-git.sh check-or-install
   scripts/thinkos-git.sh check-auth
   scripts/thinkos-git.sh setup-ssh
+  scripts/thinkos-git.sh sync-vault
+  scripts/thinkos-git.sh sync-vault --vault ~/ThinkOS/vault --dry-run
+  scripts/thinkos-git.sh sync-vault --message "save progress before travel"
 EOF
 }
 
@@ -270,6 +291,165 @@ cmd_setup_gh() {
 }
 
 # -----------------------------------------------------------------------------
+# sync-vault — commit, pull --rebase, push; never auto-resolve conflicts
+# -----------------------------------------------------------------------------
+cmd_sync_vault() {
+  local vault_path="" commit_msg="" dry_run=0
+
+  # Parse sync-vault-specific flags from remaining args
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --vault)
+        [ $# -lt 2 ] && { err "--vault requires a path argument"; return 2; }
+        vault_path="$2"; shift 2 ;;
+      --message)
+        [ $# -lt 2 ] && { err "--message requires a value"; return 2; }
+        commit_msg="$2"; shift 2 ;;
+      --dry-run)
+        dry_run=1; shift ;;
+      --yes)
+        YES=1; shift ;;
+      -h|--help)
+        usage; return 0 ;;
+      *)
+        err "Unknown flag for sync-vault: $1"
+        usage >&2
+        return 2 ;;
+    esac
+  done
+
+  # ── Vault resolution ─────────────────────────────────────────────────────
+  # 1. Explicit --vault flag
+  # 2. Sticky override: ~/.thinkos/active-vault
+  # 3. vaults.json default:true entry
+  # 4. Fall back to THINKOS_VAULT env if set
+  if [ -z "$vault_path" ]; then
+    if [ -n "${THINKOS_VAULT:-}" ]; then
+      vault_path="$THINKOS_VAULT"
+    elif [ -f "$HOME/.thinkos/active-vault" ]; then
+      vault_path="$(cat "$HOME/.thinkos/active-vault" | tr -d '[:space:]')"
+    elif [ -f "$HOME/.thinkos/vaults.json" ]; then
+      vault_path="$(python3 -c "
+import json, sys
+vaults = json.load(open('$HOME/.thinkos/vaults.json'))
+entries = vaults if isinstance(vaults, list) else vaults.get('vaults', [])
+for v in entries:
+    if v.get('default') or v.get('type') == 'personal':
+        print(v.get('path', ''))
+        break
+" 2>/dev/null || true)"
+    fi
+  fi
+
+  if [ -z "$vault_path" ]; then
+    err "Could not resolve vault path. Provide --vault <path> or set up ~/.thinkos/vaults.json."
+    return 1
+  fi
+
+  vault_path="${vault_path/#\~/$HOME}"
+
+  if [ ! -d "$vault_path/.git" ]; then
+    err "Not a git repository: $vault_path"
+    err "Initialize with: git -C \"$vault_path\" init"
+    return 1
+  fi
+
+  # ── Auto-generate commit message ─────────────────────────────────────────
+  if [ -z "$commit_msg" ]; then
+    commit_msg="chore(vault): sync $(date '+%Y-%m-%d %H:%M')"
+  fi
+
+  # ── Step 1: Check if vault is already up to date ─────────────────────────
+  local porcelain_out
+  porcelain_out="$(git -C "$vault_path" status --porcelain 2>/dev/null)"
+
+  # Check for incoming commits (requires network; skip on failure)
+  local incoming_count=0
+  if [ "$dry_run" -eq 0 ]; then
+    git -C "$vault_path" fetch --quiet 2>/dev/null || true
+    incoming_count="$(git -C "$vault_path" rev-list HEAD..origin/HEAD --count 2>/dev/null || echo 0)"
+  fi
+
+  if [ -z "$porcelain_out" ] && [ "$incoming_count" -eq 0 ] && [ "$dry_run" -eq 0 ]; then
+    log "Vault is up to date."
+    return 0
+  fi
+
+  # ── Step 2: Stage and commit local changes ────────────────────────────────
+  if [ -n "$porcelain_out" ]; then
+    if [ "$dry_run" -eq 1 ]; then
+      log "[dry-run] Would stage all changes in: $vault_path"
+      log "[dry-run] Would commit with message: $commit_msg"
+      log "[dry-run] Changed files:"
+      printf '%s\n' "$porcelain_out" | sed 's/^/  /'
+    else
+      log "Staging changes..."
+      git -C "$vault_path" add -A
+      log "Committing: $commit_msg"
+      git -C "$vault_path" commit -m "$commit_msg"
+    fi
+  else
+    [ "$dry_run" -eq 1 ] && log "[dry-run] No local changes to commit."
+  fi
+
+  # ── Step 3: Pull with rebase ──────────────────────────────────────────────
+  if [ "$dry_run" -eq 1 ]; then
+    log "[dry-run] Would run: git -C \"$vault_path\" pull --rebase"
+    log "[dry-run] On conflict: would print conflicted files and exit 1 (never auto-resolve)."
+    log "[dry-run] Would run: git -C \"$vault_path\" push"
+    return 0
+  fi
+
+  log "Pulling (rebase)..."
+  local pull_exit=0
+  git -C "$vault_path" pull --rebase 2>&1 || pull_exit=$?
+
+  if [ "$pull_exit" -ne 0 ]; then
+    local conflict_files
+    conflict_files="$(git -C "$vault_path" diff --name-only --diff-filter=U 2>/dev/null || true)"
+    err ""
+    err "── Sync conflict ──────────────────────────────────────────────────"
+    err "git pull --rebase exited with status $pull_exit."
+    if [ -n "$conflict_files" ]; then
+      err "Conflicted files:"
+      printf '%s\n' "$conflict_files" | sed 's/^/  /' >&2
+    fi
+    err ""
+    err "Status:"
+    git -C "$vault_path" status 2>&1 | sed 's/^/  /' >&2
+    err ""
+    err "Recovery options:"
+    err "  A. Edit the conflicted files, resolve markers, then run /thinkos-sync again."
+    err "  B. Abort the rebase: git -C \"$vault_path\" rebase --abort"
+    err ""
+    err "Think OS never auto-resolves conflicts. A human decision is required."
+    return 1
+  fi
+
+  # ── Step 4: Push ─────────────────────────────────────────────────────────
+  log "Pushing..."
+  local push_exit=0
+  git -C "$vault_path" push 2>&1 || push_exit=$?
+
+  if [ "$push_exit" -ne 0 ]; then
+    err ""
+    err "── Push rejected ──────────────────────────────────────────────────"
+    err "git push exited with status $push_exit."
+    err "The remote has diverged in a way that rebase did not resolve."
+    err ""
+    err "Recovery options:"
+    err "  A. Investigate: git -C \"$vault_path\" log --oneline origin/HEAD..HEAD"
+    err "  B. Run /thinkos-sync again after confirming the remote state."
+    err ""
+    err "Never force-push without explicitly reviewing what would be overwritten."
+    return 1
+  fi
+
+  log "Vault synced successfully."
+  return 0
+}
+
+# -----------------------------------------------------------------------------
 # Arg parsing
 # -----------------------------------------------------------------------------
 if [ $# -eq 0 ]; then
@@ -278,25 +458,24 @@ if [ $# -eq 0 ]; then
 fi
 
 SUB=""
+# Consume the first non-flag arg as the subcommand; pass remaining args to the
+# subcommand function so each can parse its own flags.
+REMAINING_ARGS=()
 for arg in "$@"; do
   case "$arg" in
-    --yes) YES=1 ;;
+    --yes)
+      YES=1
+      REMAINING_ARGS+=("$arg")
+      ;;
     -h|--help)
       usage
       exit 0
-      ;;
-    --*)
-      err "Unknown flag: $arg"
-      usage >&2
-      exit 2
       ;;
     *)
       if [ -z "$SUB" ]; then
         SUB="$arg"
       else
-        err "Unexpected argument: $arg"
-        usage >&2
-        exit 2
+        REMAINING_ARGS+=("$arg")
       fi
       ;;
   esac
@@ -307,6 +486,7 @@ case "$SUB" in
   check-auth)       cmd_check_auth ;;
   setup-ssh)        cmd_setup_ssh ;;
   setup-gh)         cmd_setup_gh ;;
+  sync-vault)       cmd_sync_vault "${REMAINING_ARGS[@]+"${REMAINING_ARGS[@]}"}" ;;
   "")
     usage
     exit 0
