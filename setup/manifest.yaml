@@ -128,12 +128,6 @@ managed_files:
     mode: block         # replaced between BEGIN THINK OS / END THINK OS markers
     products: [claude-code]
 
-  - id: codex-block
-    target: ~/.codex/AGENTS.md
-    source_template: adapters/codex/AGENTS.md
-    mode: block
-    products: [codex]
-
   # Slash commands — one file per command, glob-expanded at update time.
   - id: claude-code-commands
     target_dir: ~/.claude/commands/

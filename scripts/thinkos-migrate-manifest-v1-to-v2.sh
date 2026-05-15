@@ -106,14 +106,7 @@ SPEC = [
         "end": "<!-- END THINK OS -->",
         "products": ["claude-code"],
     },
-    {
-        "id": "codex-block",
-        "target": f"{HOME}/.codex/AGENTS.md",
-        "mode": "block",
-        "begin": "<!-- BEGIN THINK OS -->",
-        "end": "<!-- END THINK OS -->",
-        "products": ["codex"],
-    },
+    # Cowork/Codex adapters cut in v0.7.0 — see roadmap/cowork-codex branch.
     {
         "id": "claude-code-commands",
         "glob": f"{HOME}/.claude/commands/thinkos-*.md",

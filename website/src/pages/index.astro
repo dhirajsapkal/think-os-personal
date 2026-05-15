@@ -137,7 +137,7 @@ const faqs = [
   },
   {
     q: 'Which agent surfaces does Think OS support?',
-    a: 'Claude Code is the primary target — full feature set: slash commands, autonomous launchd capture, drift-aware updates. Claude Cowork (the agentic tab in Claude Desktop) is also supported as of v0.4 with a thinner integration — same vault, same MCP, native onboarding chips, but no slash commands (Cowork uses a different plugin format) and one manual paste step for the curated instructions. Cowork can drive its own /schedule-based autonomous capture; Claude Code\'s launchd is more reliable since it doesn\'t require the app to stay open. Codex adapter is scaffolding only — install not yet wired.',
+    a: 'Claude Code is the supported target — full feature set: slash commands, autonomous launchd capture, drift-aware updates, vault health surfaces. Other agent adapters (Claude Cowork, Codex) live on the roadmap/cowork-codex branch and will be cherry-picked back in when their plugin formats stabilize.',
   },
   {
     q: 'How do I uninstall?',
@@ -169,7 +169,7 @@ const faqs = [
         </h1>
 
         <p class="lift lift-3 mt-10 md:mt-12 max-w-[58ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
-          Think OS is a markdown vault and a context MCP server. It gives Claude Code and Claude Cowork
+          Think OS is a markdown vault and a context MCP server. It gives Claude Code
           durable memory of who you are, what you're working on, and how you like to
           work — across projects, sessions, and time.
         </p>
@@ -179,7 +179,7 @@ const faqs = [
         </div>
 
         <p class="lift lift-5 mt-6 font-mono text-[11px] tracking-[0.18em] uppercase text-muted">
-          Works in Claude Code &amp; Claude Cowork · Codex coming
+          Works in Claude Code · Other agents on roadmap
         </p>
       </div>
     </div>

@@ -6,8 +6,6 @@ Think OS gives your agentic tools durable memory of who you are, what you're wor
 
 Early alpha — v0.4.1. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
 
-> **Tool support roadmap.** **Claude Code** is the primary target — full feature set: slash commands, autonomous capture, drift-aware updates. **Claude Cowork** (v0.4): thinner integration — vault access + curated agent instructions + native onboarding chips, but no slash commands (Cowork uses a different plugin format) and no autonomous capture (no equivalent surface). See [`adapters/claude-cowork/README.md`](adapters/claude-cowork/README.md) for the honest writeup. **Codex**: scaffolding only.
-
 ---
 
 ## Setup is three steps. Plan ~25 minutes total.
@@ -112,9 +110,7 @@ think-os/
 │   ├── instructions/           ← curated always-on agent guidance (loaded into CLAUDE.md)
 │   └── team/                   ← project vault skeleton (one-file-per-entry, git-friendly)
 ├── adapters/
-│   ├── claude-code/            ← v0.3 active — MCP, instructions, slash commands
-│   ├── claude-cowork/          ← scaffolding for future version
-│   └── codex/                  ← scaffolding for future version
+│   └── claude-code/            ← active — MCP, instructions, slash commands
 ├── docs/
 │   ├── multi-vault-architecture.md   ← personal + project + reference vault design
 │   ├── phase-2-seeding-playbook.md   ← how Phase 2 drafts your core context files from connectors
@@ -202,13 +198,7 @@ cd ~/code/think-os
 bash scripts/thinkos-update.sh --pull
 ```
 
-## Product support
-
-| Product | v0.3 status | Notes |
-|---|---|---|
-| Claude Code CLI | ✓ Active | Full install flow; primary supported target |
-| Claude Cowork | Scaffolding | Adapter files preserved; install integration coming in v0.4 |
-| Codex | Scaffolding | Adapter files preserved; install integration coming in v0.5 |
+**Other adapters.** Cowork and Codex scaffolding lives on the `roadmap/cowork-codex` branch — cherry-pick when their plugin formats stabilize.
 
 ## Feedback I'm looking for
 

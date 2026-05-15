@@ -12,7 +12,7 @@ Think OS owns three categories of files on a user's machine. The category determ
 
 | Category | Examples | On update |
 |---|---|---|
-| **Managed** — files Think OS writes during install | `~/.claude/CLAUDE.md` BEGIN/END block, `~/.claude/commands/thinkos-*.md`, `~/.codex/AGENTS.md` BEGIN/END block | Re-applied from repo if the on-disk file matches the SHA shipped at the user's current version. If it differs (user edited it), drift handling kicks in. |
+| **Managed** — files Think OS writes during install | `~/.claude/CLAUDE.md` BEGIN/END block, `~/.claude/commands/thinkos-*.md` | Re-applied from repo if the on-disk file matches the SHA shipped at the user's current version. If it differs (user edited it), drift handling kicks in. |
 | **State** — bookkeeping owned by Think OS but mutated by normal use | `~/.thinkos/vaults.json`, `~/.thinkos/active-vault`, `~/.thinkos/wizard-state.json`, `~/.thinkos/install-manifest.json` | Left alone unless a schema migration applies. Migrations are explicit, versioned, and listed in `setup/manifest.yaml` → `migrations`. |
 | **User content** — the user's vault and everything in it | `~/ThinkOS/vault/`, any project vault path registered in `vaults.json`, work logs, decisions, identity, anything inside a vault | **Never touched.** Read-only to the update flow, period. |
 
@@ -95,7 +95,7 @@ A third synthetic mode, **`file_dir`** (a glob over a directory), is treated as 
   "vault_path": "/Users/dhiraj/ThinkOS/vault",
   "bm_project": "think-os",
   "bundle": "design",
-  "products": ["claude-code", "codex"],
+  "products": ["claude-code"],
   "managed_files": [
     {
       "id": "claude-code-block",
@@ -113,7 +113,7 @@ A third synthetic mode, **`file_dir`** (a glob over a directory), is treated as 
     }
   ],
   "optional_capabilities": ["gh_cli"],
-  "mcps": { "claude-code": ["basic-memory", "slack", "gmail"], "codex": ["basic-memory"] },
+  "mcps": { "claude-code": ["basic-memory", "slack", "gmail"] },
   "plugins": []
 }
 ```

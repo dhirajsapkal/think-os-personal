@@ -24,7 +24,7 @@ Sets up the safe local pieces of Think OS:
 
 Options:
   --os-home PATH              Live Think OS vault path (default: ~/ThinkOS/vault)
-  --products LIST             Comma-separated products: claude-cowork,claude-code,codex,all
+  --products LIST             Comma-separated products: claude-code,all
   --install-basic-memory      Install Basic Memory with uv if missing
   --skip-mcp                  Do not register MCPs in product CLIs
   --yes                       Non-interactive mode; accept safe defaults
@@ -34,7 +34,7 @@ Options:
   -h, --help                  Show this help
 
 Examples:
-  scripts/thinkos-setup.sh --products claude-code,codex --install-basic-memory --yes
+  scripts/thinkos-setup.sh --products claude-code --install-basic-memory --yes
   scripts/thinkos-setup.sh --products claude-code --bundle pm --yes
   scripts/thinkos-setup.sh --products claude-code --bundle-items slack,notion,granola --yes
 EOF
@@ -87,7 +87,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ "$PRODUCTS" == "all" ]]; then
-  PRODUCTS="claude-cowork,claude-code,codex"
+  PRODUCTS="claude-code"
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -95,12 +95,12 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TEMPLATE_DIR="$REPO_ROOT/templates"
 
 if [[ -z "$PRODUCTS" && -t 0 && "$YES" -eq 0 ]]; then
-  read -r -p "Products to set up [claude-code,codex,claude-cowork]: " PRODUCTS
-  PRODUCTS="${PRODUCTS:-claude-code,codex,claude-cowork}"
+  read -r -p "Products to set up [claude-code]: " PRODUCTS
+  PRODUCTS="${PRODUCTS:-claude-code}"
 fi
 
 if [[ -z "$PRODUCTS" ]]; then
-  PRODUCTS="claude-code,codex"
+  PRODUCTS="claude-code"
 fi
 
 has_product() {
@@ -321,32 +321,7 @@ install_claude_code() {
   fi
 }
 
-install_codex() {
-  log "Setting up Codex adapter"
-
-  install_marked_block \
-    "$HOME/.codex/AGENTS.md" \
-    "<!-- BEGIN THINK OS -->" \
-    "<!-- END THINK OS -->" \
-    "$REPO_ROOT/adapters/codex/AGENTS.md"
-
-  if [[ "$REGISTER_MCP" -eq 1 ]]; then
-    if [[ "$DRY_RUN" -eq 1 ]]; then
-      log "Would register Codex basic-memory MCP if missing"
-      return 0
-    fi
-
-    if command -v codex >/dev/null 2>&1; then
-      if codex mcp get basic-memory >/dev/null 2>&1; then
-        log "Codex MCP already includes basic-memory"
-      else
-        run codex mcp add basic-memory -- basic-memory mcp --project "$PROJECT_NAME"
-      fi
-    else
-      log "Codex CLI not found; installed AGENTS.md block, but skipped MCP registration"
-    fi
-  fi
-}
+# Cowork/Codex adapters cut in v0.7.0 — see roadmap/cowork-codex branch.
 
 # ---------------------------------------------------------------------------
 # Install manifest writer
@@ -370,7 +345,6 @@ _write_install_manifest() {
   # Build the lists in env vars; python3 reads them and writes JSON atomically.
   local files_list=""
   local cc_mcps=""
-  local codex_mcps=""
 
   if has_product "claude-code"; then
     files_list+="$HOME/.claude/CLAUDE.md (block injected)"$'\n'
@@ -404,20 +378,7 @@ _write_install_manifest() {
     fi
   fi
 
-  if has_product "codex"; then
-    files_list+="$HOME/.codex/AGENTS.md (block injected)"$'\n'
-    if [[ "$REGISTER_MCP" -eq 1 ]]; then
-      codex_mcps+="basic-memory"$'\n'
-    fi
-  fi
 
-  if has_product "claude-cowork"; then
-    files_list+="$HOME/.thinkos/claude-cowork-instructions.md"$'\n'
-    files_list+="$HOME/.thinkos/claude-cowork-mcp.txt"$'\n'
-    if [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
-      files_list+="$HOME/.thinkos/claude-cowork-bundle.json"$'\n'
-    fi
-  fi
 
   # Plugins list (bundle-installed) — for display in uninstaller, since plugin
   # removal requires interactive Claude Code anyway.
@@ -447,7 +408,6 @@ _write_install_manifest() {
 
   FILES_LIST="$files_list" \
   CC_MCPS="$cc_mcps" \
-  CODEX_MCPS="$codex_mcps" \
   PLUGINS_LIST="$plugins_list" \
   VAULT_PATH="$OS_HOME" \
   BM_PROJECT="$PROJECT_NAME" \
@@ -463,7 +423,6 @@ def split_lines(s):
 manifest_path = os.environ["MANIFEST_FILE"]
 files = split_lines(os.environ.get("FILES_LIST", ""))
 cc_mcps = split_lines(os.environ.get("CC_MCPS", ""))
-codex_mcps = split_lines(os.environ.get("CODEX_MCPS", ""))
 plugins_raw = split_lines(os.environ.get("PLUGINS_LIST", ""))
 plugins = []
 for line in plugins_raw:
@@ -483,7 +442,6 @@ manifest = {
     "files": files,
     "mcps": {
         "claude-code": cc_mcps,
-        "codex": codex_mcps,
     },
     "plugins": plugins,
 }
@@ -503,142 +461,6 @@ except Exception:
 
 print("Wrote install manifest: " + manifest_path)
 PYEOF
-}
-
-install_claude_cowork() {
-  log "Preparing Claude Cowork adapter"
-  local out_dir="$HOME/.thinkos"
-  local instructions="$out_dir/claude-cowork-instructions.md"
-  local mcp_config="$out_dir/claude-cowork-mcp.txt"
-  local bundle_json="$out_dir/claude-cowork-bundle.json"
-  local cowork_app_config="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
-
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    log "Would write Cowork instructions to $instructions"
-    log "Would inspect (and offer to update) $cowork_app_config for basic-memory MCP"
-    if [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
-      log "Would write Cowork bundle handoff to $bundle_json"
-    fi
-    return 0
-  fi
-
-  mkdir -p "$out_dir"
-  # Cowork doesn't have BEGIN/END markers in a global file — the user pastes the
-  # whole block into Cowork's personalization UI. Still render the full curated
-  # stack + Cowork adapter so the user gets the same always-on guidance.
-  render_think_os_block "$REPO_ROOT/adapters/claude-cowork/instructions.md" > "$instructions"
-  cat > "$mcp_config" <<EOF
-Name: basic-memory
-Command: $(command -v basic-memory 2>/dev/null || echo "basic-memory")
-Args: mcp --project $PROJECT_NAME
-Working directory: $HOME
-EOF
-
-  # -------------------------------------------------------------------------
-  # Auto-register basic-memory in Claude Desktop's MCP config if possible.
-  # Strict rule: never overwrite an existing basic-memory entry that points at
-  # a different project. If found, write a side-by-side proposed config and
-  # exit with a warning the user must resolve manually.
-  # -------------------------------------------------------------------------
-  if [[ -f "$cowork_app_config" ]]; then
-    python3 - "$cowork_app_config" "$PROJECT_NAME" "$(command -v basic-memory 2>/dev/null || echo basic-memory)" <<'PY'
-import json, sys, os, shutil
-from datetime import datetime, timezone
-
-cfg_path, project_name, bm_bin = sys.argv[1:4]
-cfg = json.load(open(cfg_path))
-servers = cfg.setdefault("mcpServers", {})
-existing = servers.get("basic-memory")
-
-desired = {"command": bm_bin, "args": ["mcp", "--project", project_name]}
-
-if existing == desired:
-    print(f"[cowork] basic-memory MCP already points at project '{project_name}'. No change.")
-    sys.exit(0)
-
-if existing is not None:
-    # Check the project arg specifically.
-    existing_args = existing.get("args", [])
-    existing_project = None
-    if "--project" in existing_args:
-        i = existing_args.index("--project")
-        if i + 1 < len(existing_args):
-            existing_project = existing_args[i + 1]
-    if existing_project == project_name:
-        # Same project, different command path — update silently.
-        servers["basic-memory"] = desired
-        ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        shutil.copy(cfg_path, cfg_path + f".pre-thinkos.{ts}.bak")
-        json.dump(cfg, open(cfg_path, "w"), indent=2)
-        print(f"[cowork] Updated basic-memory command path. Backup: {cfg_path}.pre-thinkos.{ts}.bak")
-        sys.exit(0)
-    else:
-        # Different project — do NOT clobber. Stop and let the user decide.
-        side = os.path.expanduser("~/.thinkos/claude-cowork-mcp-conflict.json")
-        proposed = dict(cfg)
-        proposed_servers = dict(servers)
-        proposed_servers["basic-memory"] = desired
-        proposed["mcpServers"] = proposed_servers
-        json.dump(proposed, open(side, "w"), indent=2)
-        print(f"[cowork] WARNING: existing basic-memory MCP points at project '{existing_project}',")
-        print(f"[cowork]   we want project '{project_name}'. NOT overwriting.")
-        print(f"[cowork]   Proposed config (with both side-by-side) written to: {side}")
-        print(f"[cowork]   To resolve: open {cfg_path}, change \"--project\" arg to \"{project_name}\",")
-        print(f"[cowork]   or add a second entry under a different MCP name.")
-        sys.exit(0)
-else:
-    # Fresh install — just add it.
-    servers["basic-memory"] = desired
-    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    shutil.copy(cfg_path, cfg_path + f".pre-thinkos.{ts}.bak")
-    json.dump(cfg, open(cfg_path, "w"), indent=2)
-    print(f"[cowork] Registered basic-memory MCP for project '{project_name}'.")
-    print(f"[cowork] Backup: {cfg_path}.pre-thinkos.{ts}.bak")
-PY
-  else
-    log "[cowork] $cowork_app_config not present — Claude Desktop may not be installed."
-    log "[cowork] Install it from https://claude.ai/download, then re-run this script."
-  fi
-
-  # Write bundle handoff JSON if a bundle or custom item list was given.
-  # The Cowork agent reads this file so it doesn't have to re-ask the user.
-  if [[ -n "$BUNDLE" ]]; then
-    # Resolve preset to Cowork-available ids via the catalog lib.
-    local resolved_items=""
-    if source "$REPO_ROOT/scripts/lib/catalog.sh" 2>/dev/null; then
-      resolved_items=$(catalog_resolve_preset "$BUNDLE" 2>/dev/null \
-        | catalog_filter_by_target cowork \
-        | tr '\n' ',' \
-        | sed 's/,$//')
-    fi
-    local preset_label="$BUNDLE"
-    cat > "$bundle_json" <<EOF
-{
-  "preset": "$preset_label",
-  "items": [$(echo "$resolved_items" | sed 's/\([^,][^,]*\)/"\1"/g')]
-}
-EOF
-    log "Cowork bundle handoff written to: $bundle_json (preset: $BUNDLE)"
-  elif [[ -n "$BUNDLE_ITEMS" ]]; then
-    # Custom item list passed directly — no preset resolution needed.
-    local quoted_items
-    quoted_items=$(echo "$BUNDLE_ITEMS" | tr ',' '\n' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//' | sed 's/\(.*\)/"\1"/' | tr '\n' ',' | sed 's/,$//')
-    cat > "$bundle_json" <<EOF
-{
-  "preset": "custom",
-  "items": [$quoted_items]
-}
-EOF
-    log "Cowork bundle handoff written to: $bundle_json (custom items)"
-  fi
-
-  log "Claude Cowork uses UI-managed MCP setup."
-  log "MCP config saved to: $mcp_config"
-  log "Instructions saved to: $instructions"
-  if command -v pbcopy >/dev/null 2>&1; then
-    pbcopy < "$instructions"
-    log "Cowork instructions copied to clipboard."
-  fi
 }
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
@@ -674,38 +496,9 @@ elif [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
   log "Warning: --bundle/--bundle-items given but claude-code not in --products; bundle install skipped."
 fi
 
-has_product "codex" && install_codex
-has_product "claude-cowork" && install_claude_cowork
-
 _write_install_manifest
 
 log
 log "Setup steps complete. Run this next:"
 log "  $REPO_ROOT/scripts/thinkos-doctor.sh --deep --os-home \"$OS_HOME\" --products \"$PRODUCTS\""
 
-if has_product "claude-cowork"; then
-  log
-  log "============================================================"
-  log "  NOW DO THIS IN COWORK"
-  log "============================================================"
-  log "Cowork's MCP is UI-managed — the script can't register it for you."
-  log
-  log "1. Open Claude Cowork → Settings → Connectors / MCP Servers"
-  log "2. Add a custom MCP server using the values in:"
-  log "     $HOME/.thinkos/claude-cowork-mcp.txt"
-  log "3. Paste the personalization block from:"
-  log "     $HOME/.thinkos/claude-cowork-instructions.md"
-  log "   (already on your clipboard if pbcopy ran above)"
-  log "4. Restart Cowork (quit and reopen — not just close the window)"
-  log
-  log "5. Install your plugin/connector bundle:"
-  log "   In Cowork, say 'install my Think OS bundle' — the agent will"
-  log "   follow adapters/claude-cowork/commands/thinkos-bundle.md."
-  log "   (Cowork has no slash-command surface; everything is natural language.)"
-  if [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
-    log "   Your bundle selection has been saved to:"
-    log "     $HOME/.thinkos/claude-cowork-bundle.json"
-    log "   The Cowork agent will read that file and skip re-asking you."
-  fi
-  log "============================================================"
-fi

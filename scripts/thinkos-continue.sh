@@ -4,12 +4,12 @@
 # =============================================================================
 # Reads the wizard state file and tells the user (or agent) exactly where they
 # are and what to do next. This is the human-facing entry point for Phase 2;
-# the agent equivalents live in:
+# the agent equivalent lives in:
 #   adapters/claude-code/commands/thinkos-continue.md
-#   adapters/claude-cowork/commands/thinkos-continue.md
 #
 # This script does no mutation. It prints next-step instructions and points
 # at the playbook the agent should follow.
+# (Cowork/Codex adapters cut in v0.7.0 — see roadmap/cowork-codex branch.)
 #
 # Usage:
 #   scripts/thinkos-continue.sh
@@ -58,10 +58,7 @@ case "$phase" in
 
   Phase 1 finished, but a few steps cannot be automated:
 
-    1. If Cowork is one of your products: paste the MCP config + the
-       personalization block into Cowork settings, then quit and reopen.
-
-    2. Complete OAuth in each app that asks for it. In Claude Code:
+    1. Complete OAuth in each app that asks for it. In Claude Code:
        run 'claude', type '/mcp', authorize each connector.
 
     3. Restart your agent apps so MCPs and plugins load fresh.
@@ -85,11 +82,10 @@ EOF
   HOT-tier files (Identity, Current Focus, Project Index, People). Every
   draft is shown to you for review before it's written to your vault.
 
-  Phase 2 is agent-driven. Open one of your agentic tools and run the
+  Phase 2 is agent-driven. Open Claude Code and run the
   /thinkos-continue slash command (or just say "continue Think OS setup"):
 
     · In Claude Code:    open the export repo, type /thinkos-continue
-    · In Cowork:         open Cowork, type /thinkos-continue
 
   The agent will follow:
       $REPO_ROOT/docs/phase-2-seeding-playbook.md

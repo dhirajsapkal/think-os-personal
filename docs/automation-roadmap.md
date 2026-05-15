@@ -229,5 +229,4 @@ Capture behavior:
 - Stop-hook auto-log
 - Connector polling for ongoing context refresh
 - Cross-vault search hub
-- Cowork + Codex install integration
 

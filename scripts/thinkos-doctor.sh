@@ -18,7 +18,7 @@ before setup so they can inspect state without reading or scraping the vault.
 
 Options:
   --os-home PATH          Live Think OS vault path (default: ~/ThinkOS/vault)
-  --products LIST         Comma-separated products: claude-cowork,claude-code,codex,all
+  --products LIST         Comma-separated products: claude-code,all
   --json                  Print compact JSON instead of human-readable output
   --deep                  Run slower product CLI MCP checks
   --check-bundle          Compare installed plugins/connectors against the preset declared in the bundle state files
@@ -76,7 +76,7 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
 fi
 
 if [[ "$PRODUCTS" == "all" ]]; then
-  PRODUCTS="claude-cowork,claude-code,codex"
+  PRODUCTS="claude-code"
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -310,26 +310,7 @@ if has_product "claude-code"; then
   fi
 fi
 
-if has_product "codex"; then
-  check_command "codex"
-  if command -v codex >/dev/null 2>&1; then
-    if [[ "$DEEP" -eq 1 ]]; then
-      TMP_OUT="$(mktemp)"
-      if run_limited_to_file 12 "$TMP_OUT" codex mcp get basic-memory; then
-        add_check "codex:mcp" ok "basic-memory MCP exists"
-      else
-        add_check "codex:mcp" warn "basic-memory MCP is not registered in Codex, or codex mcp get timed out"
-      fi
-      rm -f "$TMP_OUT"
-    else
-      add_check "codex:mcp" ok "fast mode skipped CLI MCP check; run --deep to verify"
-    fi
-  fi
-fi
-
-if has_product "claude-cowork"; then
-  add_check "claude-cowork:mcp" warn "Cowork MCP registration is UI-managed; use adapters/claude-cowork/README.md"
-fi
+# Cowork/Codex adapters cut in v0.7.0 — see roadmap/cowork-codex branch.
 
 # ---------------------------------------------------------------------------
 # Bundle checks — only when --check-bundle is set
@@ -394,20 +375,6 @@ if [[ "$CHECK_BUNDLE" -eq 1 ]]; then
           fi
           rm -f "$TMP_MCP"
         fi
-      fi
-    fi
-  fi
-
-  if has_product "claude-cowork"; then
-    CW_BUNDLE_FILE="$HOME/.thinkos/claude-cowork-bundle.json"
-    if [[ ! -f "$CW_BUNDLE_FILE" ]]; then
-      add_check "claude-cowork:bundle" ok "no bundle declared (open Cowork and ask the agent to set up your Think OS bundle)"
-    else
-      # Validate it's parseable JSON
-      if python3 -c "import sys,json; json.load(open(sys.argv[1]))" "$CW_BUNDLE_FILE" 2>/dev/null; then
-        add_check "claude-cowork:bundle" ok "handoff file present ($CW_BUNDLE_FILE); verify install state in Cowork directly — Cowork plugin state is not observable from the CLI"
-      else
-        add_check "claude-cowork:bundle" warn "handoff file exists but is not valid JSON: $CW_BUNDLE_FILE; re-run the Cowork bundle playbook to regenerate it"
       fi
     fi
   fi

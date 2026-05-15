@@ -2,7 +2,33 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
-## [v0.7.0] — Unreleased — Cowork/Codex moved to roadmap branch
+## [v0.7.0] — 2026-05-15 — Cowork/Codex moved to roadmap branch
+
+### Removed
+
+- **`adapters/claude-cowork/` and `adapters/codex/` trees deleted from `main`.** Preserved verbatim on the new long-lived branch `roadmap/cowork-codex` for future cherry-pick when their plugin formats stabilize.
+- **`setup/manifest.yaml`:** `codex-block` managed-files entry removed.
+- **Scripts cleaned (`thinkos-update.sh`, `thinkos-doctor.sh`, `thinkos-setup.sh`, `thinkos-uninstall.sh`, `thinkos-continue.sh`, `thinkos-migrate-manifest-v1-to-v2.sh`):** Cowork/Codex branches removed from `usage()` blocks, `--products` help, `all`-expansion, manifest writer/reader, install/uninstall function definitions, and call sites. Each script gained one `# Cowork/Codex adapters cut in v0.7.0 — see roadmap/cowork-codex branch.` comment marker so future grep-archaeology lands on the cut. `bash -n` passes on every modified script.
+- **`thinkos-uninstall.sh` dead plumbing pruned** (`M_CODEX_MCPS` variable, `cx_bm` flag, codex branch in manifest-reader Python, terminal-empty-detection conditional). The codex code path was emptied in the initial scrub but the surrounding variable still threaded an always-empty value through three call sites — now fully removed.
+- **`docs/update-protocol.md`:** Cowork reapply path and Codex managed-file example removed; product list resolved to `claude-code` only.
+
+### Changed
+
+- **`README.md`:** "Tool support roadmap" callout removed; Product support table removed; adapters tree diagram reduced to `claude-code/`; one-line pointer added below Staying Current: "Cowork and Codex scaffolding lives on the `roadmap/cowork-codex` branch — cherry-pick when their plugin formats stabilize."
+- **`AGENTS.md`:** "Roadmap (not active in v0.3)" paragraph replaced with the same one-line roadmap pointer.
+- **`LIMITATIONS.md`:** "Out of scope" header retitled; "Claude Code only" bullet rewritten to point at the roadmap branch.
+- **`docs/automation-roadmap.md`:** "Cowork + Codex install integration" bullet removed from the Future roadmap section.
+- **Website (`website/src/pages/index.astro`, `website/src/layouts/BaseLayout.astro`):** hero subhead, FAQ answer for agent-surface support, footer chip, and the shared `<meta description>` all updated to drop Cowork/Codex framing and reference the roadmap branch.
+
+### Why this matters
+
+Dormant adapter scaffolding for Cowork and Codex was carrying real cost: grep noise across the repo, six scripts with dead branches, `--products` flags that listed surfaces the installer couldn't reach, and a website front page that promised Cowork support. None of it was active code; all of it was load-bearing on user trust.
+
+Cutting it doesn't lose work — the full tree lives on `roadmap/cowork-codex` and is one `git cherry-pick` away when either Cowork's plugin format stabilizes (it doesn't yet) or Codex grows install ergonomics worth automating. What it does buy: a `main` branch where every shipped surface actually works, scripts with no dead arms, and a website that matches the tree.
+
+This release is pure subtraction. No new commands, no new behavior — just a cleaner load-bearing surface for the next thing.
+
+
 
 ## [v0.6.0] — 2026-05-15 — Vitals + cross-machine sync
 
