@@ -11,6 +11,7 @@ if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 CAPTURE_SCRIPT="$SCRIPT_DIR/thinkos-session-capture.sh"
 # WP-38: renamed template file
 PLIST_TEMPLATE="$SCRIPT_DIR/../templates/LaunchAgents/com.thinkos.session-capture.plist.template"
@@ -75,12 +76,12 @@ chmod 700 "$LOG_DIR" 2>/dev/null || true
 # WP-11/WP-38/WP-19: Build plist via Python with XML-escaped substitutions.
 # xml.sax.saxutils.escape() handles &, <, > in paths. VAULT_ARG is passed via
 # env to keep the shell argument list simple.
-VAULT_ARG_ENV="$VAULT_ARG" python3 - "$PLIST_TEMPLATE" "$PLIST_DEST" "$CAPTURE_SCRIPT" "$LOG_DIR" <<'PY'
+VAULT_ARG_ENV="$VAULT_ARG" python3 - "$PLIST_TEMPLATE" "$PLIST_DEST" "$CAPTURE_SCRIPT" "$LOG_DIR" "$REPO_ROOT" <<'PY'
 import sys, os
 from xml.sax.saxutils import escape as xml_escape
 
-tmpl_path, dest_path, script_path, log_dir = \
-    sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+tmpl_path, dest_path, script_path, log_dir, repo_root = \
+    sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
 
 vault_arg = os.environ.get("VAULT_ARG_ENV", "")
 
@@ -96,6 +97,7 @@ else:
 content = open(tmpl_path).read()
 content = content.replace('__SCRIPT_PATH__', xml_escape(script_path))
 content = content.replace('__LOG_DIR__', xml_escape(log_dir))
+content = content.replace('__REPO_ROOT__', xml_escape(repo_root))
 content = content.replace('__EXTRA_ARGS__', extra_args)
 
 with open(dest_path, 'w') as fh:

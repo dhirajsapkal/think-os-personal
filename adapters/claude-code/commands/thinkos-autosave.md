@@ -73,6 +73,25 @@ Also show the last capture timestamp from the marker file:
 cat ~/.thinkos/last-session-capture 2>/dev/null || echo "(never run)"
 ```
 
+Show the registered allowed paths (vaults + tracked_projects) so the user can see what the filter accepts:
+
+```bash
+python3 -c "
+import json, os
+p = os.path.expanduser('~/.thinkos/vaults.json')
+if not os.path.isfile(p):
+    print('(no vaults.json)'); raise SystemExit
+d = json.load(open(p))
+print('Vaults:')
+for v in d.get('vaults', []):
+    print(f\"  {v.get('id','?')}: {v.get('path','?')}\")
+tp = d.get('tracked_projects', [])
+print(f'Tracked projects: {len(tp)}')
+for t in tp:
+    print(f\"  {t.get('label','(unlabeled)')}: {t.get('path','?')}\")
+"
+```
+
 And the last few entries in the capture log:
 
 ```bash
@@ -81,27 +100,38 @@ grep -c '^{' "$VAULT/90 System/Capture Log.md" 2>/dev/null || echo "0"
 tail -5 "$VAULT/90 System/Capture Log.md" 2>/dev/null | grep '^{' || echo "(no capture log)"
 ```
 
+Also surface any recent `filter-no-match` events so silent no-ops are visible:
+
+```bash
+grep -E "0 sessions matched|filter-no-match" ~/Library/Logs/ThinkOS/session-capture.err 2>/dev/null | tail -3 || true
+```
+
 Format the output for the user like:
 
 ```
 Session capture: [registered / not registered]
 Last run: <ISO timestamp or "never">
+Allowed paths: <N vaults, M tracked projects>
+  <list>
 Recent captures:
-  <last up to 5 capture-log lines, one per line, formatted as: YYYY-MM-DD HH:MM — <basename> (N files)>
+  <last up to 5 capture-log lines, formatted as: YYYY-MM-DD HH:MM — <basename> (N files)>
+Recent no-match events: <last up to 3, or "(none)">
 ```
 
 ---
 
 ## Subcommand: `now`
 
-Run the capture script once immediately — useful for testing after install or after a coding session:
+Run the capture script once immediately — useful for testing after install or after a coding session. Capture stderr too so filter warnings are visible:
 
 ```bash
 REPO_ROOT="$(python3 -c "import json,os; print(json.load(open(os.path.expanduser('~/.thinkos/install-manifest.json')))['repo_path'])" 2>/dev/null)"
-bash "$REPO_ROOT/scripts/thinkos-session-capture.sh"
+bash "$REPO_ROOT/scripts/thinkos-session-capture.sh" 2>&1
 ```
 
-Confirm completion and show the last line appended to the work log:
+If the script exits with `0 sessions matched allowed paths`, the cwds your Claude Code sessions ran in aren't registered. Either add them to `tracked_projects` in `~/.thinkos/vaults.json`, or re-run with `--all-projects` to capture everything.
+
+Confirm completion and show the last entries in the work log:
 
 ```bash
 tail -10 "${THINKOS_HOME:-$HOME/ThinkOS/vault}/01 Now/Work Log.md" 2>/dev/null
@@ -109,9 +139,27 @@ tail -10 "${THINKOS_HOME:-$HOME/ThinkOS/vault}/01 Now/Work Log.md" 2>/dev/null
 
 ---
 
+## Tracked projects
+
+The capture script's default filter accepts sessions whose `cwd` is under either a registered vault path or an entry in `tracked_projects` in `~/.thinkos/vaults.json`. If your code lives outside the vault (typical), add the project repos you want captured:
+
+```json
+{
+  "version": 1,
+  "vaults": [ /* ... */ ],
+  "tracked_projects": [
+    { "path": "~/code/my-project", "label": "My Project" }
+  ]
+}
+```
+
+Paths support `~`; subdirectories of a registered path are matched too. After editing, run `/thinkos-autosave now` to verify; the next scheduled launchd fire picks up the change automatically.
+
+Use `--all-projects` (manual invocation only) to bypass the filter entirely.
+
 ## Common questions
 
 - **"What exactly gets captured?"** File paths touched via Edit/Write tools, a count of unique files, the git HEAD short SHA if the project is a git repo. NOT file contents, NOT the conversation transcript.
 - **"How do I see the log?"** Open `01 Now/Work Log.md` in your vault, or ask `/recent-log`.
-- **"It didn't capture anything."** Run `/thinkos-autosave now` to test manually. Check `~/Library/Logs/ThinkOS/session-capture.log` for launchd errors.
+- **"It didn't capture anything."** First check `/thinkos-autosave status` — if the allowed-paths list doesn't include the cwd you've been working in, add it to `tracked_projects` in `~/.thinkos/vaults.json` (see Tracked projects section above). Then run `/thinkos-autosave now`. If that still fails, check `~/Library/Logs/ThinkOS/session-capture.err` for the filter line and any errors.
 - **"Can I change the frequency?"** Edit the plist at `~/Library/LaunchAgents/com.thinkos.session-capture.plist` — adjust `StartCalendarInterval` entries — then run `/thinkos-autosave off` and `/thinkos-autosave on` to reload.

@@ -73,11 +73,12 @@ Options:
   --dry-run         Print what would be written without writing anything
   --lookback Nh     Look back N hours (default: 2h)
   --vault PATH      Vault path (default: resolved from ~/.thinkos/active-vault)
-  --all-projects    Capture sessions from ALL cwd paths, not just registered vault paths
+  --all-projects    Capture sessions from ALL cwd paths, not just registered paths
   -h, --help        Show this help
 
-By default, only sessions whose cwd is under a registered Think OS vault path
-(from ~/.thinkos/vaults.json) are captured. Use --all-projects to disable this.
+By default, only sessions whose cwd is under a registered Think OS path are
+captured. The allowed list is the union of vault paths and tracked_projects
+entries in ~/.thinkos/vaults.json. Use --all-projects to disable this filter.
 EOF
 }
 
@@ -287,9 +288,9 @@ if [[ -z "$SESSION_DATA" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Filter session data by registered vault paths (unless --all-projects)
-# Default: only sessions whose cwd is under a registered Think OS vault path
-# are captured. Use --all-projects to disable this filter.
+# Filter session data by registered paths (unless --all-projects)
+# Allowed list = vaults[].path  ∪  tracked_projects[].path  (from vaults.json)
+# Use --all-projects to disable this filter.
 # ---------------------------------------------------------------------------
 if [[ "$ALL_PROJECTS" -eq 0 ]]; then
   SESSION_DATA=$(python3 - "$SESSION_DATA" "$THINKOS_DIR/vaults.json" <<'PY'
@@ -298,47 +299,54 @@ import sys, json, os
 raw = sys.argv[1].strip().split('\n')
 vaults_json = sys.argv[2]
 
-# Load registered vault paths
-vault_paths = []
+allowed_paths = []
 if os.path.isfile(vaults_json):
     try:
         data = json.load(open(vaults_json))
         for v in data.get('vaults', []):
             p = v.get('path', '')
             if p:
-                vault_paths.append(os.path.realpath(os.path.expanduser(p)))
+                allowed_paths.append(os.path.realpath(os.path.expanduser(p)))
+        for tp in data.get('tracked_projects', []):
+            p = tp.get('path', '')
+            if p:
+                allowed_paths.append(os.path.realpath(os.path.expanduser(p)))
     except Exception:
         pass
 
-def is_under_vault(cwd):
-    if not vault_paths:
+def is_allowed(cwd):
+    if not allowed_paths:
         return True  # no registry = allow all (graceful degradation)
     try:
         real_cwd = os.path.realpath(os.path.expanduser(cwd))
     except Exception:
         return False
-    for vp in vault_paths:
-        if real_cwd == vp or real_cwd.startswith(vp + os.sep):
+    for ap in allowed_paths:
+        if real_cwd == ap or real_cwd.startswith(ap + os.sep):
             return True
     return False
 
+input_count = 0
+matched_count = 0
 for line in raw:
     if not line:
         continue
+    input_count += 1
     try:
         obj = json.loads(line)
     except json.JSONDecodeError:
         continue
-    if is_under_vault(obj.get('cwd', '')):
+    if is_allowed(obj.get('cwd', '')):
+        matched_count += 1
         print(json.dumps(obj))
+
+print(f"filter: {matched_count}/{input_count} sessions matched ({len(allowed_paths)} allowed paths)", file=sys.stderr)
 PY
   )
 fi
 
 if [[ -z "$SESSION_DATA" ]]; then
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "[dry-run] No sessions matched registered vault paths. Use --all-projects to capture all."
-  fi
+  echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] thinkos-session-capture: 0 sessions matched allowed paths. Add to tracked_projects in ~/.thinkos/vaults.json, or use --all-projects to bypass." >&2
   exit 0
 fi
 
@@ -529,9 +537,17 @@ for g in groups:
 PY
 )
 
-(
-  flock 9
+if command -v flock >/dev/null 2>&1; then
+  (
+    flock 9
+    printf '%s\n' "$_ledger_lines" >> "$LEDGER"
+  ) 9>> "$LEDGER"
+else
+  # macOS ships no flock(1). launchd serializes scheduled fires (one job at a
+  # time per label), so the typical concurrent-writer case doesn't arise.
+  # Manual `now` invocations during a scheduled fire are rare and append-only
+  # writes to the ledger are line-bounded.
   printf '%s\n' "$_ledger_lines" >> "$LEDGER"
-) 9>> "$LEDGER"
+fi
 
 exit 0
