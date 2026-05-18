@@ -48,7 +48,7 @@ Append to `04 Knowledge/Decisions.md` via Basic Memory. Format (preserve from th
 Extract topic, decision, why, context, applies-to from the content. If anything is unclear, ask ONCE for the most-missing piece before writing. Per the Decisions.md convention, NEWER entries go above older ones — find the right insertion point.
 
 ```
-mcp__basic-memory__edit_note(identifier="Standing Decisions", operation="prepend", content="<formatted entry>")
+mcp__basic-memory__edit_note(identifier="Decisions", operation="prepend", content="<formatted entry>")
 ```
 
 ### Mode: learning

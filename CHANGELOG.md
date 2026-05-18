@@ -2,6 +2,19 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.8.4] — 2026-05-18 — Hotfix: `/thinkos-capture` and `/thinkos-decisions` referenced wrong Basic Memory identifier
+
+Caught during a real `/thinkos-capture` run in session-recap mode today. The decision-mode write template used `identifier="Standing Decisions"` — but the actual note in the vault has title `Decisions` (with `Standing Decisions` only as the H1 heading inside the file body). Basic Memory's `edit_note` matches on title, not on H1, so the prepend call **created a new orphan note** at `Standing Decisions.md` instead of prepending to the canonical `04 Knowledge/Decisions.md`. Caught it mid-session, deleted the orphan, and re-prepended to the correct identifier — but the underlying skill template was still wrong and would have repeated the bug on the next session-recap.
+
+### Fixed
+
+- **`adapters/claude-code/commands/thinkos-capture.md:51`** — decision-mode write: `identifier="Standing Decisions"` → `identifier="Decisions"`.
+- **`adapters/claude-code/commands/thinkos-decisions.md:9`** — decisions-read fallback: `mcp__basic-memory__read_note("Standing Decisions")` → `mcp__basic-memory__read_note("Decisions")`. (Less destructive than the capture bug — a missing-note read just returns "not found" — but same root cause and worth fixing in the same pass.)
+
+### Why this matters
+
+Basic Memory identifiers match on the note's title field (in frontmatter), not on the H1 heading inside the body. The Decisions file has frontmatter `title: Decisions` and a body that opens with `# Standing Decisions` — easy to confuse for a human writing the skill template. The fix is one-character per file (`"Decisions"` instead of `"Standing Decisions"`). The underlying lesson is broader: any Basic Memory identifier in a curated skill should be cross-checked against the actual note's `title` field rather than copied from the body. Worth keeping in mind for the other slash commands that reference vault notes by name.
+
 ## [v0.8.3] — 2026-05-18 — Hotfix: Slack local install path is broken; introduce `requires_bridge`
 
 Dave Drager (Think Co) installed Think OS via the `pm` bundle. His other connectors (Gmail, Calendar, Drive, Granola) routed cleanly through the claude.ai bridge. Slack didn't — the bridge wasn't enabled for Slack on his claude.ai account, so the installer fell through to the local install path, which attempted `claude mcp add slack https://mcp.slack.com/mcp`. On first OAuth, his Claude Code surfaced this:
