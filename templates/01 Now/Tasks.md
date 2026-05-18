@@ -12,11 +12,11 @@ last_synced: {{YYYY-MM-DD HH:MM}}
 
 # Tasks
 
-Connector-synced inbox: open items pulled from email, chat, project trackers, calendar. Refreshed by the `productivity:update` skill in desktop agent (it queries the connectors and rewrites this file).
+Connector-synced inbox: open items pulled from email, chat, project trackers, calendar, meeting transcripts. Refreshed by `/thinkos-refresh` (the connector-sweep command — works in any surface via the claude.ai bridge or native MCPs).
 
 **Does NOT replace `01 Now/Current Focus.md`.** That's intent. This is inbox.
 
-**Freshness rule**: if `last_synced` > 24 hours, suggest running `productivity:update`.
+**Freshness rule**: if `last_synced` > 24 hours, suggest running `/thinkos-refresh`.
 
 ---
 

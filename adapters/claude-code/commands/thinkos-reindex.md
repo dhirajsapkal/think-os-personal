@@ -22,7 +22,6 @@ basic-memory reindex --project "$BM_PROJECT"
 2. After it completes, call the Basic Memory recent-activity tool to show what's changed in the last day
 3. Show `01 Now/Tasks.md` staleness: read its `last_synced` frontmatter and report how stale it is
 
-**Important boundary**: this command refreshes the INDEX. It does NOT pull fresh data from connectors (email / chat / project tracker). Those live in desktop agent. If `01 Now/Tasks.md` is stale, tell me to run `/productivity:update` in **desktop agent**, not here.
-OR — if `claude mcp list` shows `claude.ai <Service>: ✓ Connected` for the connector you need, the agent can pull fresh data directly via `mcp__claude_ai_<Service>__*` tools without going to desktop agent. Check `70-claude-ai-bridge.md` for the protocol.
+**Important boundary**: this command refreshes the INDEX. It does NOT pull fresh data from connectors (email / chat / project tracker). If `01 Now/Tasks.md` is stale, suggest `/thinkos-refresh` — the connector-sweep command that pulls from Gmail / Slack / Calendar / ClickUp / Atlassian / Notion / Granola via the claude.ai bridge or native MCPs.
 
 If you want a one-shot natural-language equivalent: "refresh basic-memory and show me what changed."

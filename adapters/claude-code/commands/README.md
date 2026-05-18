@@ -36,6 +36,7 @@ To verify: `cd ~ && claude`, then type `/` — you should see the list.
 | `/thinkos-log <message>` | Capture a timestamped note to your work log |
 | `/thinkos-capture <learning>` | Capture a cross-project learning into your vault |
 | `/thinkos-decide <decision>` | Record a standing decision in your vault |
+| `/thinkos-refresh` | Refresh Tasks.md from connectors (Gmail, Slack, Calendar, ClickUp, Atlassian, Notion, Granola) |
 | `/thinkos-stale` | List notes past their freshness window |
 | `/thinkos-reindex` | Refresh Basic Memory's index after external edits |
 | `/thinkos-voice <before \| after>` | Rewrite a draft in your voice profile |
@@ -57,10 +58,13 @@ To verify: `cd ~ && claude`, then type `/` — you should see the list.
 
 ## Connector sync
 
-The connector-sync workflow (`/productivity:update` — pulls from Gmail / Slack / project tracker / etc.) runs in desktop agent, where the connector MCPs are registered. Use these commands for read/write against the OS files themselves.
+The connector-sweep workflow is `/thinkos-refresh` — pulls from Gmail / Slack / Calendar / ClickUp / Atlassian / Notion / Granola and rewrites `01 Now/Tasks.md` with a fresh `last_synced` timestamp. Works in any surface that can reach a connector path:
 
-- **desktop agent** — refreshes `01 Now/Tasks.md` from connectors
-- **CLI agent** — reads `01 Now/Tasks.md` and writes to the OS during project work
+- **Claude Code (CLI)** — uses the claude.ai bridge tools (`mcp__claude_ai_<Service>__*`). Confirm via `claude mcp list`.
+- **Cowork (web)** — same bridge tools.
+- **Desktop agent** — uses native connector MCPs if registered locally, otherwise falls through to the bridge.
+
+The legacy `/productivity:update` skill (desktop-only) is retired — its behavior lives in `/thinkos-refresh`.
 
 ## Maintenance
 

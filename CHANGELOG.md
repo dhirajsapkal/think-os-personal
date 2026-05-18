@@ -2,6 +2,29 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.9.1] — 2026-05-18 — `/thinkos-refresh` skill — connector sweep for `Tasks.md`
+
+Closes a real gap surfaced today: `01 Now/Tasks.md` documented `productivity:update` as its refresh path, but that skill no longer exists in the `/thinkos-*` namespace. Six other skill files referenced it as a fallback. The fix is a new `/thinkos-refresh` command — portable across surfaces (Claude Code, Cowork, desktop agent) via the claude.ai bridge with native MCP fallback. Same job as the old `productivity:update` (Gmail / Slack / Calendar / ClickUp / Atlassian / Notion / Granola → rewrite `Tasks.md`), but lives where users actually look.
+
+### Added
+
+- **`/thinkos-refresh` skill** (`adapters/claude-code/commands/thinkos-refresh.md`). Connector sweep that rewrites `01 Now/Tasks.md` with a fresh `last_synced` timestamp. Modes: default comprehensive (all seven sources), `--quick` (Gmail / Slack / Calendar / ClickUp only, ~15s), `--source <name>` (single connector), `--dry-run` (preview diff without writing), `--days <N>` (override lookback). Parallel connector pulls in a single assistant turn. Applies the per-source filter rules from `Connectors.md` (ClickUp 90d stale filter, Atlassian Confluence-only, Notion on-demand). Preserves the `### Manually added` and `## Done (this week)` sections verbatim. Appends a capture-log event on every run. Graceful per-source degradation — one connector unavailable doesn't fail the whole sweep.
+- **Registration** in `adapters/claude-code/commands/README.md` (commands table + new "Connector sync" section) and `adapters/claude-code/commands/thinkos-help.md` (Maintenance section).
+
+### Changed
+
+- **Cross-references updated** in six existing skills + two templates to point at `/thinkos-refresh` instead of `productivity:update`: `thinkos-plate.md`, `thinkos-morning.md`, `thinkos-stale.md`, `thinkos-reindex.md`, `templates/01 Now/Tasks.md`, `templates/90 System/OS Instructions.md`. The legacy `productivity:update` skill is explicitly retired in the README Connector-sync section.
+
+### Versioning note (read this before the next bump)
+
+This is a patch — not a minor — and the rule is being tightened. The earlier 2026-05-18 decision said "minor version bump for external contributions adding new contracts." Reading that literally would make every new skill a minor bump, and we'd be at v0.20.0 by month-end despite being nowhere near a v1.0 maturity bar. The refined rule (also captured in `04 Knowledge/Decisions.md` today):
+
+- **Patch (0.X.Y+1)**: hotfixes AND small additive features that fit under the current milestone framing.
+- **Minor (0.X+1.0)**: only when a coherent milestone ships — and the milestone gets a name at bump-time. v0.9.0 had one: "first external contribution + Dave's architectural fix." Avoid minor bumps for routine feature additions.
+- **Major (1.0.0)**: feature-complete, stable, externally adoptable without warnings. Long way off.
+
+`/thinkos-refresh` is genuinely additive but fits under the existing v0.9 "stable-with-external-contributors" framing. Patch.
+
 ## [v0.9.0] — 2026-05-18 — First external contribution: `tracked_projects` filter + auto-migrate to v2 manifest
 
 **The first external pull request on Think OS.** Dave Drager (Technical Lead, Think Company) installed v0.8 today, hit the session-capture filter dropping all his sessions (because his code lives outside the vault — the typical case), diagnosed three v0.8 bugs of mine + landed an architectural improvement that retires the v0.8.2 recovery flow's hot path. Merged via `--rebase` to preserve his two commits' authorship; this changelog credits him explicitly.

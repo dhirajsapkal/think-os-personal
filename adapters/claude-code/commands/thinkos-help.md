@@ -61,6 +61,7 @@ Show the full index of Think OS slash commands grouped by category, plus key scr
 
 | Command | What it does |
 |---|---|
+| `/thinkos-refresh` | Connector sweep — pull fresh Tasks.md from Gmail / Slack / Calendar / ClickUp / Atlassian / Notion / Granola |
 | `/thinkos-reindex` | Refresh Basic Memory's index after external edits |
 | `/thinkos-stale` | List notes past their freshness window |
 | `/thinkos-voice <before \| after>` | Log a before/after rewrite sample to improve your voice profile |

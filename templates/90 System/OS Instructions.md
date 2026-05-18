@@ -40,7 +40,7 @@ Check frontmatter dates before relying on a file. Flag if:
 |---|---|---|
 | HOT files | `last_reviewed` > 7 days | Mention it; don't block |
 | `01 Now/Current Focus.md` | `covers_week` end past today | **Must flag** before "what am I working on" |
-| `01 Now/Tasks.md` | `last_synced` > 24 hours | Suggest running `productivity:update` in desktop agent |
+| `01 Now/Tasks.md` | `last_synced` > 24 hours | Suggest running `/thinkos-refresh` — connector sweep that works in any surface |
 | WARM files | `last_reviewed` > 30 days | Mention it during quarterly review |
 
 ## Capture habit
