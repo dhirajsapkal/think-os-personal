@@ -460,6 +460,15 @@ except Exception:
 
 print("Wrote install manifest: " + manifest_path)
 PYEOF
+
+  # Upgrade the just-written v1 manifest to v2 so consumers added after the
+  # update-protocol landed (/thinkos-autosave, /thinkos-update, /thinkos-capture-setup)
+  # can resolve `repo_path` and `managed_files` on a fresh install. The migrator
+  # is idempotent and exits 0 on already-v2 manifests.
+  if [[ -x "$REPO_ROOT/scripts/thinkos-migrate-manifest-v1-to-v2.sh" ]]; then
+    "$REPO_ROOT/scripts/thinkos-migrate-manifest-v1-to-v2.sh" || \
+      log "Warning: manifest v1→v2 migration failed; /thinkos-autosave and /thinkos-update may not work until you run scripts/thinkos-migrate-manifest-v1-to-v2.sh manually."
+  fi
 }
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
