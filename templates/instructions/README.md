@@ -1,17 +1,22 @@
 # Curated Always-On Instructions
 
-The five markdown files in this directory are the **always-on guidance** that gets injected into every agent session. They are concatenated by `scripts/thinkos-setup.sh` (and re-applied by `scripts/thinkos-update.sh`) into the `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` block of the user's global Claude Code instructions:
+The markdown files in this directory are the **always-on guidance** that gets injected into every agent session. The files explicitly listed in `curated_instruction_files()` inside `scripts/thinkos-setup.sh` (and re-applied by `scripts/thinkos-update.sh`) are concatenated into the `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` block of the user's global Claude Code instructions:
 
 - `~/.claude/CLAUDE.md` (Claude Code)
 
-## Concatenation order
+## Concatenation order (the wired list)
 
 1. `00-think-os-priority.md` — "this user has Think OS, MUST query Basic Memory first, core rules"
 2. `05-global-rules.md` — non-negotiable NEVER / ALWAYS rules (destructive ops, scope, secrets, drafts-never-send, plan-before-edit, etc.)
 3. `10-token-efficiency.md` — tool-use defaults (Grep over Read+grep, Edit over Write, batch parallel calls, etc.)
 4. `20-skill-routing.md` — topic → skill mapping (design → `frontend-design:frontend-design`, etc.)
 5. `30-think-os-write-targets.md` — where new content goes by content type
-6. The adapter-specific instructions for the selected product (`adapters/<product>/instructions.md` or `AGENTS.md`)
+6. `70-claude-ai-bridge.md` — how the `mcp__claude_ai_*` deferred-tool surface works; read before declaring a connector unavailable
+7. The adapter-specific instructions for the selected product (`adapters/<product>/instructions.md` or `AGENTS.md`)
+
+### Files present but not currently wired
+
+`40-emergent-seeding.md`, `50-drift-detection.md`, and `60-shared-mode.md` exist as drafts in this directory but are not in the `curated_instruction_files()` list. The behaviors they describe ship via the corresponding skills/commands instead. If you add them to the wired list, also update `00-think-os-priority.md`'s "Where to look next" section so the preamble's promise matches what actually gets concatenated.
 
 The resulting block is ~200–280 lines, self-contained, and readable as one coherent document.
 

@@ -92,7 +92,20 @@ Basic Memory indexes your vault on disk. If you edit files in Obsidian, an exter
 
 To sync: run `/thinkos-reindex` (calls `basic-memory reindex --project think-os` under the hood).
 
-The index does NOT pull new data from connectors (email, Slack, calendar). That's the desktop agent's job — ask it to run the connector-sync workflow if `01 Now/Tasks.md` is stale.
+## Vault index vs. runtime tools — two separate surfaces
+
+This is the part that most often confuses agents. There are two unrelated MCP surfaces, and conflating them leads to wrong "X is unavailable" answers.
+
+| Surface | What it is | What it gives you |
+|---|---|---|
+| **Vault index** (this skill, `mcp__basic-memory__*`) | Full-text + semantic search over the markdown files in your vault | Identity, decisions, learnings, people, project notes, work log — everything *already captured* |
+| **Runtime bridge** (`mcp__claude_ai_*`) | The claude.ai marketplace bridge — connectors enabled in your claude.ai account surface as deferred MCP tools in Claude Code | Direct read/write against Gmail, Slack, Calendar, Drive, Notion, Atlassian, ClickUp, etc. — independent of the vault |
+
+The vault index does NOT pull from Gmail/Slack/Calendar — that's the desktop agent / continuous-capture's job. If `01 Now/Tasks.md` is stale, ask the desktop agent to run the connector-sync workflow.
+
+But the runtime bridge gives the agent direct access to those services right now, even before anything has been captured. Check `claude mcp list` for entries prefixed `claude.ai *` (e.g. `claude.ai Slack: ✓ Connected`). Their tools are namespaced `mcp__claude_ai_<Service>__<tool>` and load on demand via `ToolSearch`. The `70-claude-ai-bridge.md` block in the curated instructions has the full protocol.
+
+So "the vault doesn't have your Slack messages yet" and "the agent can't reach Slack" are different statements. The first one is often true; the second one is almost certainly false if `claude mcp list` shows a bridge entry.
 
 ---
 

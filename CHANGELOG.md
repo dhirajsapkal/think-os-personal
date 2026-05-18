@@ -2,6 +2,29 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.7.5] — 2026-05-18 — Agent-side bridge awareness (so future Claudes don't tell you Slack is unavailable)
+
+### Fixed
+
+- **`/thinkos-mcp-help` was priming Claude to misread Slack/Gmail/Calendar as unreachable.** The "Freshness and the index" section ended with a flat line: *"The index does NOT pull new data from connectors (email, Slack, calendar). That's the desktop agent's job."* True statement about the vault index — but a separate Claude session loaded the skill, quoted that exact line back, and concluded the agent itself couldn't reach Slack (it could, via the claude.ai bridge — `claude mcp list` showed the connector was active and `mcp__claude_ai_Slack__slack_send_message` was loadable via `ToolSearch`). Section rewritten as "Vault index vs. runtime tools — two separate surfaces" with an explicit table contrasting `mcp__basic-memory__*` (what's captured in the vault) and `mcp__claude_ai_*` (what the agent can call live), and a final sentence: *"'The vault doesn't have your Slack messages yet' and 'the agent can't reach Slack' are different statements."*
+
+### Added
+
+- **`templates/instructions/70-claude-ai-bridge.md`** — new always-on instruction block, ~55 lines, wired into the curated stack so it concatenates into every rendered `~/.claude/CLAUDE.md`. Covers: what the bridge is, what `claude mcp list` entries with `claude.ai *` prefix mean, how deferred-tool loading works (`ToolSearch select:<name>` vs `ToolSearch query="<topic>"`), the index-vs-runtime distinction, a checklist to run before telling the user "X is unavailable", and the fallback when the bridge genuinely isn't present.
+- **`curated_instruction_files()` in `scripts/thinkos-setup.sh` and `scripts/thinkos-update.sh`** updated to include `70-claude-ai-bridge.md` after the write-targets block. The pointer in `00-think-os-priority.md`'s "Where to look next" section was also updated to reference it as section 5.
+
+### Changed
+
+- **`templates/instructions/README.md`** updated to reflect the new wired-list order. While there, called out explicitly that `40-emergent-seeding.md`, `50-drift-detection.md`, and `60-shared-mode.md` exist in the directory but are NOT wired into the concatenation — their behaviors ship through the corresponding skills/commands. (This was a pre-existing gap between the docs and the code; the previous priority preamble promised those blocks were included when they weren't. The pointer in `00-think-os-priority.md` was also corrected to only list what's actually concatenated.)
+
+### Why this matters
+
+The trigger: a real Claude Code session said to the user *"Claude Code CLI does not have Slack tools exposed... Think OS itself does not provide Slack access... Per /thinkos-mcp-help: 'The index does NOT pull new data from connectors.'"* That was wrong on the second point and wrong on the third — but the reasoning was *anchored in the Think OS docs*. The skill correctly described the index but didn't draw a clear line between "what's captured" and "what the agent can call." A future Claude that doesn't know about the claude.ai bridge will reach for the most authoritative-looking source it has, which is the ThinkOS skill, and conclude the same wrong thing.
+
+The bridge block fixes the upstream problem: every session now starts with explicit guidance that `mcp__claude_ai_*` tools exist as deferred tools, that they need `ToolSearch` to load before being callable, and that the vault index's coverage gaps are not evidence the agent can't reach those services. The rewritten skill closes the secondary leak — even if a future Claude only loads `/thinkos-mcp-help` and not the full curated block, the wording no longer biases it toward the wrong conclusion.
+
+This is a small content release. No new scripts, no behavioral changes to existing commands, no migration needed. Existing installs pick up the new block on the next `/thinkos-update`.
+
 ## [v0.7.4] — 2026-05-18 — Onboarding connector wiring + claude.ai bridge awareness
 
 ### Fixed

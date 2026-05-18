@@ -106,7 +106,8 @@ curated_instruction_files() {
     "$dir/05-global-rules.md" \
     "$dir/10-token-efficiency.md" \
     "$dir/20-skill-routing.md" \
-    "$dir/30-think-os-write-targets.md"
+    "$dir/30-think-os-write-targets.md" \
+    "$dir/70-claude-ai-bridge.md"
 }
 
 render_think_os_block() {
