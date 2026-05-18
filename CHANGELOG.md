@@ -2,6 +2,25 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.7.6] — 2026-05-18 — Emergent seeding, drift detection, and shared-mode are actually wired now
+
+### Fixed
+
+- **Three "shipped in v0.5.0" features were never actually loaded into the agent.** `40-emergent-seeding.md`, `50-drift-detection.md`, and `60-shared-mode.md` were authored, committed, and described in the v0.5.0 changelog — but were not in `curated_instruction_files()` in `scripts/thinkos-setup.sh` or `scripts/thinkos-update.sh`. The rendered `~/.claude/CLAUDE.md` block had a "Where to look next" pointer claiming all three sections were concatenated below; in reality the script jumped from `30-think-os-write-targets.md` straight to the adapter block, omitting 156 lines of ambient-behavior instructions. The agent therefore: never detected `<!-- thinkos:stub -->` markers on HOT files (emergent seeding silently no-op'd for every new install), never flagged mid-flow drift (expired Current Focus, unknown people, missing project entries), and — most consequentially — **did not enforce shared-mode redaction.** `/thinkos-shared on` toggled the flag file but the read-time filter that hides `tier: sensitive` notes lived only in the unwired instruction block, so screen-sharing users got no protection. All three are now in the wired list, in declared order, before the v0.7.5 bridge block.
+
+### Changed
+
+- **`templates/instructions/README.md` rewritten** to list all eight curated blocks in the actual wired order, with one-line descriptions of what each contributes. The previous "Files present but not currently wired" section (added in v0.7.5 to document the gap rather than fix it) is gone — the gap is the fix.
+- **`templates/instructions/00-think-os-priority.md` "Where to look next" section restored** to the 4–7 + bridge + adapter listing that matches what actually gets concatenated.
+
+### Why this matters
+
+The v0.5.0 release notes said: *"emergent seeding + drift detection + shared-mode + capture consolidation."* The first three of those were lying — the code was there, the docs claimed it shipped, but the wiring was missing and no install since v0.5.0 (six minor versions, ~four months) ever ran the behaviors. Shared-mode is the load-bearing one: a user toggling `/thinkos-shared on` before a screen-share would have reasonably trusted that sensitive notes were now hidden. They weren't.
+
+The fix is a six-line change to two scripts plus the docs that should have always matched them. Total instruction-block size grows from ~390 lines to ~530 lines per session — a real token cost on the cache miss, amortized across cached turns. The alternative (deleting the unused blocks) would have removed actual claimed product behavior, so this is the smaller change.
+
+A separate observation, recorded here so it doesn't get lost: if any of these three blocks turns out to be low-value in practice, the right move is to delete the block from `templates/instructions/` and from the script list at the same time. The shape we want to avoid is the previous one — feature documented, code shipped, wiring forgotten.
+
 ## [v0.7.5] — 2026-05-18 — Agent-side bridge awareness (so future Claudes don't tell you Slack is unavailable)
 
 ### Fixed

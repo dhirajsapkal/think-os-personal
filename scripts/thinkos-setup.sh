@@ -138,6 +138,9 @@ curated_instruction_files() {
     "$dir/10-token-efficiency.md" \
     "$dir/20-skill-routing.md" \
     "$dir/30-think-os-write-targets.md" \
+    "$dir/40-emergent-seeding.md" \
+    "$dir/50-drift-detection.md" \
+    "$dir/60-shared-mode.md" \
     "$dir/70-claude-ai-bridge.md"
 }
 

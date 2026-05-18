@@ -11,12 +11,13 @@ The markdown files in this directory are the **always-on guidance** that gets in
 3. `10-token-efficiency.md` — tool-use defaults (Grep over Read+grep, Edit over Write, batch parallel calls, etc.)
 4. `20-skill-routing.md` — topic → skill mapping (design → `frontend-design:frontend-design`, etc.)
 5. `30-think-os-write-targets.md` — where new content goes by content type
-6. `70-claude-ai-bridge.md` — how the `mcp__claude_ai_*` deferred-tool surface works; read before declaring a connector unavailable
-7. The adapter-specific instructions for the selected product (`adapters/<product>/instructions.md` or `AGENTS.md`)
+6. `40-emergent-seeding.md` — detect HOT-file stubs and progressively fill them from conversation; offer-then-confirm, one per turn
+7. `50-drift-detection.md` — flag contradictions (expired Current Focus, unknown people, missing project entries) mid-flow as a single end-of-turn line
+8. `60-shared-mode.md` — when shared-mode is on, redact `tier: sensitive` notes at read time; the toggle skill only sets the flag, this block does the enforcement
+9. `70-claude-ai-bridge.md` — how the `mcp__claude_ai_*` deferred-tool surface works; read before declaring a connector unavailable
+10. The adapter-specific instructions for the selected product (`adapters/<product>/instructions.md` or `AGENTS.md`)
 
-### Files present but not currently wired
-
-`40-emergent-seeding.md`, `50-drift-detection.md`, and `60-shared-mode.md` exist as drafts in this directory but are not in the `curated_instruction_files()` list. The behaviors they describe ship via the corresponding skills/commands instead. If you add them to the wired list, also update `00-think-os-priority.md`'s "Where to look next" section so the preamble's promise matches what actually gets concatenated.
+When the wired list changes, also update the "Where to look next" section in `00-think-os-priority.md` so the preamble's promise matches what actually gets concatenated.
 
 The resulting block is ~200–280 lines, self-contained, and readable as one coherent document.
 

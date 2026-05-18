@@ -46,8 +46,11 @@ The remaining sections are concatenated below in this order:
 2. **Token efficiency** (`10-token-efficiency.md`) — tool-use defaults.
 3. **Skill routing** (`20-skill-routing.md`) — which skill to invoke for which topic.
 4. **Write targets** (`30-think-os-write-targets.md`) — where new content goes by type.
-5. **Claude.ai bridge** (`70-claude-ai-bridge.md`) — how `mcp__claude_ai_*` deferred tools load. Read before telling the user a connector is unavailable.
-6. **Adapter-specific instructions** — the rest of this block (Basic Memory tool examples, multi-vault awareness, mid-setup detection).
+5. **Emergent seeding** (`40-emergent-seeding.md`) — fill empty HOT stubs from natural conversation; propose, never overwrite silently.
+6. **Drift detection** (`50-drift-detection.md`) — flag contradictions and staleness mid-flow as a single terse line at end of turn.
+7. **Shared mode** (`60-shared-mode.md`) — when screen-sharing, hide `tier: sensitive` notes from reads.
+8. **Claude.ai bridge** (`70-claude-ai-bridge.md`) — how `mcp__claude_ai_*` deferred tools load. Read before telling the user a connector is unavailable.
+9. **Adapter-specific instructions** — the rest of this block (Basic Memory tool examples, multi-vault awareness, mid-setup detection).
 
 For end-user help in a live session, `/thinkos-help` lists every command. `/thinkos-mcp-help` is a tutorial for using the MCP itself.
 
