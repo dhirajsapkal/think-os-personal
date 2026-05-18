@@ -2,6 +2,34 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.8.3] — 2026-05-18 — Hotfix: Slack local install path is broken; introduce `requires_bridge`
+
+Dave Drager (Think Co) installed Think OS via the `pm` bundle. His other connectors (Gmail, Calendar, Drive, Granola) routed cleanly through the claude.ai bridge. Slack didn't — the bridge wasn't enabled for Slack on his claude.ai account, so the installer fell through to the local install path, which attempted `claude mcp add slack https://mcp.slack.com/mcp`. On first OAuth, his Claude Code surfaced this:
+
+> Slack's auth server doesn't support Dynamic Client Registration. Only accepts pre-registered OAuth clients tied to a specific Slack App.
+
+His diagnosis was correct. Claude Code's MCP client for `mcp_remote` endpoints uses RFC 7591 Dynamic Client Registration to bootstrap OAuth. Slack's official endpoint at `https://mcp.slack.com/mcp` requires pre-registered clients (you create a Slack App in api.slack.com, install it to your workspace, and use its tokens). DCR isn't supported. The local install path was always going to fail.
+
+It worked for him on the bridge because claude.ai's Slack connector ships with a pre-registered OAuth App that handles auth on the user's behalf — that's what `mcp__claude_ai_Slack__*` is. So the catalog assumption "if the bridge isn't there, install locally" was wrong specifically for Slack.
+
+### Fixed
+
+- **`scripts/thinkos-install-bundle.sh` items-resolution bug.** Pre-existing bug found while testing the v0.8.3 changes: `--items <single-id>` produced "No items resolved" because the items-resolution loop's `printf '%s' "$ITEMS_RAW" | tr ',' '\n'` lacked a trailing newline, so `IFS= read -r id` dropped the last (and only) entry. One-line fix: `printf '%s\n' "$ITEMS_RAW"`. Multi-item invocations were also losing their last entry silently.
+
+### Added
+
+- **`requires_bridge` field on catalog entries.** New optional boolean in `data/plugin-catalog.yaml`'s `claude_code` block. Set to `true` when the vendor's MCP endpoint requires a pre-registered OAuth client and doesn't support RFC 7591 Dynamic Client Registration — i.e. when the local install path is fundamentally broken on Claude Code's auth model. Schema documented at the top of the YAML. Confirmed cases: `slack`. The field is conservative on purpose — only flag entries whose local install has been confirmed broken via a failed OAuth attempt, not anything that *might* be broken.
+
+- **Installer REQUIRES BRIDGE status.** When an entry has `requires_bridge: true` AND the bridge isn't detected, `thinkos-install-bundle.sh` now prints a `REQUIRES BRIDGE: enable '<name>' in claude.ai` status instead of attempting the doomed local registration. A new section in the install summary (Phase 6.6) tells the user exactly which connectors need claude.ai bridge enablement and links to https://claude.ai/settings/connectors. OAuth checklist excludes these (filter is already `status == OK`).
+
+### Why this matters
+
+The catalog was implicitly assuming every `mcp_remote` entry supports DCR for local install. Slack breaks that assumption, and any future vendor with a hard-coded OAuth App model will too. The new `requires_bridge` field is the declarative escape hatch: an entry can ship as "bridge-only" without losing its catalog presence, the installer routes around the broken path, and the user gets a clear single-line action ("enable this in claude.ai") instead of a Claude Code error message ten minutes later.
+
+Three back-to-back hotfixes in three hours, all from one user (Dave). Each surfaced a different layer of the same general gap: the catalog assumed too much about local OAuth, the installer didn't handle the doomed path, and `--items <single-id>` had a silent off-by-one in the items parser. All three are now closed.
+
+Audit-the-others work is intentionally not in this release. The new field is documented; future cases get added one at a time as users report failed local OAuth, rather than speculatively flagging entries that might still work.
+
 ## [v0.8.2] — 2026-05-18 — Hotfix: `/thinkos-update` dead-ends when the repo can't be found
 
 Same user (Chris) hit a second snag right after the v0.8.1 fix. After cleaning up the leaked plists and being told to "run `/thinkos-update --pull` to pick up the fix," his agent reported: "The install manifest doesn't have a `repo_path` and I can't find a checkout anywhere. Where's the Think OS repo I should clone from?"

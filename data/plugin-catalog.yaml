@@ -31,6 +31,16 @@
 #                           attempting a local `claude mcp add` that would
 #                           duplicate auth and never converge. Leave unset for
 #                           items that have no claude.ai equivalent.
+#     requires_bridge bool Optional, defaults false. Set true when the vendor's
+#                           MCP endpoint does NOT support RFC 7591 Dynamic Client
+#                           Registration and therefore can't be locally installed
+#                           via Claude Code's `mcp add` path (it requires a
+#                           pre-registered OAuth client tied to a specific App).
+#                           When true AND the bridge isn't detected, the installer
+#                           prints a REQUIRES BRIDGE message instead of attempting
+#                           a doomed local registration. Confirmed: slack. Audit
+#                           each entry case-by-case — only set when confirmed via
+#                           a failed local OAuth attempt.
 #     # mcp_remote fields:
 #     transport    string  http | sse
 #     url          string  MCP server URL
@@ -66,6 +76,7 @@ catalog:
       url: https://mcp.slack.com/mcp
       mcp_name: slack
       bridge_match: Slack
+      requires_bridge: true
       trust_level: vendor-provided
     notes: User completes OAuth in-app on first Slack tool call. Provided by claude.ai bridge when the user is signed into claude.ai with Slack connected.
 

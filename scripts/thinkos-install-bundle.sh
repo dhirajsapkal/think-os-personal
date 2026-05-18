@@ -233,7 +233,7 @@ elif [[ -n "$ITEMS_RAW" ]]; then
     else
       bad_ids="${bad_ids} $id"
     fi
-  done < <(printf '%s' "$ITEMS_RAW" | tr ',' '\n')
+  done < <(printf '%s\n' "$ITEMS_RAW" | tr ',' '\n')
 
   if [[ -n "$bad_ids" ]]; then
     log "Error: unknown catalog id(s):$bad_ids" >&2
@@ -472,6 +472,20 @@ for id in "${INSTALL_IDS[@]}"; do
         continue
       fi
 
+      # v0.8.3: handle endpoints that can only OAuth via the claude.ai bridge.
+      # Some vendor MCP endpoints (Slack confirmed) require pre-registered OAuth
+      # clients tied to a specific App and don't support RFC 7591 Dynamic Client
+      # Registration. Claude Code's local `mcp add` path tries DCR — which fails
+      # at first OAuth attempt for those endpoints. When requires_bridge is set
+      # AND the bridge isn't detected, skip with a clear message instead of
+      # registering a doomed local entry.
+      requires_bridge_val="$(catalog_get_field "$id" "claude_code.requires_bridge")"
+      if [[ "$requires_bridge_val" == "True" || "$requires_bridge_val" == "true" ]]; then
+        _status_set "$id" "REQUIRES BRIDGE: enable '${bridge_match}' in claude.ai"
+        log "  REQUIRES BRIDGE: '$mcp_name' only works via the claude.ai marketplace bridge. Enable the '${bridge_match}' connector at https://claude.ai/settings/connectors, then re-run this installer (or restart Claude Code — bridge tools auto-load)."
+        continue
+      fi
+
       if _mcp_locally_registered "$mcp_name"; then
         _status_set "$id" "SKIPPED: '$mcp_name' already in mcp list"
         log "  SKIPPED: '$mcp_name' already registered locally in claude mcp list"
@@ -661,6 +675,38 @@ if [[ -n "$bridge_list" ]]; then
   log "Tools appear under the mcp__claude_ai_<Service>__* namespace."
   log "If you ever lose access to claude.ai or want a CLI-only install, re-run this"
   log "installer with --items <id> after disconnecting the bridge entry."
+fi
+
+# ---------------------------------------------------------------------------
+# Phase 6.6: Items that REQUIRE the claude.ai bridge but it wasn't detected
+# ---------------------------------------------------------------------------
+# v0.8.3: surface items whose vendor endpoint doesn't support local OAuth
+# (e.g. Slack — requires a pre-registered OAuth client tied to a Slack App
+# and rejects Claude Code's Dynamic Client Registration attempt). The user
+# needs to enable the corresponding claude.ai connector for these to work
+# at all.
+requires_bridge_list=""
+for id in "${INSTALL_IDS[@]}"; do
+  status="$(_status_get "$id")"
+  if [[ "$status" == "REQUIRES BRIDGE:"* ]]; then
+    item_name="$(catalog_get_field "$id" "name")"
+    bridge_match="$(catalog_get_field "$id" "claude_code.bridge_match")"
+    requires_bridge_list="${requires_bridge_list}  - ${item_name} (${id}) → enable \"${bridge_match}\" at https://claude.ai/settings/connectors\n"
+  fi
+done
+
+if [[ -n "$requires_bridge_list" ]]; then
+  log ""
+  log "ACTION NEEDED — these connectors only work via the claude.ai bridge:"
+  log ""
+  printf '%b' "$requires_bridge_list"
+  log ""
+  log "Why: the vendor's MCP endpoint requires a pre-registered OAuth client"
+  log "and doesn't support Claude Code's local Dynamic Client Registration flow."
+  log "Enabling the connector in claude.ai gives you a pre-registered client for free."
+  log ""
+  log "After enabling, restart Claude Code — bridge tools appear under the"
+  log "mcp__claude_ai_<Service>__* namespace automatically. No re-install needed."
 fi
 
 # ---------------------------------------------------------------------------

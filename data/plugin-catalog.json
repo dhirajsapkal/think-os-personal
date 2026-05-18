@@ -17,6 +17,7 @@
         "url": "https://mcp.slack.com/mcp",
         "mcp_name": "slack",
         "bridge_match": "Slack",
+        "requires_bridge": true,
         "trust_level": "vendor-provided"
       },
       "notes": "User completes OAuth in-app on first Slack tool call. Provided by claude.ai bridge when the user is signed into claude.ai with Slack connected."
