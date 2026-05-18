@@ -2,6 +2,30 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.7.4] — 2026-05-18 — Onboarding connector wiring + claude.ai bridge awareness
+
+### Fixed
+
+- **Placeholder MCP URLs in `data/plugin-catalog.yaml` replaced with verified endpoints.** Eight entries had `TODO: verify` comments next to dummy URLs that would have failed on first connection if anyone had actually completed the local install (instead of getting silently skipped — see below). Updated: `gmail` → `https://gmailmcp.googleapis.com/mcp/v1`, `google-drive` → `https://drivemcp.googleapis.com/mcp/v1`, `google-calendar` → `https://calendarmcp.googleapis.com/mcp/v1`, `atlassian-rovo` → `https://mcp.atlassian.com/v1/mcp`, `hubspot` → `https://mcp.hubspot.com/anthropic`, `quickbooks` → `https://ai-inc.quickbooks.intuit.com/v1/mcp`, `pubmed` → `https://pubmed.mcp.claude.com/mcp`, `zoom-claude` → `https://mcp.zoom.us/mcp/zoom/streamable`. Verified by reading the actual `claude mcp list` output of a running Claude Code session with the claude.ai marketplace connected. The remaining TODOs (ms365, linear, asana, monday, fireflies, otter, amplitude, pendo, similarweb, intercom) stay marked unverified — no shipped users hit them in the four canonical presets, and there's no working endpoint to confirm against yet.
+- **`scripts/thinkos-install-bundle.sh` was silently skipping every Google/Slack/Notion install on machines signed into claude.ai.** The `_mcp_already_registered` helper fell back to a loose substring `grep -q "${mcp_name}"` against the full `claude mcp list` output. Entries from the claude.ai marketplace bridge appear as `claude.ai Gmail: https://gmailmcp.googleapis.com/...` — searching for the literal `gmail` matched the URL substring `gmailmcp`, the bash function returned 0, and the installer logged `SKIPPED: 'gmail' already registered`. The user-visible effect: the install manifest claimed gmail/slack/notion/granola were installed; `~/.claude.json mcpServers` had none of them. Replaced with a strict anchored check `^<mcp_name>:` and a separate `_mcp_provided_by_bridge` probe that explicitly looks for `^claude.ai <Display Name>:`.
+- **`google-calendar` missing from every preset.** It was in the catalog but no preset (pm/eng/design/ops) included it. Anyone who picked a bundle and expected "Claude can see my calendar" got nothing — and `/thinkos-morning`'s calendar pull silently fell back to no-data. Added to all four presets. `google-drive` added to pm/eng/design (ops covers Drive via ms365/OneDrive).
+
+### Added
+
+- **`bridge_match` field on catalog entries (optional).** When set, names the exact `claude.ai <Display Name>` row in `claude mcp list` that the bridge provides for that service. The installer reads it to detect bridge intercepts and report a new `BRIDGE: provided by claude.ai (<name>)` status instead of attempting a duplicate `claude mcp add`. Entries with bridges: slack, gmail, google-calendar, google-drive, notion, airtable, atlassian-rovo, clickup, granola, zoom-claude, canva, hubspot, zoominfo, quickbooks, pubmed. Figma is intentionally not bridged (no claude.ai marketplace entry exists yet) — it stays as a local install.
+- **Distinct "Already provided by the claude.ai marketplace bridge" section in the installer summary.** Previously, bridge-intercepted items either fell through to a fake-success local install (after the TODO URL fix would have surfaced auth failures), or appeared as a confusing `SKIPPED` line with no explanation. The new section names each bridged item, points at the `mcp__claude_ai_<Service>__*` tool namespace, and tells the user what to do if they later want a CLI-only install instead.
+- **`claude mcp list` output now cached per installer run.** Each call hits every MCP for a health probe and can take 5–15 seconds on a full preset. The previous code called it three times per item (10 items × 3 = 30 probes). Now loaded once; reused for both local-registered and bridge-provided checks.
+
+### Changed
+
+- **`setup/manifest.yaml` bundle descriptions updated** to list Google Calendar and Google Drive in the pm/eng/design rows (ops already mentioned Microsoft 365 which covers OneDrive). These strings show in the install wizard chip-picker, so a user reading "Slack, Gmail, Google Calendar, Google Drive, Notion, Figma, Granola + Design and Productivity skills" sees what they will actually get.
+
+### Why this matters
+
+The bug surfaced when a user said: "ThinkOS onboarding doesn't connect Claude Code with Gmail/Calendar — it can't read them." Diagnosing it turned up three independent failures on the same path: a catalog with placeholder URLs nobody had verified, a preset bundle that omitted calendar entirely, and an installer whose "already registered" guard was loose enough to mask the previous two issues by silently no-op'ing in the most common environment (a user signed into claude.ai). Each failure on its own would have shown up in testing. Together they produced a "success" output that hid the entire failure mode.
+
+The fix tightens the installer's contract: a local install attempt either succeeds with a working URL, gets cleanly deferred to the bridge, or fails loudly. The catalog now distinguishes "we install this locally" from "claude.ai provides this for free" with a single declarative field. And the user-facing summary tells the truth about what is and isn't wired up.
+
 ## [v0.7.3] — 2026-05-15 — Fabricated demo persona scrubbed from website
 
 ### Fixed

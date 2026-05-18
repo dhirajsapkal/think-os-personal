@@ -348,15 +348,62 @@ _status_get() {
   printf 'UNKNOWN'
 }
 
-# Helper: check if an MCP name is already registered
-_mcp_already_registered() {
+# Cache `claude mcp list` once per invocation — the command can be slow because
+# each line hits its server for a health probe. Repeated calls inside the
+# install loop would add seconds per item and produce inconsistent reads if a
+# health state flips mid-run.
+_MCP_LIST_CACHE=""
+_MCP_LIST_LOADED=0
+
+_mcp_list_load() {
+  if [[ "$_MCP_LIST_LOADED" -eq 0 ]]; then
+    _MCP_LIST_CACHE="$(claude mcp list 2>/dev/null || true)"
+    _MCP_LIST_LOADED=1
+  fi
+}
+
+# Helper: check if an MCP name is registered locally (i.e. via `claude mcp add`,
+# which writes into ~/.claude.json mcpServers and shows up at column 0 in
+# `claude mcp list` as "<name>: <url-or-command>").
+#
+# Anchored match on `^<name>:` — the previous implementation fell through to a
+# loose substring match that silently matched bridge entries (e.g. searching
+# for "gmail" hit "claude.ai Gmail: https://gmailmcp.googleapis.com/..." via
+# the URL substring) and made the installer report success while skipping the
+# install. The fuzzy fallback is gone on purpose; if the strict name match
+# fails we want to attempt the install.
+_mcp_locally_registered() {
   local mcp_name="$1"
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    return 1  # In dry-run, always treat as not registered (show command)
+    return 1  # In dry-run, treat as not registered so the command is printed.
   fi
-  claude mcp list 2>/dev/null | grep -q "^${mcp_name}\b" || \
-  claude mcp list 2>/dev/null | grep -q "  ${mcp_name} " || \
-  claude mcp list 2>/dev/null | grep -q "${mcp_name}"
+  _mcp_list_load
+  printf '%s\n' "$_MCP_LIST_CACHE" | grep -q "^${mcp_name}:"
+}
+
+# Helper: check if the service is being provided by the claude.ai marketplace
+# bridge — `claude mcp list` shows these as
+#   "claude.ai <Display Name>: <url> - <state>"
+# When set, we want to skip the local install entirely: a local `claude mcp
+# add` would create a duplicate that requires its own OAuth, never replace the
+# bridge entry, and just confuse the user.
+#
+# bridge_match must be the exact display name as it appears in
+# `claude mcp list` after the literal "claude.ai " prefix.
+#
+# Note: unlike _mcp_locally_registered, this runs in dry-run too — it is a
+# read-only probe, and the whole point of dry-run is to surface what the
+# installer would actually do. A bridge-intercepted item showing "OK
+# (dry-run)" would be a lie.
+_mcp_provided_by_bridge() {
+  local bridge_match="$1"
+  [[ -z "$bridge_match" ]] && return 1
+  _mcp_list_load
+  # Escape any regex specials in bridge_match (display names have spaces and
+  # may include parens or dots, e.g. "Atlassian", "Zoom for Claude").
+  local escaped
+  escaped="$(printf '%s' "$bridge_match" | sed 's/[][\\.*^$(){}?+|/]/\\&/g')"
+  printf '%s\n' "$_MCP_LIST_CACHE" | grep -q "^claude\.ai ${escaped}:"
 }
 
 # Collect unique marketplaces for plugin/skill_bundle items.
@@ -403,6 +450,7 @@ for id in "${INSTALL_IDS[@]}"; do
       mcp_name="$(catalog_get_field "$id" "claude_code.mcp_name")"
       transport="$(catalog_get_field "$id" "claude_code.transport")"
       url="$(catalog_get_field "$id" "claude_code.url")"
+      bridge_match="$(catalog_get_field "$id" "claude_code.bridge_match")"
 
       if [[ -z "$mcp_name" || -z "$transport" || -z "$url" ]]; then
         _status_set "$id" "FAILED: missing mcp_name/transport/url in catalog"
@@ -410,9 +458,15 @@ for id in "${INSTALL_IDS[@]}"; do
         continue
       fi
 
-      if [[ "$DRY_RUN" -eq 0 ]] && _mcp_already_registered "$mcp_name"; then
-        _status_set "$id" "SKIPPED"
-        log "  SKIPPED: '$mcp_name' already registered in claude mcp list"
+      if _mcp_provided_by_bridge "$bridge_match"; then
+        _status_set "$id" "BRIDGE: provided by claude.ai (${bridge_match})"
+        log "  BRIDGE: '$mcp_name' is already provided by the claude.ai marketplace as '${bridge_match}' — skipping local install"
+        continue
+      fi
+
+      if _mcp_locally_registered "$mcp_name"; then
+        _status_set "$id" "SKIPPED: '$mcp_name' already in mcp list"
+        log "  SKIPPED: '$mcp_name' already registered locally in claude mcp list"
         continue
       fi
 
@@ -433,6 +487,7 @@ for id in "${INSTALL_IDS[@]}"; do
     mcp_stdio)
       mcp_name="$(catalog_get_field "$id" "claude_code.mcp_name")"
       command_bin="$(catalog_get_field "$id" "claude_code.command")"
+      bridge_match="$(catalog_get_field "$id" "claude_code.bridge_match")"
 
       if [[ -z "$mcp_name" || -z "$command_bin" ]]; then
         _status_set "$id" "FAILED: missing mcp_name/command in catalog"
@@ -445,9 +500,15 @@ for id in "${INSTALL_IDS[@]}"; do
       # Retrieve args as newline-separated list via catalog helper
       args_raw="$(catalog_get_field "$id" "claude_code.args")" || true
 
-      if [[ "$DRY_RUN" -eq 0 ]] && _mcp_already_registered "$mcp_name"; then
-        _status_set "$id" "SKIPPED"
-        log "  SKIPPED: '$mcp_name' already registered in claude mcp list"
+      if _mcp_provided_by_bridge "$bridge_match"; then
+        _status_set "$id" "BRIDGE: provided by claude.ai (${bridge_match})"
+        log "  BRIDGE: '$mcp_name' is already provided by the claude.ai marketplace as '${bridge_match}' — skipping local install"
+        continue
+      fi
+
+      if _mcp_locally_registered "$mcp_name"; then
+        _status_set "$id" "SKIPPED: '$mcp_name' already in mcp list"
+        log "  SKIPPED: '$mcp_name' already registered locally in claude mcp list"
         continue
       fi
 
@@ -562,6 +623,36 @@ if [[ -n "$oauth_list" ]]; then
   log "from that MCP — it will automatically prompt for browser authentication."
 else
   log "No OAuth steps required for the installed items."
+fi
+
+# ---------------------------------------------------------------------------
+# Phase 6.5: Claude.ai bridge note
+# ---------------------------------------------------------------------------
+# Items detected as already provided by the claude.ai marketplace bridge are
+# usable immediately — no local install, no separate OAuth — as long as the
+# user stays signed into claude.ai with that connector enabled. Surface this
+# explicitly so the user understands why some items were "skipped" even
+# though they will work fine when they call tools from those services.
+bridge_list=""
+for id in "${INSTALL_IDS[@]}"; do
+  status="$(_status_get "$id")"
+  if [[ "$status" == BRIDGE:* ]]; then
+    item_name="$(catalog_get_field "$id" "name")"
+    bridge_match="$(catalog_get_field "$id" "claude_code.bridge_match")"
+    bridge_list="${bridge_list}  - ${item_name} (${id}) → claude.ai \"${bridge_match}\"\n"
+  fi
+done
+
+if [[ -n "$bridge_list" ]]; then
+  log ""
+  log "Already provided by the claude.ai marketplace bridge (no local install needed):"
+  log ""
+  printf '%b' "$bridge_list"
+  log ""
+  log "These work as long as you stay signed into claude.ai with the connector enabled."
+  log "Tools appear under the mcp__claude_ai_<Service>__* namespace."
+  log "If you ever lose access to claude.ai or want a CLI-only install, re-run this"
+  log "installer with --items <id> after disconnecting the bridge entry."
 fi
 
 # ---------------------------------------------------------------------------

@@ -15,9 +15,10 @@
         "kind": "mcp_remote",
         "transport": "http",
         "url": "https://mcp.slack.com/mcp",
-        "mcp_name": "slack"
+        "mcp_name": "slack",
+        "bridge_match": "Slack"
       },
-      "notes": "User completes OAuth in-app on first Slack tool call."
+      "notes": "User completes OAuth in-app on first Slack tool call. Provided by claude.ai bridge when the user is signed into claude.ai with Slack connected."
     },
     {
       "id": "gmail",
@@ -33,10 +34,11 @@
         "available": true,
         "kind": "mcp_remote",
         "transport": "http",
-        "url": "https://mcp.googleapis.com/gmail",
-        "mcp_name": "gmail"
+        "url": "https://gmailmcp.googleapis.com/mcp/v1",
+        "mcp_name": "gmail",
+        "bridge_match": "Gmail"
       },
-      "notes": "Requires Google OAuth. Provides read/search/send over Gmail threads."
+      "notes": "Requires Google OAuth. Provides read/search/send over Gmail threads. Provided by claude.ai bridge when the user is signed into claude.ai with Gmail connected."
     },
     {
       "id": "ms365",
@@ -67,9 +69,10 @@
         "kind": "mcp_remote",
         "transport": "http",
         "url": "https://mcp.notion.com/mcp",
-        "mcp_name": "notion"
+        "mcp_name": "notion",
+        "bridge_match": "Notion"
       },
-      "notes": "Full read/write access to pages, databases, and comments."
+      "notes": "Full read/write access to pages, databases, and comments. Provided by claude.ai bridge when the user is signed into claude.ai with Notion connected."
     },
     {
       "id": "google-drive",
@@ -85,10 +88,11 @@
         "available": true,
         "kind": "mcp_remote",
         "transport": "http",
-        "url": "https://mcp.googleapis.com/drive",
-        "mcp_name": "google-drive"
+        "url": "https://drivemcp.googleapis.com/mcp/v1",
+        "mcp_name": "google-drive",
+        "bridge_match": "Google Drive"
       },
-      "notes": "Read/search/write files across My Drive and Shared Drives."
+      "notes": "Read/search/write files across My Drive and Shared Drives. Provided by claude.ai bridge when the user is signed into claude.ai with Drive connected."
     },
     {
       "id": "airtable",
@@ -105,9 +109,10 @@
         "kind": "mcp_remote",
         "transport": "http",
         "url": "https://mcp.airtable.com/mcp",
-        "mcp_name": "airtable"
+        "mcp_name": "airtable",
+        "bridge_match": "Airtable"
       },
-      "notes": "Access bases, tables, and records; supports filtered views."
+      "notes": "Access bases, tables, and records; supports filtered views. Provided by claude.ai bridge when the user is signed into claude.ai with Airtable connected."
     },
     {
       "id": "atlassian-rovo",
@@ -123,10 +128,11 @@
         "available": true,
         "kind": "mcp_remote",
         "transport": "http",
-        "url": "https://mcp.atlassian.com/mcp",
-        "mcp_name": "atlassian-rovo"
+        "url": "https://mcp.atlassian.com/v1/mcp",
+        "mcp_name": "atlassian-rovo",
+        "bridge_match": "Atlassian"
       },
-      "notes": "Covers Jira issues and Confluence pages via Atlassian Rovo connector."
+      "notes": "Covers Jira issues and Confluence pages via Atlassian Rovo connector. Provided by claude.ai bridge when the user is signed into claude.ai with Atlassian connected."
     },
     {
       "id": "linear",
@@ -157,9 +163,10 @@
         "kind": "mcp_remote",
         "transport": "http",
         "url": "https://mcp.clickup.com/mcp",
-        "mcp_name": "clickup"
+        "mcp_name": "clickup",
+        "bridge_match": "ClickUp"
       },
-      "notes": "Tasks, lists, folders, spaces, docs, and time tracking."
+      "notes": "Tasks, lists, folders, spaces, docs, and time tracking. Provided by claude.ai bridge when the user is signed into claude.ai with ClickUp connected."
     },
     {
       "id": "asana",
@@ -206,9 +213,10 @@
         "args": [
           "granola-mcp"
         ],
-        "mcp_name": "granola"
+        "mcp_name": "granola",
+        "bridge_match": "Granola"
       },
-      "notes": "Local meeting note access via Granola's stdio MCP server."
+      "notes": "Local meeting note access via Granola's stdio MCP server. Provided by claude.ai bridge (remote MCP) when the user is signed into claude.ai with Granola connected."
     },
     {
       "id": "zoom-claude",
@@ -224,10 +232,11 @@
         "available": true,
         "kind": "mcp_remote",
         "transport": "http",
-        "url": "https://mcp.zoom.us/mcp",
-        "mcp_name": "zoom-claude"
+        "url": "https://mcp.zoom.us/mcp/zoom/streamable",
+        "mcp_name": "zoom-claude",
+        "bridge_match": "Zoom for Claude"
       },
-      "notes": "Meeting scheduling, recordings, and transcript access via Zoom."
+      "notes": "Meeting scheduling, recordings, and transcript access via Zoom. Provided by claude.ai bridge when the user is signed into claude.ai with Zoom connected."
     },
     {
       "id": "fireflies",
@@ -274,7 +283,7 @@
         "url": "https://mcp.figma.com/mcp",
         "mcp_name": "figma"
       },
-      "notes": "Read/write Figma files, components, variables, and prototypes."
+      "notes": "Read/write Figma files, components, variables, and prototypes. Currently not provided by the claude.ai bridge \u2014 installed as a local MCP and authed in-app on first tool call."
     },
     {
       "id": "canva",
@@ -291,9 +300,10 @@
         "kind": "mcp_remote",
         "transport": "http",
         "url": "https://mcp.canva.com/mcp",
-        "mcp_name": "canva"
+        "mcp_name": "canva",
+        "bridge_match": "Canva"
       },
-      "notes": "Create and edit Canva designs; export assets."
+      "notes": "Create and edit Canva designs; export assets. Provided by claude.ai bridge when the user is signed into claude.ai with Canva connected."
     },
     {
       "id": "hubspot",
@@ -309,10 +319,11 @@
         "available": true,
         "kind": "mcp_remote",
         "transport": "http",
-        "url": "https://mcp.hubspot.com/mcp",
-        "mcp_name": "hubspot"
+        "url": "https://mcp.hubspot.com/anthropic",
+        "mcp_name": "hubspot",
+        "bridge_match": "HubSpot"
       },
-      "notes": "Contacts, companies, deals, tasks, and pipeline management."
+      "notes": "Contacts, companies, deals, tasks, and pipeline management. Provided by claude.ai bridge when the user is signed into claude.ai with HubSpot connected."
     },
     {
       "id": "zoominfo",
@@ -329,9 +340,10 @@
         "kind": "mcp_remote",
         "transport": "http",
         "url": "https://mcp.zoominfo.com/mcp",
-        "mcp_name": "zoominfo"
+        "mcp_name": "zoominfo",
+        "bridge_match": "ZoomInfo"
       },
-      "notes": "B2B contact and company intelligence enrichment."
+      "notes": "B2B contact and company intelligence enrichment. Provided by claude.ai bridge when the user is signed into claude.ai with ZoomInfo connected."
     },
     {
       "id": "amplitude",
@@ -403,10 +415,11 @@
         "available": true,
         "kind": "mcp_remote",
         "transport": "http",
-        "url": "https://mcp.intuit.com/quickbooks/mcp",
-        "mcp_name": "quickbooks"
+        "url": "https://ai-inc.quickbooks.intuit.com/v1/mcp",
+        "mcp_name": "quickbooks",
+        "bridge_match": "Intuit QuickBooks"
       },
-      "notes": "P&L, balance sheet, invoices, payroll, and cash flow via QBO."
+      "notes": "P&L, balance sheet, invoices, payroll, and cash flow via QBO. Provided by claude.ai bridge when the user is signed into claude.ai with QuickBooks connected."
     },
     {
       "id": "google-calendar",
@@ -422,10 +435,11 @@
         "available": true,
         "kind": "mcp_remote",
         "transport": "http",
-        "url": "https://mcp.googleapis.com/calendar",
-        "mcp_name": "google-calendar"
+        "url": "https://calendarmcp.googleapis.com/mcp/v1",
+        "mcp_name": "google-calendar",
+        "bridge_match": "Google Calendar"
       },
-      "notes": "Read/write calendar events, availability, and scheduling across calendars."
+      "notes": "Read/write calendar events, availability, and scheduling across calendars. Provided by claude.ai bridge when the user is signed into claude.ai with Calendar connected."
     },
     {
       "id": "pubmed",
@@ -441,10 +455,11 @@
         "available": true,
         "kind": "mcp_remote",
         "transport": "http",
-        "url": "https://mcp.ncbi.nlm.nih.gov/mcp",
-        "mcp_name": "pubmed"
+        "url": "https://pubmed.mcp.claude.com/mcp",
+        "mcp_name": "pubmed",
+        "bridge_match": "PubMed"
       },
-      "notes": "Biomedical literature search and full-text retrieval via NCBI PubMed."
+      "notes": "Biomedical literature search and full-text retrieval via NCBI PubMed. Provided by claude.ai bridge when the user is signed into claude.ai with PubMed connected."
     },
     {
       "id": "productivity",
@@ -550,6 +565,8 @@
       "items": [
         "slack",
         "gmail",
+        "google-calendar",
+        "google-drive",
         "notion",
         "linear",
         "granola",
@@ -564,6 +581,8 @@
       "items": [
         "slack",
         "gmail",
+        "google-calendar",
+        "google-drive",
         "atlassian-rovo",
         "linear",
         "productivity",
@@ -576,6 +595,8 @@
       "items": [
         "slack",
         "gmail",
+        "google-calendar",
+        "google-drive",
         "notion",
         "figma",
         "granola",
@@ -589,6 +610,7 @@
       "items": [
         "slack",
         "gmail",
+        "google-calendar",
         "ms365",
         "notion",
         "quickbooks",
