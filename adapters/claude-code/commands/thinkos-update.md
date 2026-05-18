@@ -11,15 +11,63 @@ The canonical design lives in `docs/update-protocol.md`. Read it if you hit anyt
 
 ## Step 0 — Locate the repo
 
-The user's local repo lives wherever they cloned it. Check the install manifest first:
+The user's local repo lives wherever they cloned it. Resolve in this order:
 
 ```bash
-python3 -c "import json; print(json.load(open('$HOME/.thinkos/install-manifest.json')).get('repo_path', ''))" 2>/dev/null
+# 1. Try the install manifest first.
+REPO_PATH="$(python3 -c "import json,os; print(json.load(open(os.path.expanduser('~/.thinkos/install-manifest.json'))).get('repo_path', ''))" 2>/dev/null)"
+
+# 2. If empty OR the path doesn't exist OR doesn't have .git, scan default locations.
+if [[ -z "$REPO_PATH" || ! -d "$REPO_PATH/.git" ]]; then
+  for candidate in "$HOME/Code/think-os" "$HOME/code/think-os" "$HOME/Documents/think-os" "$HOME/Documents/Think/think-os"; do
+    if [[ -d "$candidate/.git" ]]; then
+      REPO_PATH="$candidate"
+      break
+    fi
+  done
+fi
 ```
 
-If empty, fall back to `~/code/think-os` (the install playbook's default). If that's missing too, ask the user.
+If `$REPO_PATH` is **still** empty or not a git checkout, the user is in a "no repo" state. This is common for installs that predate v0.8 (the install manifest's `repo_path` field was added in v0.7.x), or for installs where the original checkout was deleted/moved. **Don't stop or error.** Use Step 0a — we can fix this.
 
-If the repo isn't a git checkout, tell the user the update flow needs a git checkout (not a tarball download) and stop.
+If the repo exists but isn't a git checkout (e.g., the user downloaded a tarball), the same recovery flow applies — clone fresh and re-run setup.
+
+---
+
+## Step 0a — Recovery: no repo found
+
+If Step 0 couldn't find a valid checkout, walk the user through cloning + re-running setup. The recovery flow is idempotent and safe: it rewrites the `~/.claude/CLAUDE.md` block, re-copies slash commands (including any new ones), and writes a fresh v2 manifest with `repo_path` correctly set. The user's vault content is untouched throughout.
+
+`AskUserQuestion`:
+
+- Header: "No Think OS repo found"
+- Question: "I couldn't find a Think OS checkout on your machine. To recover, I'll clone the repo fresh and re-run setup — your vault content stays untouched. Where should I clone it?"
+- multiSelect: false
+- Options:
+  | label | description |
+  |---|---|
+  | "~/Code/think-os" | "Recommended default. Standard location for developer checkouts." |
+  | "~/Documents/think-os" | "Alternative. May trigger Files & Folders permission prompts on macOS." |
+  | "I'll provide a different path" | "Custom location. You give me an absolute path." |
+  | "Cancel" | "Don't recover. Update can't run without a repo." |
+
+On a chosen path (`$TARGET`), run:
+
+```bash
+mkdir -p "$(dirname "$TARGET")"
+git clone https://github.com/dhirajsapkal/think-os.git "$TARGET"
+cd "$TARGET" && bash scripts/thinkos-setup.sh --products claude-code --yes
+```
+
+The setup script is idempotent — it skips existing vault files, rewrites the `~/.claude/CLAUDE.md` block to the latest content, re-copies all slash commands, and writes a fresh manifest with `repo_path` pointing at `$TARGET`.
+
+When setup finishes, tell the user:
+
+> Recovered. Repo cloned to `<TARGET>`. Manifest updated with the new path.
+>
+> Quit Claude Code (Cmd+Q) and reopen to load the refreshed commands and instructions. After restart, `/thinkos-update` will work normally for future releases.
+
+**Then stop.** Don't continue to Step 1 in the same turn — the user just did a full sync; running update again is redundant.
 
 ---
 

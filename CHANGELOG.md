@@ -2,6 +2,26 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.8.2] — 2026-05-18 — Hotfix: `/thinkos-update` dead-ends when the repo can't be found
+
+Same user (Chris) hit a second snag right after the v0.8.1 fix. After cleaning up the leaked plists and being told to "run `/thinkos-update --pull` to pick up the fix," his agent reported: "The install manifest doesn't have a `repo_path` and I can't find a checkout anywhere. Where's the Think OS repo I should clone from?"
+
+The v0.8.1 advice was right for someone on v0.8.x. For Chris — installed on v0.7.x with a v1 manifest that has no `repo_path`, and a checkout that has since been deleted — `/thinkos-update` had no way to find the repo, and the skill told the agent to "stop" instead of guiding through recovery.
+
+### Fixed
+
+- **`/thinkos-update` Step 0 — broader path resolution.** Previously tried `repo_path` from the manifest, then fell back to a single default (`~/code/think-os`), then stopped. Now scans four common locations (`~/Code/think-os`, `~/code/think-os`, `~/Documents/think-os`, `~/Documents/Think/think-os`) before declaring "no repo found." Also explicitly checks for `.git/` to distinguish a real checkout from a tarball drop.
+
+### Added
+
+- **`/thinkos-update` Step 0a — recovery flow.** When no valid checkout is found, the skill now walks the user through a clone + re-run setup, with `AskUserQuestion` chips for the clone target (`~/Code/think-os` recommended, `~/Documents/think-os` alternative, custom path, cancel). Setup is idempotent — it rewrites the `~/.claude/CLAUDE.md` block to the latest content, re-copies all slash commands (including any new ones), and writes a fresh v2 manifest with `repo_path` set correctly. The user's vault is untouched throughout. After successful recovery, the skill explicitly tells the user to restart Claude Code (Cmd+Q) and that `/thinkos-update` will then work normally for future releases.
+
+### Why this matters
+
+The v0.8.1 hotfix message I sent Chris ("run `/thinkos-update --pull`") was inadvertently bad advice for his specific install state — he couldn't run that command because there was no repo to pull into. This wasn't a bug in v0.8.1; it was a pre-existing gap in `/thinkos-update`'s no-repo handling that v0.7.x users had been quietly hitting. v0.8.2 closes that gap with a real recovery flow rather than a "sorry, stop" dead-end.
+
+Three releases in a single day driven by a single user's bug report cascade (the install confused his agent → my fix message confused his agent → the update flow didn't handle the recovery path). Each one closes the specific failure he hit AND the broader pattern it represents. The next user in any pre-v0.8 state will get walked through recovery by the skill instead of needing the maintainer's intervention.
+
 ## [v0.8.1] — 2026-05-18 — Hotfix: LaunchAgent plist templates leaking into the vault
 
 A user installed v0.8.0 and his agent told him session capture was broken. It wasn't — but the agent saw three plist templates with unresolved `__SCRIPT_PATH__` / `__LOG_DIR__` / `__REPO_ROOT__` tokens sitting in his vault at `~/ThinkOS/vault/LaunchAgents/` and reasonably concluded the install was incomplete. The install was fine; the agent's diagnosis was wrong but the symptom was real.
