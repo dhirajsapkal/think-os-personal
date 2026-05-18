@@ -2,7 +2,7 @@
 uid: 01HW9KR2P4TLBQMF6NCYD7VX8A
 type: learning
 date: "2026-05-12"
-author: "@sarah"
+author: "@maya"
 tags:
   - backend
   - rate-limiting

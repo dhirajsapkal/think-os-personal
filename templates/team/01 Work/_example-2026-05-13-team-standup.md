@@ -5,8 +5,8 @@ date: "2026-05-13"
 author: "@maya"
 participants:
   - "@maya"
-  - "@dhiraj"
-  - "@sarah"
+  - "@alex"
+  - "@maya"
 ---
 
 # 2026-05-13 Team Standup
@@ -20,14 +20,14 @@ Daily sync. 15 minutes.
 
 ## Blockers
 
-- Staging database is running on an old schema revision; @sarah is unblocking after standup.
+- Staging database is running on an old schema revision; @maya is unblocking after standup.
 - No blockers for eng otherwise.
 
 ## Up next
 
 - @maya: finish the token-refresh edge case in the auth flow (#218).
-- @dhiraj: pick up the spec review for the notifications API (see `03 Specs/notifications-api.md`).
-- @sarah: coordinate deploy to production once the schema migration clears.
+- @alex: pick up the spec review for the notifications API (see `03 Specs/notifications-api.md`).
+- @maya: coordinate deploy to production once the schema migration clears.
 
 ## Notes
 

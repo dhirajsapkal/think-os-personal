@@ -38,7 +38,7 @@ If the install script is not found, tell the user:
 
 Use AskUserQuestion before uninstalling:
 
-> This will remove the session-capture launchd job. Your existing work-log entries and capture-log.jsonl are not deleted. Continue?
+> This will remove the session-capture launchd job. Your existing work-log entries and `90 System/Capture Log.md` are not deleted. Continue?
 
 If the user confirms, run:
 

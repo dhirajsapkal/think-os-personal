@@ -384,6 +384,11 @@ for v in entries:
       printf '%s\n' "$porcelain_out" | sed 's/^/  /'
     else
       log "Staging changes..."
+      if git -C "$vault_path" ls-files --others --exclude-standard | grep -qE '^(\.claude/|\.ssh/|\.gnupg/|\.aws/|\.docker/)'; then
+        err "WARNING: sync would stage files matching sensitive paths. Aborting."
+        err "Inspect with: git -C \"$vault_path\" status"
+        return 1
+      fi
       git -C "$vault_path" add -A
       log "Committing: $commit_msg"
       git -C "$vault_path" commit -m "$commit_msg"

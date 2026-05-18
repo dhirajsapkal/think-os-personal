@@ -30,7 +30,7 @@ Show the full index of Think OS slash commands grouped by category, plus key scr
 | `/thinkos-save` | Save the substance of the current session — Work Log + Decisions + Learnings + People, approved per item. Manual analog of autosave for substance (not metadata). |
 | `/thinkos-log <message>` | Capture a timestamped note to your work log |
 | `/thinkos-decide <decision>` | Record a standing decision in your vault |
-| `/thinkos-capture <learning>` | Capture a cross-project learning into your vault |
+| `/thinkos-capture <learning>` | Canonical capture — type-infers decision / learning / log / session-recap from your text. |
 
 ---
 
@@ -63,7 +63,7 @@ Show the full index of Think OS slash commands grouped by category, plus key scr
 |---|---|
 | `/thinkos-reindex` | Refresh Basic Memory's index after external edits |
 | `/thinkos-stale` | List notes past their freshness window |
-| `/thinkos-voice <before \| after>` | Rewrite a draft in your voice profile |
+| `/thinkos-voice <before \| after>` | Log a before/after rewrite sample to improve your voice profile |
 
 ---
 
@@ -81,10 +81,15 @@ Show the full index of Think OS slash commands grouped by category, plus key scr
 - **Vault location**: check `~/.thinkos/vaults.json` — the `path` field of the `"default": true` entry.
 - **Think OS rules in your agent**: the `BEGIN THINK OS` / `END THINK OS` block in `~/.claude/CLAUDE.md`. Source lives in `templates/instructions/` in the export repo.
 - **Curated instruction files** (edit these, not the installed block directly):
-  - `templates/instructions/00-think-os-priority.md`
-  - `templates/instructions/10-token-efficiency.md`
-  - `templates/instructions/20-skill-routing.md`
-  - `templates/instructions/30-think-os-write-targets.md`
+  - `templates/instructions/00-think-os-priority.md` — priority preamble, first-action protocol, core operating rules
+  - `templates/instructions/05-global-rules.md` — non-negotiable NEVER/ALWAYS behavioral rules
+  - `templates/instructions/10-token-efficiency.md` — tool-use defaults to keep context clean and fast
+  - `templates/instructions/20-skill-routing.md` — which skill to invoke for which topic
+  - `templates/instructions/30-think-os-write-targets.md` — where new content goes by type
+  - `templates/instructions/40-emergent-seeding.md` — fill empty HOT stubs from natural conversation
+  - `templates/instructions/50-drift-detection.md` — flag contradictions and staleness mid-flow
+  - `templates/instructions/60-shared-mode.md` — hide tier:sensitive notes when screen-sharing
+  - `templates/instructions/70-adapter-instructions.md` — Basic Memory tool examples, multi-vault awareness, mid-setup detection
 - **Docs**:
   - `docs/multi-vault-architecture.md` — personal + project + reference vault design
   - `docs/phase-2-seeding-playbook.md` — seeding HOT-tier files from connected tools

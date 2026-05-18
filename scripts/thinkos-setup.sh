@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ "$(id -u)" -eq 0 ]; then
+  echo "Error: Think OS scripts must not be run as root. Run as your normal user." >&2
+  exit 1
+fi
+
 PROJECT_NAME="think-os"
 OS_HOME="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
 PRODUCTS=""
@@ -94,6 +99,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 TEMPLATE_DIR="$REPO_ROOT/templates"
 
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/render-instructions.sh"
+
 if [[ -z "$PRODUCTS" && -t 0 && "$YES" -eq 0 ]]; then
   read -r -p "Products to set up [claude-code]: " PRODUCTS
   PRODUCTS="${PRODUCTS:-claude-code}"
@@ -120,86 +127,6 @@ run() {
   else
     "$@"
   fi
-}
-
-render_template() {
-  local source="$1"
-  awk -v os_home="$OS_HOME" '{ gsub(/\{\{OS_HOME\}\}/, os_home); print }' "$source"
-}
-
-# Returns the ordered list of curated always-on instruction files (one per line).
-# The setup + update scripts concatenate these on top of the adapter-specific
-# instructions when rendering the BEGIN/END THINK OS block.
-curated_instruction_files() {
-  local dir="$REPO_ROOT/templates/instructions"
-  printf '%s\n' \
-    "$dir/00-think-os-priority.md" \
-    "$dir/05-global-rules.md" \
-    "$dir/10-token-efficiency.md" \
-    "$dir/20-skill-routing.md" \
-    "$dir/30-think-os-write-targets.md" \
-    "$dir/40-emergent-seeding.md" \
-    "$dir/50-drift-detection.md" \
-    "$dir/60-shared-mode.md" \
-    "$dir/70-claude-ai-bridge.md"
-}
-
-# Render the full Think OS block to stdout: curated files (in order) followed
-# by the adapter-specific instructions, each with `{{OS_HOME}}` substitution and
-# separated by a section divider so the result reads as one document.
-render_think_os_block() {
-  local adapter_source="$1"
-  local first=1
-  while IFS= read -r f; do
-    [[ -z "$f" ]] && continue
-    if [[ ! -f "$f" ]]; then
-      continue
-    fi
-    if [[ "$first" -eq 0 ]]; then
-      printf '\n---\n\n'
-    fi
-    render_template "$f"
-    first=0
-  done < <(curated_instruction_files)
-
-  if [[ -n "$adapter_source" && -f "$adapter_source" ]]; then
-    if [[ "$first" -eq 0 ]]; then
-      printf '\n---\n\n'
-    fi
-    render_template "$adapter_source"
-  fi
-}
-
-install_marked_block() {
-  local target="$1"
-  local begin="$2"
-  local end="$3"
-  local source="$4"
-
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    log "Would install/update Think OS block in $target"
-    return 0
-  fi
-
-  mkdir -p "$(dirname "$target")"
-  touch "$target"
-
-  local tmp
-  tmp="$(mktemp)"
-  awk -v begin="$begin" -v end="$end" '
-    $0 == begin { skip = 1; next }
-    $0 == end { skip = 0; next }
-    skip != 1 { print }
-  ' "$target" > "$tmp"
-
-  {
-    cat "$tmp"
-    printf '\n%s\n' "$begin"
-    render_think_os_block "$source"
-    printf '%s\n' "$end"
-  } > "$target"
-
-  rm -f "$tmp"
 }
 
 is_protected_macos_path() {
@@ -246,6 +173,63 @@ copy_templates() {
       log "$created_verb: $rel"
     fi
   done < <(cd "$TEMPLATE_DIR" && find . -type f -print0)
+
+  # WP-04: copy .gitignore to vault root (excluded from the find loop above
+  # because dotfiles may be skipped by find on some systems; copy explicitly).
+  if [[ -f "$TEMPLATE_DIR/.gitignore" && ! -f "$OS_HOME/.gitignore" ]]; then
+    run cp "$TEMPLATE_DIR/.gitignore" "$OS_HOME/.gitignore"
+    log "$created_verb: .gitignore"
+  fi
+
+  # WP-33: ensure Capture Log.md exists (may not have been picked up above if
+  # the 90 System dir was newly created and the file was just written).
+  local capture_log_dest="$OS_HOME/90 System/Capture Log.md"
+  if [[ ! -f "$capture_log_dest" && -f "$TEMPLATE_DIR/90 System/Capture Log.md" ]]; then
+    run mkdir -p "$OS_HOME/90 System"
+    run cp "$TEMPLATE_DIR/90 System/Capture Log.md" "$capture_log_dest"
+    log "$created_verb: 90 System/Capture Log.md"
+  fi
+
+  # WP-34: apply Python-based token substitution across all vault template
+  # files.  Tokens: {{OS_HOME}}, {{YYYY-MM-DD}}, {{YYYY-MM-DD HH:MM}}.
+  # We only touch files that were just installed (exist in the vault); we do
+  # NOT re-substitute existing user-owned files to avoid destroying user edits.
+  if [[ "$DRY_RUN" -ne 1 ]]; then
+    OS_HOME="$OS_HOME" python3 - <<'PYEOF'
+import os, datetime
+
+vault = os.environ["OS_HOME"]
+now = datetime.datetime.now()
+install_date = now.strftime("%Y-%m-%d")
+install_datetime = now.strftime("%Y-%m-%d %H:%M")
+os_home = vault
+
+tokens = {
+    "{{OS_HOME}}": os_home,
+    "{{YYYY-MM-DD}}": install_date,
+    "{{YYYY-MM-DD HH:MM}}": install_datetime,
+}
+
+for root, dirs, files in os.walk(vault):
+    # Skip hidden dirs (e.g. .git)
+    dirs[:] = [d for d in dirs if not d.startswith(".")]
+    for fname in files:
+        if not fname.endswith(".md"):
+            continue
+        fpath = os.path.join(root, fname)
+        try:
+            with open(fpath, "r", encoding="utf-8") as fh:
+                text = fh.read()
+        except (UnicodeDecodeError, OSError):
+            continue
+        new_text = text
+        for tok, val in tokens.items():
+            new_text = new_text.replace(tok, val)
+        if new_text != text:
+            with open(fpath, "w", encoding="utf-8") as fh:
+                fh.write(new_text)
+PYEOF
+  fi
 }
 
 ensure_basic_memory() {
@@ -314,7 +298,7 @@ install_claude_code() {
     fi
 
     if command -v claude >/dev/null 2>&1; then
-      if claude mcp list 2>/dev/null | grep -q "basic-memory"; then
+      if claude mcp list 2>/dev/null | grep -q "^basic-memory:"; then
         log "Claude Code MCP already includes basic-memory"
       else
         run claude mcp add basic-memory --scope user -- basic-memory mcp --project "$PROJECT_NAME"
@@ -458,6 +442,7 @@ try:
         json.dump(manifest, fh, indent=2, sort_keys=False)
         fh.write("\n")
     os.replace(tmp, manifest_path)
+    os.chmod(manifest_path, 0o600)
 except Exception:
     try: os.unlink(tmp)
     except OSError: pass
@@ -484,7 +469,10 @@ if [[ "$(uname -s)" == "Darwin" ]] && is_protected_macos_path; then
 fi
 
 copy_templates
-ensure_basic_memory
+if ! ensure_basic_memory; then
+  log "Aborting: Basic Memory setup failed."
+  exit 1
+fi
 register_basic_memory_project
 
 has_product "claude-code" && install_claude_code

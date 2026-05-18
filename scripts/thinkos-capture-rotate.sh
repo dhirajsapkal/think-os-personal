@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# =====================================================================
+# DEPRECATED in v0.4.2 — capture ledger moved to $VAULT/90 System/Capture Log.md
+# This script is preserved for historical migration; do not run it on a
+# post-v0.4.2 install. Will be removed in v0.9 once the quarterly-split
+# rotation is reimplemented for the vault-note ledger.
+# =====================================================================
 # =============================================================================
 # scripts/thinkos-capture-rotate.sh — Rotate capture-log.jsonl when > 10MB
 # =============================================================================
@@ -71,10 +77,7 @@ if ! [[ "$THRESHOLD_MB" =~ ^[0-9]+$ ]] || [[ "$THRESHOLD_MB" -lt 1 ]]; then
   exit 2
 fi
 
-if [[ ! -f "$LEDGER" ]]; then
-  # Nothing to rotate — ledger hasn't been created yet.
-  exit 0
-fi
+[ -f "$LEDGER" ] || { echo "Deprecated: legacy capture-log.jsonl not found. Nothing to rotate."; exit 0; }
 
 LEDGER_DIR="$(dirname "$LEDGER")"
 THRESHOLD_BYTES=$(( THRESHOLD_MB * 1024 * 1024 ))
@@ -125,16 +128,20 @@ echo "Archive: $ARCHIVE_PATH"
 
 # gzip the ledger to the archive path, then truncate (not delete — avoids race
 # with concurrent appenders that already have a file descriptor open).
-gzip -c "$LEDGER" > "$ARCHIVE_PATH"
-# Verify the archive is non-empty before wiping the source
-ARCHIVE_SIZE="$(file_size "$ARCHIVE_PATH")"
-if [[ "$ARCHIVE_SIZE" -lt 1 ]]; then
-  echo "thinkos-capture-rotate: archive write failed (empty output); aborting rotation" >&2
-  rm -f "$ARCHIVE_PATH"
-  exit 1
-fi
-
-# Truncate in-place so any open file descriptors remain valid
-: > "$LEDGER"
+# flock on fd 9 (opened as >> to $LEDGER) ensures mutual exclusion with
+# other concurrent appenders.
+(
+  flock 9 || { echo "thinkos-capture-rotate: could not acquire ledger lock" >&2; exit 1; }
+  gzip -c "$LEDGER" > "$ARCHIVE_PATH"
+  # Verify the archive is non-empty before wiping the source
+  ARCHIVE_SIZE="$(file_size "$ARCHIVE_PATH")"
+  if [[ "$ARCHIVE_SIZE" -lt 1 ]]; then
+    echo "thinkos-capture-rotate: archive write failed (empty output); aborting rotation" >&2
+    rm -f "$ARCHIVE_PATH"
+    exit 1
+  fi
+  # Truncate in-place so any open file descriptors remain valid
+  : > "$LEDGER"
+) 9>> "$LEDGER"
 
 echo "Rotation complete. Archive: $ARCHIVE_NAME"

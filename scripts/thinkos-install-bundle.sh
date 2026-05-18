@@ -19,6 +19,14 @@
 set -uo pipefail
 
 # ---------------------------------------------------------------------------
+# Root guard — must not be run as root
+# ---------------------------------------------------------------------------
+if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+  echo "ERROR: thinkos-install-bundle.sh must not be run as root. Re-run as your normal user account." >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
 # Script globals
 # ---------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -607,7 +615,7 @@ for id in "${INSTALL_IDS[@]}"; do
     oauth_val="$(catalog_get_field "$id" "oauth")"
     if [[ "$oauth_val" == "True" || "$oauth_val" == "true" ]]; then
       item_name="$(catalog_get_field "$id" "name")"
-      mcp_name="$(catalog_get_field "$id" "claude_code.mcp_name")" 2>/dev/null || mcp_name="$id"
+      mcp_name="$(catalog_get_field "$id" "claude_code.mcp_name" 2>/dev/null)" || mcp_name="$id"
       [[ -z "$mcp_name" ]] && mcp_name="$id"
       oauth_list="${oauth_list}  - ${item_name} (${id}): Run \`claude\`, type \`/mcp\`, select '${mcp_name}', complete browser flow.\n"
     fi

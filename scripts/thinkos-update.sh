@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ "$(id -u)" -eq 0 ]; then
+  echo "Error: Think OS scripts must not be run as root. Run as your normal user." >&2
+  exit 1
+fi
+
 # thinkos-update.sh — re-apply Think OS global agent instructions.
 #
 # Pulls latest curated instructions and adapter content from this repo and
@@ -78,7 +83,10 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/render-instructions.sh"
+
 OS_HOME="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
+export OS_HOME
 
 log() {
   printf '%s\n' "$*"
@@ -92,80 +100,6 @@ run() {
   else
     "$@"
   fi
-}
-
-render_template() {
-  local source="$1"
-  awk -v os_home="$OS_HOME" '{ gsub(/\{\{OS_HOME\}\}/, os_home); print }' "$source"
-}
-
-curated_instruction_files() {
-  local dir="$REPO_ROOT/templates/instructions"
-  printf '%s\n' \
-    "$dir/00-think-os-priority.md" \
-    "$dir/05-global-rules.md" \
-    "$dir/10-token-efficiency.md" \
-    "$dir/20-skill-routing.md" \
-    "$dir/30-think-os-write-targets.md" \
-    "$dir/40-emergent-seeding.md" \
-    "$dir/50-drift-detection.md" \
-    "$dir/60-shared-mode.md" \
-    "$dir/70-claude-ai-bridge.md"
-}
-
-render_think_os_block() {
-  local adapter_source="$1"
-  local first=1
-  while IFS= read -r f; do
-    [[ -z "$f" ]] && continue
-    if [[ ! -f "$f" ]]; then
-      continue
-    fi
-    if [[ "$first" -eq 0 ]]; then
-      printf '\n---\n\n'
-    fi
-    render_template "$f"
-    first=0
-  done < <(curated_instruction_files)
-
-  if [[ -n "$adapter_source" && -f "$adapter_source" ]]; then
-    if [[ "$first" -eq 0 ]]; then
-      printf '\n---\n\n'
-    fi
-    render_template "$adapter_source"
-  fi
-}
-
-install_marked_block() {
-  local target="$1"
-  local begin="$2"
-  local end="$3"
-  local source="$4"
-
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    log "Would refresh THINK OS block in $target"
-    return 0
-  fi
-
-  mkdir -p "$(dirname "$target")"
-  touch "$target"
-
-  local tmp
-  tmp="$(mktemp)"
-  awk -v begin="$begin" -v end="$end" '
-    $0 == begin { skip = 1; next }
-    $0 == end { skip = 0; next }
-    skip != 1 { print }
-  ' "$target" > "$tmp"
-
-  {
-    cat "$tmp"
-    printf '\n%s\n' "$begin"
-    render_think_os_block "$source"
-    printf '%s\n' "$end"
-  } > "$target"
-
-  rm -f "$tmp"
 }
 
 maybe_git_pull() {
@@ -187,7 +121,15 @@ maybe_git_pull() {
   fi
 
   log "Pulling latest from origin"
+  local old_sha
+  old_sha="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "")"
   run git -C "$REPO_ROOT" pull --ff-only
+  new_sha="$(git -C "$REPO_ROOT" rev-parse HEAD)"
+  log "Pulled to commit: $new_sha"
+  if [[ -n "$old_sha" && "$old_sha" != "$new_sha" ]]; then
+    log "Review the diff: git -C \"$REPO_ROOT\" diff ${old_sha}..${new_sha} -- adapters/claude-code/ templates/instructions/"
+  fi
+  log "Note: GPG signature verification is deferred to v0.9. Until then, review pulled changes manually."
 }
 
 # Detect which products are installed. We use the marker file each product
@@ -301,11 +243,12 @@ m["thinkos_version"] = new_version
 m["last_updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 # Atomic write
-tmp = manifest_path + ".tmp"
-with open(tmp, "w") as fp:
+import tempfile
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(manifest_path))
+with os.fdopen(fd, "w") as fp:
     json.dump(m, fp, indent=2)
     fp.write("\n")
-os.rename(tmp, manifest_path)
+os.replace(tmp, manifest_path)
 
 print(f"[manifest] thinkos_version → {new_version[:10]}, shipped_sha refreshed for {updated} files")
 PY

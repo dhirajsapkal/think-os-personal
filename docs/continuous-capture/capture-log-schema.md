@@ -295,6 +295,14 @@ Readers and writers must enforce:
 
 ---
 
+## CWD field sensitivity
+
+The `cwd` field in session-capture entries records the full filesystem path of each Claude Code working directory. For consultancies and other contexts where directory names encode client/project names, set `THINKOS_MASK_CWD=1` (in your shell or LaunchAgent EnvironmentVariables) to mask CWD to its basename only.
+
+If your vault has a git remote, ensure it is private before enabling session capture.
+
+---
+
 ## Rotation
 
 Rotation: TBD. With the ledger now living in the vault as a markdown note (`90 System/Capture Log.md`), rotation will eventually split the note by quarter (e.g., `90 System/Capture Log 2026-Q2.md`). For now the single note grows append-only; size budget is the same as any other Basic Memory note. `thinkos-capture-rotate.sh` is a no-op until a quarterly-split strategy is implemented.

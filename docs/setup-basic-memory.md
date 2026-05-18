@@ -279,4 +279,18 @@ Diagnostic order if anything fails: (a) Basic Memory binary works at the CLI? (b
 
 ---
 
+## Privacy
+
+Basic Memory is a third-party MCP server installed via `uv tool install basic-memory`. Think OS configures it with `--local --default` which keeps the index entirely on disk under `~/.basic-memory/`.
+
+To verify there is no cloud sync configured: `cat ~/.basic-memory/config.json` — the `mode` field should not be `"cloud"`.
+
+To audit network activity: `lsof -i -n -P | grep basic-memory` while a session is active.
+
+For company deployment: IT should review Basic Memory's license at https://github.com/basicmachines-co/basic-memory and confirm the project's privacy posture meets internal requirements.
+
+Connector versions are pinned in `data/plugin-catalog.yaml`. The granola-mcp pin is `>=0.1` in v0.8; exact-version pinning is deferred to v0.9 pending vendor audit.
+
+---
+
 *Setup guide. Last reviewed when you complete it.*

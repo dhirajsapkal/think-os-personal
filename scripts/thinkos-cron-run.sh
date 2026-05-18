@@ -23,6 +23,7 @@
 #   2  unknown task id
 # =============================================================================
 set -uo pipefail
+umask 0077
 
 TASK_ID="${1:-}"
 DRY_RUN=0
@@ -43,9 +44,9 @@ mkdir -p "$LOG_DIR"
 # Resolve vault path. Personal hub by default.
 VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
 # Ledger lives in the vault so both shell (launchd) and basic-memory MCP
-# (Cowork scheduled tasks) can append to it.
+# (basic-memory MCP writers) can append to it.
 LEDGER="$VAULT/90 System/Capture Log.md"
-mkdir -p "$(dirname "$LEDGER")"
+[ -f "$LEDGER" ] || { mkdir -p "$(dirname "$LEDGER")"; printf -- '---\ntitle: Capture Log\npermalink: 90-system/capture-log\n---\n\n# Capture Log\n\n' > "$LEDGER"; }
 
 iso_now() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
 
@@ -62,24 +63,43 @@ ledger_append() {
     echo "[dry-run] ledger += $source $mode"
     return
   fi
-  if [[ "$output" == "null" || -z "$output" ]]; then
-    line="{\"ts\":\"$ts\",\"source\":\"$source\",\"detail\":$detail,\"output\":null,\"mode\":\"$mode\",\"bytes\":$bytes}"
-  else
-    line="{\"ts\":\"$ts\",\"source\":\"$source\",\"detail\":$detail,\"output\":\"$output\",\"mode\":\"$mode\",\"bytes\":$bytes}"
+  line="$(python3 -c "
+import json, sys
+ts, source, detail_raw, output, mode, bytes_val = sys.argv[1:]
+detail = json.loads(detail_raw)
+obj = {'ts': ts, 'source': source, 'detail': detail,
+       'output': None if output in ('null', '') else output,
+       'mode': mode, 'bytes': int(bytes_val)}
+print(json.dumps(obj))
+" "$ts" "$source" "$detail" "$output" "$mode" "$bytes")"
+  {
+    flock 9
+    printf '%s\n' "$line" >&9
+  } 9>> "$LEDGER"
+}
+
+_rotate_if_large() {
+  # Rotate $1 to $1.<timestamp>.bak if it exceeds 1 MB.
+  local f="$1"
+  [[ -f "$f" ]] || return 0
+  local size
+  size="$(python3 -c "import os; print(os.path.getsize('$f'))" 2>/dev/null || stat -f%z "$f" 2>/dev/null || echo 0)"
+  if [[ "$size" -gt 1048576 ]]; then
+    mv "$f" "${f}.$(date -u +"%Y%m%dT%H%M%SZ").bak"
   fi
-  printf '%s\n' "$line" >> "$LEDGER"
 }
 
 run_deterministic() {
-  local cmd="$1"
+  # Accepts an argument array: run_deterministic cmd arg1 arg2 ...
   local logfile="$LOG_DIR/$TASK_ID.log"
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "[dry-run] would run: $cmd"
+    echo "[dry-run] would run: $*"
     echo "[dry-run] log → $logfile"
     return 0
   fi
+  _rotate_if_large "$logfile"
   echo "=== $(iso_now) $TASK_ID ===" >> "$logfile"
-  if bash -c "$cmd" >> "$logfile" 2>&1; then
+  if "$@" >> "$logfile" 2>&1; then
     return 0
   else
     echo "[$TASK_ID] command failed; see $logfile" >&2
@@ -100,6 +120,8 @@ run_llm_prompt() {
     echo "[$TASK_ID] claude CLI not found in PATH" >&2
     return 1
   fi
+  _rotate_if_large "$logfile"
+  _rotate_if_large "${logfile%.log}.err"
   echo "=== $(iso_now) $TASK_ID ===" >> "$logfile"
   # `< /dev/null` skips claude -p's 3s "wait for stdin" warning when launchd
   # invokes us with no stdin attached.
@@ -142,7 +164,7 @@ run_task() {
     # ------------------------------------------------------------- Phase 3 maintenance
     daily-reindex)
       # Deterministic. Keeps Basic Memory's search index aligned with disk.
-      if run_deterministic "basic-memory reindex --project think-os"; then
+      if run_deterministic basic-memory reindex --project think-os; then
         ledger_append "maintenance" "{\"task\":\"daily-reindex\"}" null "noop" 0
         return 0
       else
@@ -160,10 +182,12 @@ run_task() {
     clickup)  run_llm_task "clickup"  ;;
     gmail)    run_llm_task "gmail"    ;;
     slack)    run_llm_task "slack"    ;;
+    linear)   run_llm_task "linear"   ;;
+    jira)     run_llm_task "jira"     ;;
 
     *)
       echo "Unknown task id: $TASK_ID" >&2
-      echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola calendar clickup gmail slack" >&2
+      echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola calendar clickup gmail slack linear jira" >&2
       exit 2
       ;;
   esac

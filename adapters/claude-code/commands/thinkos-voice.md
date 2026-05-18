@@ -1,5 +1,5 @@
 ---
-description: Rewrite a draft in your voice profile
+description: Log a before/after rewrite sample to improve your voice profile
 permalink: think-os/adapters/claude-code/commands/thinkos-voice
 ---
 

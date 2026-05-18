@@ -8,7 +8,7 @@ last_reviewed: "2026-05-13"
 
 # Notifications API Contract
 
-Owner: @maya. Reviewers: @dhiraj, @sarah. Edited via PR; changes require approval from owner.
+Owner: @maya. Reviewers: @alex, @maya. Edited via PR; changes require approval from owner.
 
 ## Purpose
 

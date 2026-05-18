@@ -7,7 +7,7 @@ aliases:
 type: note
 permalink: think-os/business-brain
 tier: WARM
-last_reviewed: 2026-05-13
+last_reviewed: {{YYYY-MM-DD}}
 tags:
 - business
 - think-company
@@ -19,7 +19,7 @@ tags:
 
 > **This is the Think Co shared baseline.** It reflects company-level strategy, voice, and working principles that apply to every Think Co employee. Customize the [Your context] section below to reflect your own role, clients, and working style.
 >
-> Maintainer's reference copy: `~/Documents/Think/Claude OS/business-brain.md`
+> Optional: if you maintain a separate canonical source for this content, link it here.
 
 **Refresh cadence**: hand review once a year, or when company strategy or brand guidelines materially shift.
 
@@ -108,4 +108,4 @@ Think distinguishes two modes:
 
 ---
 
-*Last reviewed: 2026-05-13. Sections 1–5 reflect company-wide content sourced from Confluence (Jan–Feb 2025/2026). The [Your context] section is deliberately blank — fill it in after installing Think OS.*
+*Last reviewed: {{YYYY-MM-DD}}. Sections 1–5 reflect company-wide content sourced from Confluence (Jan–Feb 2025/2026). The [Your context] section is deliberately blank — fill it in after installing Think OS.*

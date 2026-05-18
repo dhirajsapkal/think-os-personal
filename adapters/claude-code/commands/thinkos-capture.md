@@ -45,10 +45,10 @@ Append to `04 Knowledge/Decisions.md` via Basic Memory. Format (preserve from th
 **Supersedes**: <link to earlier decision if any>
 ```
 
-Extract topic, decision, why, context, applies-to from the content. If anything is unclear, ask ONCE for the most-missing piece before writing. Per the Decisions.md convention, NEWER entries go above older ones — find the right insertion point or append after the format guide block.
+Extract topic, decision, why, context, applies-to from the content. If anything is unclear, ask ONCE for the most-missing piece before writing. Per the Decisions.md convention, NEWER entries go above older ones — find the right insertion point.
 
 ```
-mcp__basic-memory__edit_note(identifier="Standing Decisions", operation="append", content="<formatted entry>")
+mcp__basic-memory__edit_note(identifier="Standing Decisions", operation="prepend", content="<formatted entry>")
 ```
 
 ### Mode: learning
@@ -144,14 +144,11 @@ If triage produces zero candidates across all four categories, exit cleanly:
 
 Read recent manual-save topics from the capture ledger:
 
-```bash
-VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
-tail -50 "$VAULT/90 System/Capture Log.md" 2>/dev/null \
-  | grep '"source":"manual"' \
-  | grep -oE '"topic":"[^"]+"' \
-  | sort -u \
-  | tail -15
 ```
+mcp__basic-memory__read_note("Capture Log")
+```
+
+Extract the last 15 lines matching `"source":"manual"` and pull their `"topic"` fields.
 
 For each topic from the ledger, judge semantically whether it overlaps with any of THIS session's candidate topics from Step 0a.
 
@@ -229,7 +226,7 @@ For each queued draft, append via `mcp__basic-memory__edit_note`:
 | Type | identifier | operation |
 |---|---|---|
 | Work Log | `Work Log` | `append` |
-| Decision | `Decisions` | `append` |
+| Decision | `Decisions` | `prepend` |
 | Learning | `Learnings` | `append` |
 | Person | `People` | `append` |
 

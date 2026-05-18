@@ -9,7 +9,7 @@ permalink: think-os/adapters/claude-code/commands/readme
 
 # CLI agent custom slash commands
 
-Sixteen slash commands for using your personal context OS from any CLI agent session, regardless of cwd. They wrap Basic Memory MCP calls plus a few file ops so common workflows are one keystroke instead of a sentence. All commands use the `thinkos-` prefix so they're easy to find — type `/thinkos` and autocomplete shows the full list.
+The slash commands listed in /thinkos-help for using your personal context OS from any CLI agent session, regardless of cwd. They wrap Basic Memory MCP calls plus a few file ops so common workflows are one keystroke instead of a sentence. All commands use the `thinkos-` prefix so they're easy to find — type `/thinkos` and autocomplete shows the full list.
 
 ## Install (one time, ~5 sec)
 
@@ -44,6 +44,16 @@ To verify: `cd ~ && claude`, then type `/` — you should see the list.
 | `/thinkos-vault` | Manage vaults — list, switch, create-project, clone |
 | `/thinkos-help` | Show all Think OS commands and what they do |
 | `/thinkos-mcp-help` | How to query and update your personal context MCP |
+| `/thinkos-save` | Save substantive items from the current session to your vault |
+| `/thinkos-autosave` | Manage periodic background capture of Claude Code session activity |
+| `/thinkos-sync` | Commit + pull --rebase + push your personal-hub vault state |
+| `/thinkos-shared` | Toggle shared-mode (hide tier:sensitive notes from agent reads) |
+| `/thinkos-undo-capture` | Undo a recent capture — remove it from the vault and record the reversal |
+| `/thinkos-automate` | Set up Think OS scheduled triggers (Phase 3 — automations) |
+| `/thinkos-capture-setup` | Enable Think OS continuous-capture sources one at a time (Phase C) |
+| `/thinkos-recent` | Show recent captures from the ledger — what was captured and where it landed |
+| `/thinkos-vitals` | Snapshot of vault health — staleness, budgets, broken links, ledger volume |
+| `/thinkos-update` | Update Think OS in place — pull latest curated instructions, commands, and skills without touching your vault |
 
 ## Connector sync
 

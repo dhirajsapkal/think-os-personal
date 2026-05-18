@@ -7,7 +7,7 @@ Follow these defaults without being told. They keep the user's context window cl
 - **Use `Read`, not `cat`/`head`/`tail` via Bash.** The `Read` tool returns line-numbered output the model can refer to with `path:line`. Bash dumps are opaque to follow-up tool calls.
 - **Use `Edit`, not `Write`, for existing files.** Edit sends a diff; Write replaces the whole file. Only `Write` when creating new files or for a full rewrite.
 - **Batch independent tool calls in one assistant turn.** If three commands have no data dependency between them, call all three in parallel. Serial tool calls cost extra round-trips.
-- **Plan before non-trivial multi-file edits.** Use `TodoWrite` (or an explicit plan in the response) for any change touching >2 files or requiring sequenced steps. Single-line typo fixes do not need a plan.
+- **Plan before non-trivial multi-file edits.** Use `TodoWrite` (or the planning tool in your tool list, or an explicit plan in the response) for any change touching >2 files or requiring sequenced steps. Single-line typo fixes do not need a plan.
 - **Spawn a subagent for broad research.** If a question needs >3 searches or speculative exploration, delegate to a research subagent. Your own context stays clean; only the synthesized answer comes back.
 - **Don't re-Read files you read this turn.** Refer to context. If something might have changed, say so and re-read only the relevant range with `offset`/`limit`.
 - **Use `ToolSearch` with `select:<name>`** for tools you know by name. Use keyword query mode only when fuzzy-matching across an unknown space.

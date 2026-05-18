@@ -62,6 +62,7 @@ THINKOS_VERSION="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "")"
 
 # Run the migration through python3 (stdlib only).
 TMP="$(mktemp)"
+trap 'rm -f "$TMP"' EXIT
 python3 - "$MANIFEST" "$THINKOS_VERSION" "$REPO_ROOT" "$TMP" <<'PY'
 import json, sys, hashlib, os, glob, re
 from datetime import datetime, timezone
@@ -195,6 +196,7 @@ fi
 mkdir -p "$BACKUP_DIR"
 cp "$MANIFEST" "$BACKUP_DIR/install-manifest.json"
 mv "$TMP" "$MANIFEST"
+python3 -c "import os; os.chmod('$MANIFEST', 0o600)"
 
 echo "Migrated $MANIFEST to v2."
 echo "Backup: $BACKUP_DIR/install-manifest.json"

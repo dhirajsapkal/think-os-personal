@@ -2,6 +2,93 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.8.0] — 2026-05-18 — Comprehensive hardening release
+
+A planned multi-stream code review caught 113 issues — 23 P0, 42 P1, 36 P2, 12 P3 — across bugs, security, agent traps, redundancy, drift, and deploy-readiness. 96 are fixed in this release across 43 work packages executed by 21 parallel Sonnet agents. The remaining 13 P2/P3 defer to v0.9. Four findings require human input (legal, IT, security governance) and are documented as known v0.8 gaps. Full review with per-finding fix instructions at `.plans/2026-05-18-comprehensive-review/plan.md`.
+
+### Fixed — security (ship-blockers for company rollout)
+
+- **Shell injection in `scripts/lib/catalog.sh`** (F-S-001, F-S-005, F-S-008). Three functions — `catalog_get_field`, `catalog_filter_by_target`, `catalog_oauth_items` — interpolated shell variables directly into Python source via heredoc string interpolation. User-supplied `--items` values could break out of the literal and execute arbitrary Python. The fix passes values via `sys.argv` and via bash-collected stdin; the unused `catalog_yq` eval-based helper is removed entirely. Same security outcome with no API change for in-tree callers.
+- **Non-atomic CLAUDE.md write** (F-S-002). `install_marked_block()` in setup.sh and update.sh wrote directly to `$target` with `> "$target"`, truncating before the new content was assembled. SIGTERM, disk-full, or a Python error mid-render would leave `~/.claude/CLAUDE.md` empty. Replaced with the `mktemp → mv` atomic pattern in both scripts (and now in the new shared lib).
+- **`eval "$extracted"` in uninstaller** (F-S-003). `_load_manifest()` ran a Python snippet that printed shell assignments, then `eval`'d them. A tampered `~/.thinkos/install-manifest.json` could inject commands. Replaced with explicit per-key parsing using base64-encoded values so the bash side never sees an unquoted shell string.
+- **Three more unanchored grep silent-skips** (F-S-004, F-S-014, F-S-022). The v0.7.4 fix was incomplete: the same loose substring pattern lived in `scripts/thinkos-setup.sh:317` (basic-memory registration), `scripts/thinkos-doctor.sh:365` (bundle health check), and `scripts/thinkos-uninstall.sh:504` (MCP removal). All three now use anchored `^<name>:` matches. Also added `set -o pipefail` to doctor.sh.
+- **LaunchAgent logs at 644** (F-X-001). `~/Library/Logs/ThinkOS/*.log` files captured `claude -p` cron output (morning briefs, Granola summaries, Slack summaries) at world-group-readable permissions — local-admin readable on multi-admin Macs. Install scripts now `chmod 700` the log dir; `umask 0077` set at the top of `thinkos-cron-run.sh` and `thinkos-session-capture.sh`.
+- **`install-manifest.json` at 644** (F-X-002). Leaked vault path, bundle, and MCP list to any local group member. Now `chmod 600` after write in both `_write_install_manifest()` and the v1→v2 migration script.
+- **No root-invocation guard on five entry points** (F-X-009). Added `id -u == 0` exit at the top of `thinkos-setup.sh`, `thinkos-uninstall.sh`, `thinkos-install-bundle.sh`, `thinkos-update.sh`, and `install-launchd-job.sh`.
+- **`uvx granola-mcp` unpinned** (F-X-004). Up to 14 PyPI fetch-and-executes per day with full user permissions. Pinned to `granola-mcp>=0.1`. Exact-version pinning deferred to v0.9 pending vendor audit (documented in catalog notes and `docs/setup-basic-memory.md`).
+- **Shared-mode coverage gaps** (F-X-003). `60-shared-mode.md` only specified `search_notes` and `read_note`. `build_context` (graph traversal) and `recent_activity` (write feed) could leak `tier: sensitive` notes even with shared-mode on. Both are now explicitly covered. Added a new section to the same block clarifying that shared-mode is an agent-behavioral instruction, not an OS-level control.
+- **Vault sync sensitive-path pre-check** (F-X-006, F-X-016). New `templates/.gitignore` ships `.private/`, `.vault/`, `*.tmp`, etc. `cmd_sync_vault` in `thinkos-git.sh` now aborts before `git add -A` if `.claude/`, `.ssh/`, `.gnupg/`, `.aws/`, or `.docker/` would be staged.
+- **`thinkos-update.sh --pull` stopgap** (F-X-008). Surfaces the new commit SHA, prints a diff command, and warns about deferred GPG verification. Full signed-commit verification is a v0.9 item gated on key-management governance.
+- **XML injection in install-session-capture plist write** (F-S-013). Vault path interpolated verbatim into XML; a path with `<` or `&` produced a malformed plist or could inject keys. Now uses `xml.sax.saxutils.escape()` plus `plutil -lint` validation before `launchctl load`.
+
+### Fixed — agent traps and behavioral correctness
+
+- **Bridge-misframing propagation** (F-I-001, F-I-024). Same "connectors live in desktop agent" issue we fixed in v0.7.5 for `/thinkos-mcp-help` lived in four more slash commands: `/thinkos-plate`, `/thinkos-morning`, `/thinkos-reindex`, `/thinkos-stale`. Each now carries the bridge clause. `/thinkos-morning`'s Calendar bullet checks `mcp__claude_ai_Google_Calendar__list_events` via `ToolSearch` before redirecting to desktop agent.
+- **`/thinkos-capture` decision ordering** (F-I-002). Decision mode said "newer at top" but used `operation="append"` which put new entries at the bottom. Switched to `operation="prepend"` in decision mode and in the session-recap mode's table.
+- **`/thinkos-voice` description mismatch** (F-I-003). Frontmatter said "Rewrite a draft" but the command logs training samples. Description corrected to match behavior.
+- **Linear vs Jira disambiguation in `/thinkos-capture-setup`** (F-I-004, F-I-025). The Linear setup path tried the Atlassian MCP and labeled the resulting Jira data as "Linear via JQL" — a wrong-service claim that would silently ingest the wrong data. Split into two independent paths: a Linear path (only if `mcp__claude_ai_Linear__*` exists, installs `com.thinkos.linear`) and a Jira path (only if Atlassian's JQL tool exists, installs `com.thinkos.jira`).
+- **Hardcoded `--project think-os` in `/thinkos-reindex`** (F-I-006). Broke multi-vault. Now resolves the active vault's `bm_project` from `~/.thinkos/active-vault` → `vaults.json` default → fallback.
+- **Adapter `instructions.md` exception clauses** (F-I-005). The "Always Available: Basic Memory MCP" section listed 7 queries with no exception clauses — read alone, it created an unconditional 7-query mandate that contradicts the priority preamble. Added a sentence pointing at the preamble's exception rules.
+- **Dead-reference cleanup** (F-I-007, F-I-008, F-D-004): 6 missing slash command files created (`thinkos-doctor`, `weekly-review`, `quarterly-review`, `recent-log`, `draft-reply`, `validate-os`, `index-projects`). Routing table entries that pointed at them now resolve. `MAINTENANCE.md` references work end-to-end. Templates that mention `/weekly-review` and `/quarterly-review` are no longer lying.
+- **Skill routing table missing native skills** (F-I-027). Added explicit routing triggers for `decisions`, `draft-reply`, `morning`, `who`, `project`, `weekly-review`.
+
+### Fixed — drift between claimed and actual state
+
+- **Linear launchd task didn't exist** (F-D-001). `/thinkos-capture-setup` told users it installed `com.thinkos.linear`; the dispatcher had no `linear` case. Now wired end-to-end: install-launchd-job.sh case, thinkos-cron-run.sh dispatcher, new `scripts/cron-prompts/linear.txt`.
+- **Slack `--slack-handle` flag** (F-D-002). The command passed it to install-launchd-job.sh which silently ignored it. Now parsed, with the handle persisted to `~/.thinkos/slack-handle` (mode 600).
+- **Session-capture writing to deprecated path** (F-D-003, F-X-010). `thinkos-session-capture.sh` still wrote to the pre-v0.4.2 `~/.thinkos/capture-log.jsonl` location while every other component used the vault note `90 System/Capture Log.md`. The dual-write meant `/thinkos-recent`, `/thinkos-vitals`, and the audit trail all missed session-capture events for every autosave user. Refactored to write only to the vault note, with vault path resolved via `vaults.json`. The legacy JSONL path is now removed from the script entirely.
+- **operations skill bundle dropped silently** (F-D-009, F-C-011). `ops` preset included `operations` but the catalog entry has no `claude_code` block — installer dropped it with a confusing "Skipped (not available)" message. Removed from preset; catalog notes explain it's pending marketplace availability.
+- **manifest.yaml + AGENTS.md missing `70-claude-ai-bridge.md`** (F-D-006, F-D-007). The v0.7.5 bridge block was added to scripts and to `00-think-os-priority.md`'s pointer, but `setup/manifest.yaml`'s `composed_with` list and `AGENTS.md`'s curated list both stopped at `60`. Both now list all 9 blocks.
+
+### Fixed — catalog and templates
+
+- **10 unverified MCP URLs removed from active presets** (F-C-001..F-C-010, F-D-012). `ms365`, `linear`, `asana`, `monday`, `fireflies`, `otter`, `amplitude`, `pendo`, `similarweb`, `intercom` all had placeholder URLs with `TODO: verify` comments. Each is now `available: false` with `url_verified: false` and an explanatory note. `linear` is out of `pm`/`eng` presets; `ms365` is out of `ops`. A new `url_verified` boolean field survives JSON serialization (replacing the YAML-only TODO comments) and is enforced by the new lint.
+- **`trust_level` field added to every catalog entry** (F-X-014). Values: `anthropic-official` (skill bundles), `vendor-provided` (HTTP MCP endpoints), `third-party-unverified` (granola pending audit). The installer's confirmation table will eventually surface this; for v0.8 it's a declarative field that downstream tools can read.
+- **New `scripts/lib/lint-catalog.sh`** (F-X-005). Fails if any URL contains `TODO`, if any `url_verified: false` entry is in a preset, if YAML and JSON drift, or if a preset references a nonexistent catalog id. Run by `thinkos-doctor.sh` and intended for CI.
+- **Personal-name leak in 4 team-vault example files** (F-C-018). `@dhiraj` and `@sarah` appeared as realistic-looking handles in shipped example files. Replaced with the neutral fictional handles `@alex` and `@maya`. The fourth file (`05 Learnings/_example-2026-05-12-rate-limiting-pattern.md`) wasn't in the original spec — the agent found it during the scrub.
+- **Maintainer paths/dates in templates** (F-C-019, plus an agent find): `templates/05 Profile/Business Brain.md` had `~/Documents/Think/Claude OS/business-brain.md` hardcoded as a "maintainer's reference copy" path, plus a hardcoded `2026-05-13` date in `last_reviewed` and the footer. Both replaced — the path becomes a neutral prompt, the date becomes `{{YYYY-MM-DD}}` substituted at install.
+- **`90 System/Capture Log.md` missing as a template** (F-C-021). 8 cron prompts and 4 scripts wrote to or read this file, but no template shipped, so fresh installs would hit "note not found" on first capture. Template added; `thinkos-setup.sh` copy_templates initializes it; `thinkos-cron-run.sh` bootstraps it on first append.
+- **session-capture plist hardening** (F-C-013, F-C-014, F-C-015, F-S-013, F-X-019). Renamed to `.plist.template` for consistency with the other two plists. Added `EnvironmentVariables` block with PATH (was missing — caused silent failure on Apple Silicon where python3 is at `/opt/homebrew/bin/python3`). Added `WorkingDirectory`. Split `StandardErrorPath` to its own `.err` file. XML-escapes paths in the substitution. `plutil -lint` validation added before `launchctl load`.
+- **CODEOWNERS template** (F-C-020, F-C-022). `templates/team/CODEOWNERS` had `{{TEAM_LEAD}}` tokens but no `.template` suffix — install scripts treated it as a literal file. Renamed to `.template`. `thinkos-vault.sh`'s vault-creation pass now substitutes all 9 documented template tokens (`PROJECT_NAME`, `PROJECT_LABEL`, `BM_PROJECT_NAME`, `UID`, `CREATED_AT`, `TEAM_LEAD`, `TEAM_LEAD_NAME`, `TZ`, `EXPORT_REPO_URL`) recursively, then renames `CODEOWNERS.template` → `CODEOWNERS`.
+
+### Fixed — token efficiency
+
+- **Adapter `instructions.md` from 122 → 83 lines** (F-I-013..F-I-018). Removed 5 redundant sections that duplicated content already in the priority preamble or `30-think-os-write-targets.md` (capture habit, write targets table, fallback, draft-never-send, freshness). Net savings: ~40 lines / ~600 tokens per session, with no behavioral change.
+- **Shared bash functions extracted to `scripts/lib/render-instructions.sh`** (F-S-021, WP-28). `curated_instruction_files()`, `render_template()`, `render_think_os_block()`, `install_marked_block()` were copy-pasted between setup.sh and update.sh. The v0.7.4 drift bug was a direct consequence of this duplication. Both scripts now source the shared lib; each function defined exactly once.
+
+### Fixed — robustness and miscellaneous
+
+- **`thinkos-cron-run.sh ledger_append` no longer builds JSON via string concat** (F-S-017). Now invokes `python3 -c "import json; print(json.dumps(...))"`.
+- **`thinkos-cron-run.sh run_deterministic` no longer uses `bash -c "$cmd"`** (F-S-009). Takes args as an array; uses `"$@"`. Same defense applied to `flock`-protected ledger appends in cron-run and session-capture (F-S-023).
+- **`thinkos-index.sh` no longer pipe-delimits folder paths** (F-S-019). Pipe delimiter broke on folder names containing `|`. Now passes folders as separate argv.
+- **`thinkos-vault.sh` predictable `/tmp/thinkos-migrate-bm-warn` path** (F-S-011). Replaced with `mktemp`-generated path.
+- **`thinkos-vault.sh` `cmd_create_project` vault.json write atomic** (F-S-018). Uses the `mkstemp + os.replace + chmod 600` pattern from the registry.
+- **`thinkos-vitals.sh` Python errors no longer produce JSONDecodeError cascades** (F-S-026). Top-level try/except returns valid error JSON; bash guards against empty output.
+- **`thinkos-migrate-manifest-v1-to-v2.sh` cleans up temp file on failure** (F-S-010). Added `trap 'rm -f "$TMP"' EXIT`.
+- **`thinkos-capture-rotate.sh` deprecation header + flock** (F-D-010, F-S-023). Script is now self-documenting as deprecated and exits early if the legacy JSONL path isn't found. The gzip+truncate sequence is now `flock`-protected against concurrent appender writes.
+- **Subshell scope bug in `cmd_list`** (F-S-027). Changed pipe to process substitution.
+- **awk-based `render_template` had metacharacter bug** (F-S-025). A vault path containing `&` would have corrupted template substitution. Replaced with Python `str.replace()` which doesn't interpret replacement metacharacters.
+
+### Added
+
+- **Data disclosure phase in `setup/manifest.yaml`** (F-X-011 partial). One-paragraph explanation of which cron tasks send vault content to Anthropic via `claude -p` and which run fully local. The full opt-out path (`--local-only` flag, DPA review) is a v0.9 item.
+- **`THINKOS_MASK_CWD=1` env var support in session-capture** (F-X-020). For consultancies where directory names encode client names, set this to mask CWD to its basename only in the ledger.
+- **Session-capture project filter** (F-X-015). Now defaults to capturing only sessions whose `cwd` is under a registered vault path from `vaults.json`. `--all-projects` flag preserves the old behavior.
+- **Log rotation cap** (F-X-007). LaunchAgent log files rotate when they exceed 1MB.
+- **Uninstall cleanup completeness** (F-X-013). `thinkos-uninstall.sh` now calls the three `uninstall-*.sh` helpers for every known task id, removes `~/Library/Logs/ThinkOS/` (unless `--keep-logs`), removes the legacy capture-log artifacts, and conditionally removes `~/.thinkos/backups/` with `--remove-backups`.
+- **`thinkos-doctor.sh` plist-path check** (F-X-019). Iterates installed `com.thinkos.*.plist` and warns if any references a script that no longer exists on disk.
+- **Basic Memory privacy section in `docs/setup-basic-memory.md`** (F-X-018 partial). Documents `--local --default`, the config.json verification command, the `lsof` audit command, and the IT-review pointer.
+
+### Deferred to v0.9
+
+13 P2/P3 findings tracked but not addressed in v0.8; see `.plans/2026-05-18-comprehensive-review/plan.md` §10. The four human-input gates (F-X-011 legal/DPA, F-X-012 enterprise mode, F-X-018 IT review process, F-X-008 full GPG signing) are documented in §9 as company-rollout prerequisites.
+
+### Why this matters
+
+The bug class that produced v0.7.4 through v0.7.6 was systemic, not localized. Each prior release fixed one instance of a pattern — silent skip, agent trap, claimed-but-unwired — while three more instances of the same pattern sat in the codebase waiting to surface. v0.8 is the release that goes wide instead of going deep: 5 parallel reviewer agents found the rest, 21 parallel executor agents fixed them, and the result is a codebase where the three pattern classes are now linted, tested, and documented.
+
+The security findings move Think OS from "fine for a personal install" to "deployable to ~100 colleagues at a consultancy with caveats." The four caveats — DPA, MDM/enterprise mode, IT review of Basic Memory, GPG signing — are documented as v0.9 gates rather than buried as risks. Anyone can install the v0.8 release on their own machine without any of those being resolved.
+
 ## [v0.7.6] — 2026-05-18 — Emergent seeding, drift detection, and shared-mode are actually wired now
 
 ### Fixed

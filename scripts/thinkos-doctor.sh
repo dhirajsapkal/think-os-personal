@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -u
+set -o pipefail
 
 PROJECT_NAME="think-os"
 OS_HOME="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
@@ -362,7 +363,7 @@ if [[ "$CHECK_BUNDLE" -eq 1 ]]; then
             while IFS= read -r mcp_name; do
               mcp_name="$(printf '%s' "$mcp_name" | tr -d '[:space:]')"
               [[ -z "$mcp_name" ]] && continue
-              if ! grep -q "$mcp_name" "$TMP_MCP"; then
+              if ! grep -q "^${mcp_name}:" "$TMP_MCP"; then
                 missing_mcps="${missing_mcps}${mcp_name} "
               fi
             done < <(printf '%s\n' "$expected_mcps")
@@ -521,6 +522,22 @@ PY
 )"
   add_check "capture:redaction_count" ok "$REDACT_COUNT redacted event(s) in ledger (privacy routing intercepts)"
 fi
+
+# ---------------------------------------------------------------------------
+# WP-37: LaunchAgent plist target-script existence check
+# ---------------------------------------------------------------------------
+for plist in "$HOME/Library/LaunchAgents"/com.thinkos.*.plist; do
+  [[ -e "$plist" ]] || continue
+  plist_label="$(basename "$plist" .plist)"
+  target_script="$(plutil -extract ProgramArguments.1 raw "$plist" 2>/dev/null || true)"
+  if [[ -z "$target_script" ]]; then
+    add_check "launchagent:${plist_label}" warn "cannot read ProgramArguments[1] from $plist — plutil failed or key missing"
+  elif [[ ! -f "$target_script" ]]; then
+    add_check "launchagent:${plist_label}" warn "plist target script not found: $target_script (from $plist)"
+  else
+    add_check "launchagent:${plist_label}" ok "plist target script exists: $target_script"
+  fi
+done
 
 if [[ "$JSON" -eq 1 ]]; then
   printf '{"os_home":"%s","project":"%s","checks":[' "$(json_escape "$OS_HOME")" "$(json_escape "$PROJECT_NAME")"

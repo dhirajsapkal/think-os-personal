@@ -1,3 +1,4 @@
+# catalog_lint: any entry with url_verified: false must NOT appear in a preset.
 # =============================================================================
 # Think OS Plugin / Connector Catalog
 # =============================================================================
@@ -65,6 +66,7 @@ catalog:
       url: https://mcp.slack.com/mcp
       mcp_name: slack
       bridge_match: Slack
+      trust_level: vendor-provided
     notes: User completes OAuth in-app on first Slack tool call. Provided by claude.ai bridge when the user is signed into claude.ai with Slack connected.
 
   - id: gmail
@@ -82,6 +84,7 @@ catalog:
       url: https://gmailmcp.googleapis.com/mcp/v1
       mcp_name: gmail
       bridge_match: Gmail
+      trust_level: vendor-provided
     notes: Requires Google OAuth. Provides read/search/send over Gmail threads. Provided by claude.ai bridge when the user is signed into claude.ai with Gmail connected.
 
   - id: ms365
@@ -89,13 +92,14 @@ catalog:
     category: communication
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://graph.microsoft.com/mcp
-      # TODO: verify MS Graph MCP endpoint when GA
       mcp_name: ms365
-    notes: No Cowork connector available yet; CC-only. Covers Outlook mail, Teams messages, and OneDrive files via MS Graph.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   # ---------------------------------------------------------------------------
   # Docs / Knowledge
@@ -116,6 +120,7 @@ catalog:
       url: https://mcp.notion.com/mcp
       mcp_name: notion
       bridge_match: Notion
+      trust_level: vendor-provided
     notes: Full read/write access to pages, databases, and comments. Provided by claude.ai bridge when the user is signed into claude.ai with Notion connected.
 
   - id: google-drive
@@ -133,6 +138,7 @@ catalog:
       url: https://drivemcp.googleapis.com/mcp/v1
       mcp_name: google-drive
       bridge_match: Google Drive
+      trust_level: vendor-provided
     notes: Read/search/write files across My Drive and Shared Drives. Provided by claude.ai bridge when the user is signed into claude.ai with Drive connected.
 
   - id: airtable
@@ -150,6 +156,7 @@ catalog:
       url: https://mcp.airtable.com/mcp
       mcp_name: airtable
       bridge_match: Airtable
+      trust_level: vendor-provided
     notes: Access bases, tables, and records; supports filtered views. Provided by claude.ai bridge when the user is signed into claude.ai with Airtable connected.
 
   # ---------------------------------------------------------------------------
@@ -171,6 +178,7 @@ catalog:
       url: https://mcp.atlassian.com/v1/mcp
       mcp_name: atlassian-rovo
       bridge_match: Atlassian
+      trust_level: vendor-provided
     notes: Covers Jira issues and Confluence pages via Atlassian Rovo connector. Provided by claude.ai bridge when the user is signed into claude.ai with Atlassian connected.
 
   - id: linear
@@ -178,13 +186,14 @@ catalog:
     category: tracker
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://mcp.linear.app/mcp
-      # TODO: verify Linear MCP endpoint
       mcp_name: linear
-    notes: No Cowork connector available yet; CC-only. Covers issues, cycles, projects, and roadmaps.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   - id: clickup
     name: ClickUp
@@ -201,6 +210,7 @@ catalog:
       url: https://mcp.clickup.com/mcp
       mcp_name: clickup
       bridge_match: ClickUp
+      trust_level: vendor-provided
     notes: Tasks, lists, folders, spaces, docs, and time tracking. Provided by claude.ai bridge when the user is signed into claude.ai with ClickUp connected.
 
   - id: asana
@@ -208,26 +218,28 @@ catalog:
     category: tracker
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://mcp.asana.com/mcp
-      # TODO: verify Asana MCP endpoint
       mcp_name: asana
-    notes: No Cowork connector available yet; CC-only. Covers tasks, projects, goals, and portfolios.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   - id: monday
     name: Monday.com
     category: tracker
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://mcp.monday.com/mcp
-      # TODO: verify Monday MCP endpoint
       mcp_name: monday
-    notes: No Cowork connector available yet; CC-only. Boards, items, subitems, and automations.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   # ---------------------------------------------------------------------------
   # Meetings / Transcription
@@ -246,10 +258,11 @@ catalog:
       kind: mcp_stdio
       command: uvx
       args:
-        - granola-mcp
+        - granola-mcp>=0.1
       mcp_name: granola
       bridge_match: Granola
-    notes: Local meeting note access via Granola's stdio MCP server. Provided by claude.ai bridge (remote MCP) when the user is signed into claude.ai with Granola connected.
+      trust_level: third-party-unverified
+    notes: Local meeting note access via Granola's stdio MCP server. Provided by claude.ai bridge (remote MCP) when the user is signed into claude.ai with Granola connected. Minimum version pinned to granola-mcp>=0.1 in v0.8; exact-version pinning deferred to v0.9 pending vendor audit.
 
   - id: zoom-claude
     name: Zoom for Claude
@@ -266,6 +279,7 @@ catalog:
       url: https://mcp.zoom.us/mcp/zoom/streamable
       mcp_name: zoom-claude
       bridge_match: Zoom for Claude
+      trust_level: vendor-provided
     notes: Meeting scheduling, recordings, and transcript access via Zoom. Provided by claude.ai bridge when the user is signed into claude.ai with Zoom connected.
 
   - id: fireflies
@@ -273,26 +287,28 @@ catalog:
     category: meetings
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://mcp.fireflies.ai/mcp
-      # TODO: verify Fireflies MCP endpoint
       mcp_name: fireflies
-    notes: No Cowork connector available yet; CC-only. Meeting transcripts, action items, and search.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   - id: otter
     name: Otter.ai
     category: meetings
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://mcp.otter.ai/mcp
-      # TODO: verify Otter MCP endpoint
       mcp_name: otter
-    notes: No Cowork connector available yet; CC-only. Meeting transcripts and summaries.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   # ---------------------------------------------------------------------------
   # Design
@@ -312,6 +328,7 @@ catalog:
       transport: http
       url: https://mcp.figma.com/mcp
       mcp_name: figma
+      trust_level: vendor-provided
     notes: Read/write Figma files, components, variables, and prototypes. Currently not provided by the claude.ai bridge — installed as a local MCP and authed in-app on first tool call.
 
   - id: canva
@@ -329,6 +346,7 @@ catalog:
       url: https://mcp.canva.com/mcp
       mcp_name: canva
       bridge_match: Canva
+      trust_level: vendor-provided
     notes: Create and edit Canva designs; export assets. Provided by claude.ai bridge when the user is signed into claude.ai with Canva connected.
 
   # ---------------------------------------------------------------------------
@@ -350,6 +368,7 @@ catalog:
       url: https://mcp.hubspot.com/anthropic
       mcp_name: hubspot
       bridge_match: HubSpot
+      trust_level: vendor-provided
     notes: Contacts, companies, deals, tasks, and pipeline management. Provided by claude.ai bridge when the user is signed into claude.ai with HubSpot connected.
 
   - id: zoominfo
@@ -367,6 +386,7 @@ catalog:
       url: https://mcp.zoominfo.com/mcp
       mcp_name: zoominfo
       bridge_match: ZoomInfo
+      trust_level: vendor-provided
     notes: B2B contact and company intelligence enrichment. Provided by claude.ai bridge when the user is signed into claude.ai with ZoomInfo connected.
 
   - id: amplitude
@@ -374,52 +394,56 @@ catalog:
     category: crm_analytics
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://mcp.amplitude.com/mcp
-      # TODO: verify Amplitude MCP endpoint
       mcp_name: amplitude
-    notes: No Cowork connector available yet; CC-only. Product analytics, funnels, and user behavior.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   - id: pendo
     name: Pendo
     category: crm_analytics
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://mcp.pendo.io/mcp
-      # TODO: verify Pendo MCP endpoint
       mcp_name: pendo
-    notes: No Cowork connector available yet; CC-only. Product analytics, NPS, and in-app guides.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   - id: similarweb
     name: Similarweb
     category: crm_analytics
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://mcp.similarweb.com/mcp
-      # TODO: verify Similarweb MCP endpoint
       mcp_name: similarweb
-    notes: No Cowork connector available yet; CC-only. Web traffic, market intelligence, and competitor analysis.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   - id: intercom
     name: Intercom
     category: crm_analytics
     oauth: true
     claude_code:
-      available: true
+      available: false
+      url_verified: false
       kind: mcp_remote
       transport: http
       url: https://mcp.intercom.com/mcp
-      # TODO: verify Intercom MCP endpoint
       mcp_name: intercom
-    notes: No Cowork connector available yet; CC-only. Customer messaging, tickets, and conversation analytics.
+      trust_level: vendor-provided
+    notes: "Endpoint not yet verified. Excluded from preset installs until confirmed. To use manually, set `available: true` and verify the URL."
 
   # ---------------------------------------------------------------------------
   # Finance
@@ -440,6 +464,7 @@ catalog:
       url: https://ai-inc.quickbooks.intuit.com/v1/mcp
       mcp_name: quickbooks
       bridge_match: Intuit QuickBooks
+      trust_level: vendor-provided
     notes: P&L, balance sheet, invoices, payroll, and cash flow via QBO. Provided by claude.ai bridge when the user is signed into claude.ai with QuickBooks connected.
 
   # ---------------------------------------------------------------------------
@@ -461,6 +486,7 @@ catalog:
       url: https://calendarmcp.googleapis.com/mcp/v1
       mcp_name: google-calendar
       bridge_match: Google Calendar
+      trust_level: vendor-provided
     notes: Read/write calendar events, availability, and scheduling across calendars. Provided by claude.ai bridge when the user is signed into claude.ai with Calendar connected.
 
   # ---------------------------------------------------------------------------
@@ -482,6 +508,7 @@ catalog:
       url: https://pubmed.mcp.claude.com/mcp
       mcp_name: pubmed
       bridge_match: PubMed
+      trust_level: vendor-provided
     notes: Biomedical literature search and full-text retrieval via NCBI PubMed. Provided by claude.ai bridge when the user is signed into claude.ai with PubMed connected.
 
   # ---------------------------------------------------------------------------
@@ -501,6 +528,7 @@ catalog:
       kind: skill_bundle
       marketplace: anthropics/knowledge-work-plugins
       plugin: productivity
+      trust_level: anthropic-official
     notes: Memory management and task management skills. Includes memory-management, task-management, start, and update skills.
 
   - id: product-management
@@ -516,6 +544,7 @@ catalog:
       kind: skill_bundle
       marketplace: anthropics/knowledge-work-plugins
       plugin: product-management
+      trust_level: anthropic-official
     notes: Write-spec, brainstorm, metrics-review, roadmap-update, competitive-brief, sprint-planning, and stakeholder-update skills.
 
   - id: engineering
@@ -531,6 +560,7 @@ catalog:
       kind: skill_bundle
       marketplace: anthropics/knowledge-work-plugins
       plugin: engineering
+      trust_level: anthropic-official
     notes: Code-review, debug, system-design, architecture, testing-strategy, incident-response, and deploy-checklist skills.
 
   - id: design
@@ -546,13 +576,14 @@ catalog:
       kind: skill_bundle
       marketplace: anthropics/knowledge-work-plugins
       plugin: design
+      trust_level: anthropic-official
     notes: Design-critique, ux-copy, accessibility-review, design-system, design-handoff, and research-synthesis skills.
 
   - id: operations
     name: Operations Skills
     category: skills_bundle
     oauth: false
-    notes: Operations skill bundle not confirmed in any known marketplace. Skipped for both targets until confirmed.
+    notes: "Operations skill bundle not yet available in any known marketplace. Removed from `ops` preset in v0.8. Will re-add when marketplace location is confirmed."
 
   - id: anthropic-skills
     name: Anthropic Core Skills
@@ -567,6 +598,7 @@ catalog:
       kind: skill_bundle
       marketplace: anthropics/claude-plugins-official
       plugin: anthropic-skills
+      trust_level: anthropic-official
     notes: pptx, docx, xlsx, pdf, canvas-design, and web-artifacts-builder skills from the official Anthropic plugin.
 
 # =============================================================================
@@ -577,6 +609,7 @@ catalog:
 
 presets:
 
+  # Note: linear excluded pending URL verification (url_verified: false)
   pm:
     description: Product management stack
     items:
@@ -585,13 +618,13 @@ presets:
       - google-calendar
       - google-drive
       - notion
-      - linear
       - granola
       - figma
       - productivity
       - product-management
       - anthropic-skills
 
+  # Note: linear excluded pending URL verification (url_verified: false)
   eng:
     description: Engineering stack
     items:
@@ -600,7 +633,6 @@ presets:
       - google-calendar
       - google-drive
       - atlassian-rovo
-      - linear
       - productivity
       - engineering
       - anthropic-skills
@@ -619,15 +651,14 @@ presets:
       - design
       - anthropic-skills
 
+  # Note: ms365 excluded pending URL verification (url_verified: false); operations removed in v0.8 (not available in any marketplace)
   ops:
     description: Operations stack
     items:
       - slack
       - gmail
       - google-calendar
-      - ms365
       - notion
       - quickbooks
       - productivity
-      - operations
       - anthropic-skills

@@ -34,6 +34,14 @@ When shared-mode is on:
   > `[redacted: this note is marked tier:sensitive; shared-mode is on. /thinkos-shared off to disable.]`
 
 - **Writes are unaffected.** The agent can still propose-and-save into any tier (including sensitive) — the user can capture compensation context mid-shared-session without leaking it back into context. The write succeeds; subsequent reads in the same shared session will redact.
+- **`mcp__basic-memory__build_context`** — when shared-mode is on, do NOT call `build_context` starting from a `tier: sensitive` seed note. Before calling, check the seed note's frontmatter via `read_note`. If any reached note in the response has `tier: sensitive`, replace it with the redaction message before synthesizing.
+- **`mcp__basic-memory__recent_activity`** — post-filter the response: drop any entry whose path resolves to a `tier: sensitive` note. Do not surface the existence of redacted entries (no "X entries hidden" message — silent removal).
+
+## Shared-mode is an agent-behavioral instruction, not an OS-level control
+
+This is a screen-share caution, not a data-loss-prevention tool. The enforcement happens inside the agent following these instructions. An adversarial prompt (e.g., a Slack message ingested by a cron job and stored in the vault) could in principle instruct the agent to ignore shared-mode. Treat shared-mode as a courtesy filter, not a cryptographic guarantee.
+
+For stronger protection: keep your most sensitive notes outside the vault entirely, or use a separate vault that you only activate when shared-mode is off.
 
 ## Defaults
 

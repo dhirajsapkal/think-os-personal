@@ -4,16 +4,64 @@
 # Runs as a launchd cron target every 2 hours; also callable directly.
 # No LLM calls. Pure bash + python3 stdlib.
 set -uo pipefail
+umask 0077
 
 VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
 THINKOS_DIR="$HOME/.thinkos"
 MARKER_FILE="$THINKOS_DIR/last-session-capture"
-# Ledger lives in the vault so both shell (this script) and basic-memory MCP
-# (Cowork scheduled tasks) can append to it.
-CAPTURE_LOG="$VAULT/90 System/Capture Log.md"
+LOG_DIR="$HOME/Library/Logs/ThinkOS"
 CLAUDE_PROJECTS_DIR="$HOME/.claude/projects"
 LOOKBACK_SECONDS=7200  # 2 hours default
 DRY_RUN=0
+ALL_PROJECTS=0  # when 1, skip vault-path filtering (--all-projects flag)
+
+# ---------------------------------------------------------------------------
+# Resolve vault path from active-vault override, vaults.json default, fallback
+# ---------------------------------------------------------------------------
+_resolve_vault() {
+  local active_file="$THINKOS_DIR/active-vault"
+  local vaults_json="$THINKOS_DIR/vaults.json"
+  if [[ -f "$active_file" ]]; then
+    local vault_id
+    vault_id="$(tr -d '[:space:]' < "$active_file")"
+    if [[ -n "$vault_id" && -f "$vaults_json" ]]; then
+      local resolved
+      resolved=$(python3 -c "
+import json, sys
+d = json.load(open(sys.argv[1]))
+for v in d.get('vaults', []):
+    if v.get('id') == sys.argv[2]:
+        print(v.get('path',''))
+        sys.exit(0)
+" "$vaults_json" "$vault_id" 2>/dev/null || true)
+      if [[ -n "$resolved" ]]; then
+        echo "$resolved"
+        return
+      fi
+    fi
+  fi
+  if [[ -f "$vaults_json" ]]; then
+    local default_path
+    default_path=$(python3 -c "
+import json, sys
+d = json.load(open(sys.argv[1]))
+for v in d.get('vaults', []):
+    if v.get('default'):
+        print(v.get('path',''))
+        sys.exit(0)
+" "$vaults_json" 2>/dev/null || true)
+    if [[ -n "$default_path" ]]; then
+      echo "$default_path"
+      return
+    fi
+  fi
+  echo "${THINKOS_HOME:-$HOME/ThinkOS/vault}"
+}
+
+VAULT="$(_resolve_vault)"
+# Ledger lives in the vault so both shell (this script) and basic-memory MCP
+# (Cowork scheduled tasks) can append to it.
+LEDGER="$VAULT/90 System/Capture Log.md"
 
 usage() {
   cat <<'EOF'
@@ -24,8 +72,12 @@ Scans recent Claude Code session logs and appends a work-log stub.
 Options:
   --dry-run         Print what would be written without writing anything
   --lookback Nh     Look back N hours (default: 2h)
-  --vault PATH      Vault path (default: ~/ThinkOS/vault)
+  --vault PATH      Vault path (default: resolved from ~/.thinkos/active-vault)
+  --all-projects    Capture sessions from ALL cwd paths, not just registered vault paths
   -h, --help        Show this help
+
+By default, only sessions whose cwd is under a registered Think OS vault path
+(from ~/.thinkos/vaults.json) are captured. Use --all-projects to disable this.
 EOF
 }
 
@@ -38,6 +90,7 @@ while [[ $# -gt 0 ]]; do
     --lookback)
       raw="$2"
       # Accept formats like 2h, 4h, 1h
+      # Note: BASH_REMATCH requires bash 3.2+ (standard on macOS since 10.5).
       if [[ "$raw" =~ ^([0-9]+)h$ ]]; then
         LOOKBACK_SECONDS=$(( ${BASH_REMATCH[1]} * 3600 ))
       else
@@ -48,7 +101,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --vault)
       VAULT="$2"
+      LEDGER="$VAULT/90 System/Capture Log.md"
       shift 2
+      ;;
+    --all-projects)
+      ALL_PROJECTS=1
+      shift
       ;;
     -h|--help)
       usage
@@ -61,6 +119,26 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# ---------------------------------------------------------------------------
+# Log rotation (rotate session-capture.log/.err if >1MB before each run)
+# ---------------------------------------------------------------------------
+_rotate_if_large() {
+  local f="$1"
+  [ -f "$f" ] || return 0
+  local size; size=$(stat -f %z "$f" 2>/dev/null || echo 0)
+  if [ "$size" -gt 1048576 ]; then  # 1MB cap
+    mv "$f" "${f}.1"
+    echo "(rotated previous log at $(date)) ===" > "$f"
+  fi
+}
+
+mkdir -p "$LOG_DIR"
+_rotate_if_large "$LOG_DIR/session-capture.log"
+_rotate_if_large "$LOG_DIR/session-capture.err"
+
+# Ensure ledger file exists with proper header
+[ -f "$LEDGER" ] || { mkdir -p "$(dirname "$LEDGER")"; printf -- '---\ntitle: Capture Log\npermalink: 90-system/capture-log\n---\n\n# Capture Log\n\n' > "$LEDGER"; }
 
 # ---------------------------------------------------------------------------
 # Determine cutoff time
@@ -209,6 +287,62 @@ if [[ -z "$SESSION_DATA" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
+# Filter session data by registered vault paths (unless --all-projects)
+# Default: only sessions whose cwd is under a registered Think OS vault path
+# are captured. Use --all-projects to disable this filter.
+# ---------------------------------------------------------------------------
+if [[ "$ALL_PROJECTS" -eq 0 ]]; then
+  SESSION_DATA=$(python3 - "$SESSION_DATA" "$THINKOS_DIR/vaults.json" <<'PY'
+import sys, json, os
+
+raw = sys.argv[1].strip().split('\n')
+vaults_json = sys.argv[2]
+
+# Load registered vault paths
+vault_paths = []
+if os.path.isfile(vaults_json):
+    try:
+        data = json.load(open(vaults_json))
+        for v in data.get('vaults', []):
+            p = v.get('path', '')
+            if p:
+                vault_paths.append(os.path.realpath(os.path.expanduser(p)))
+    except Exception:
+        pass
+
+def is_under_vault(cwd):
+    if not vault_paths:
+        return True  # no registry = allow all (graceful degradation)
+    try:
+        real_cwd = os.path.realpath(os.path.expanduser(cwd))
+    except Exception:
+        return False
+    for vp in vault_paths:
+        if real_cwd == vp or real_cwd.startswith(vp + os.sep):
+            return True
+    return False
+
+for line in raw:
+    if not line:
+        continue
+    try:
+        obj = json.loads(line)
+    except json.JSONDecodeError:
+        continue
+    if is_under_vault(obj.get('cwd', '')):
+        print(json.dumps(obj))
+PY
+  )
+fi
+
+if [[ -z "$SESSION_DATA" ]]; then
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "[dry-run] No sessions matched registered vault paths. Use --all-projects to capture all."
+  fi
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------
 # Group sessions by cwd, merge file lists
 # ---------------------------------------------------------------------------
 # Output: one JSON object per cwd: {"cwd": "...", "files_touched": N, "session_count": N, "commit": "..."}
@@ -313,7 +447,7 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
   echo "[dry-run] Content:"
   echo "$MARKDOWN"
   echo ""
-  echo "[dry-run] Would append to capture log: $CAPTURE_LOG"
+  echo "[dry-run] Would append to capture log: $LEDGER"
   # Show one ledger line per cwd
   python3 - "$GROUPED" "$NOW_ISO" "$WORKLOG_REL" "$BYTES_TO_WRITE" <<'PY'
 import sys, json, os
@@ -338,7 +472,7 @@ for g in groups:
         "mode": "append",
         "bytes": total_bytes
     }
-    print("[dry-run] capture-log entry:", json.dumps(entry))
+    print("[dry-run] ledger entry:", json.dumps(entry))
 PY
   exit 0
 fi
@@ -365,9 +499,10 @@ mkdir -p "$THINKOS_DIR"
 printf '%s\n' "$NOW_ISO" > "$MARKER_FILE"
 
 # ---------------------------------------------------------------------------
-# Append to capture ledger
+# Append to capture ledger ($VAULT/90 System/Capture Log.md)
+# Use flock on fd 9 to prevent concurrent appender races.
 # ---------------------------------------------------------------------------
-python3 - "$GROUPED" "$NOW_ISO" "$WORKLOG_REL" "$BYTES_TO_WRITE" <<'PY'
+_ledger_lines=$(python3 - "$GROUPED" "$NOW_ISO" "$WORKLOG_REL" "$BYTES_TO_WRITE" <<'PY'
 import sys, json
 
 raw_groups = sys.argv[1].strip().split('\n')
@@ -376,28 +511,27 @@ output_rel = sys.argv[3]
 total_bytes = int(sys.argv[4])
 groups = [json.loads(l) for l in raw_groups if l.strip()]
 
-capture_log = sys.argv[5] if len(sys.argv) > 5 else None
-
-import os
-log_path = os.path.join(os.path.expanduser('~'), '.thinkos', 'capture-log.jsonl')
-os.makedirs(os.path.dirname(log_path), exist_ok=True)
-
-with open(log_path, 'a') as fh:
-    for g in groups:
-        entry = {
-            "ts": now_iso,
-            "source": "session",
-            "detail": {
-                "cwd": g.get("cwd"),
-                "files_touched": g.get("files_touched", 0),
-                "commit": g.get("commit"),
-                "session_count": g.get("session_count", 1)
-            },
-            "output": output_rel,
-            "mode": "append",
-            "bytes": total_bytes
-        }
-        fh.write(json.dumps(entry) + '\n')
+for g in groups:
+    entry = {
+        "ts": now_iso,
+        "source": "session",
+        "detail": {
+            "cwd": g.get("cwd"),
+            "files_touched": g.get("files_touched", 0),
+            "commit": g.get("commit"),
+            "session_count": g.get("session_count", 1)
+        },
+        "output": output_rel,
+        "mode": "append",
+        "bytes": total_bytes
+    }
+    print(json.dumps(entry))
 PY
+)
+
+(
+  flock 9
+  printf '%s\n' "$_ledger_lines" >> "$LEDGER"
+) 9>> "$LEDGER"
 
 exit 0

@@ -7,6 +7,8 @@ Phase 2 is the **opt-in bulk-seed flow**. If the user invoked you, they want it 
 
 Resume Think OS setup. The user finished Phase 1 (install) and is ready for Phase 2 — drafting their HOT-tier files from connected tools.
 
+If the playbook is not accessible (e.g., CWD is not the export repo), follow the inline summary below — it covers the essential steps.
+
 ## Follow the canonical playbook
 
 The full Phase 2 flow lives in `docs/phase-2-seeding-playbook.md`. Read it once and follow it exactly. It tells you to:

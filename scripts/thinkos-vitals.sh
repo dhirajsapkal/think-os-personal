@@ -456,21 +456,29 @@ for section_name, rel_path in SECTION_LOG_FILES:
 # ---------------------------------------------------------------------------
 # Assemble output
 # ---------------------------------------------------------------------------
-output = {
-    "vault": vault,
-    "as_of": today_s,
-    "hot_files": hot_results,
-    "warm_files": warm_results,
-    "unreviewed_autocaptures": unreviewed_count,
-    "ledger_volume": {"7d": ledger_7d, "30d": ledger_30d},
-    "ledger_status": ledger_status,
-    "broken_links": unique_broken,
-    "section_ages": section_ages,
-}
-
-print(json.dumps(output))
+try:
+    output = {
+        "vault": vault,
+        "as_of": today_s,
+        "hot_files": hot_results,
+        "warm_files": warm_results,
+        "unreviewed_autocaptures": unreviewed_count,
+        "ledger_volume": {"7d": ledger_7d, "30d": ledger_30d},
+        "ledger_status": ledger_status,
+        "broken_links": unique_broken,
+        "section_ages": section_ages,
+    }
+    print(json.dumps(output))
+except Exception as e:
+    print(json.dumps({"error": str(e)}))
+    sys.exit(1)
 PYEOF
 )"
+
+if [[ -z "$VITALS_JSON" ]]; then
+  echo "vitals: no output" >&2
+  exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # Output

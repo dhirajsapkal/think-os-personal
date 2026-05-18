@@ -334,13 +334,13 @@ cmd_list() {
 
   printf '%-20s  %-10s  %-7s  %-22s  %s\n' "ID" "TYPE" "DEFAULT" "BM PROJECT" "PATH"
   printf '%-20s  %-10s  %-7s  %-22s  %s\n' "--" "----" "-------" "----------" "----"
-  printf '%s\n' "$rows" | while IFS=$'\t' read -r id type def bm path; do
-    local marker=" "
+  while IFS=$'\t' read -r id type def bm path; do
+    local row_marker=" "
     if [ "$id" = "$active_id" ]; then
-      marker="*"
+      row_marker="*"
     fi
-    printf '%s%-19s  %-10s  %-7s  %-22s  %s\n' "$marker" "$id" "$type" "$def" "$bm" "$path"
-  done
+    printf '%s%-19s  %-10s  %-7s  %-22s  %s\n' "$row_marker" "$id" "$type" "$def" "$bm" "$path"
+  done < <(printf '%s\n' "$rows")
 
   log ""
   if [ -n "$active_id" ]; then
@@ -508,6 +508,73 @@ cmd_create_project() {
     return 1
   }
 
+  # Substitute all tokens in every copied template file recursively.
+  # Tokens: {{PROJECT_NAME}}, {{PROJECT_LABEL}}, {{BM_PROJECT_NAME}}, {{UID}},
+  #         {{CREATED_AT}}, {{TEAM_LEAD}}, {{TEAM_LEAD_NAME}}, {{TZ}}, {{EXPORT_REPO_URL}}
+  log "Substituting template tokens..."
+  local created_at_val
+  created_at_val="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || python3 -c 'import datetime; print(datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))')"
+  local uid_val
+  uid_val="$(python3 -c 'import uuid; print(str(uuid.uuid4()))')"
+  VAULT_COPY_PATH="$path" \
+  VAULT_ID_ENV="$vid" \
+  VAULT_LABEL_ENV="$label" \
+  VAULT_BM_ENV="$bm" \
+  VAULT_CREATED_AT="$created_at_val" \
+  VAULT_UID="$uid_val" \
+  python3 - <<'PYEOF'
+import os, sys
+from pathlib import Path
+
+vault_path  = os.environ["VAULT_COPY_PATH"]
+project_name  = os.environ["VAULT_ID_ENV"]
+project_label = os.environ["VAULT_LABEL_ENV"]
+bm_project    = os.environ["VAULT_BM_ENV"]
+created_at    = os.environ["VAULT_CREATED_AT"]
+uid           = os.environ["VAULT_UID"]
+
+# TEAM_LEAD, TEAM_LEAD_NAME, TZ, EXPORT_REPO_URL: use empty/defaults if not set
+team_lead      = os.environ.get("VAULT_TEAM_LEAD", "")
+team_lead_name = os.environ.get("VAULT_TEAM_LEAD_NAME", "")
+tz             = os.environ.get("VAULT_TZ", "UTC")
+export_repo_url = os.environ.get("VAULT_EXPORT_REPO_URL", "")
+
+TOKEN_MAP = {
+    "{{PROJECT_NAME}}":  project_name,
+    "{{PROJECT_LABEL}}": project_label,
+    "{{BM_PROJECT_NAME}}": bm_project,
+    "{{UID}}":           uid,
+    "{{CREATED_AT}}":    created_at,
+    "{{TEAM_LEAD}}":     team_lead,
+    "{{TEAM_LEAD_NAME}}": team_lead_name,
+    "{{TZ}}":            tz,
+    "{{EXPORT_REPO_URL}}": export_repo_url,
+}
+
+TEXT_EXTS = {".md", ".json", ".yaml", ".yml", ".txt", ".toml", ".cfg",
+             ".ini", ".sh", ".template", ""}  # "" = no extension
+
+for p in Path(vault_path).rglob("*"):
+    if not p.is_file():
+        continue
+    if p.suffix not in TEXT_EXTS:
+        continue
+    try:
+        content = p.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        continue
+    new_content = content
+    for token, value in TOKEN_MAP.items():
+        new_content = new_content.replace(token, value)
+    if new_content != content:
+        p.write_text(new_content, encoding="utf-8")
+
+# Rename CODEOWNERS.template → CODEOWNERS in the live vault (if present)
+codeowners_tpl = Path(vault_path) / "CODEOWNERS.template"
+if codeowners_tpl.exists():
+    codeowners_tpl.rename(Path(vault_path) / "CODEOWNERS")
+PYEOF
+
   # Stamp .thinkos/vault.json with this vault's metadata
   mkdir -p "$path/.thinkos"
   VAULT_PATH="$path" \
@@ -515,7 +582,7 @@ cmd_create_project() {
   VAULT_LABEL="$label" \
   VAULT_BM="$bm" \
   python3 - <<'PYEOF'
-import os, json, datetime
+import os, json, datetime, tempfile
 p = os.path.join(os.environ["VAULT_PATH"], ".thinkos", "vault.json")
 existing = {}
 if os.path.exists(p):
@@ -532,9 +599,16 @@ existing.update({
     "bm_project": os.environ["VAULT_BM"],
     "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
 })
-with open(p, "w") as fh:
-    json.dump(existing, fh, indent=2, sort_keys=False)
-    fh.write("\n")
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(p), prefix=".vault-", suffix=".tmp")
+try:
+    with os.fdopen(fd, "w") as fh:
+        json.dump(existing, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+    os.replace(tmp, p)
+    os.chmod(p, 0o600)
+except Exception:
+    os.unlink(tmp)
+    raise
 PYEOF
 
   # git init / first commit
@@ -1170,20 +1244,22 @@ cmd_migrate() {
   # --- (3) basic-memory project list ---
   else
     local bm_out
-    bm_out="$(_bm_detect_vault 2>/tmp/thinkos-migrate-bm-warn)" || true
+    local bm_warn_tmp
+    bm_warn_tmp="$(mktemp)"
+    bm_out="$(_bm_detect_vault 2>"$bm_warn_tmp")" || true
     if [ -n "$bm_out" ]; then
       bm="$(printf '%s\n' "$bm_out" | sed -n '1p')"
       v0="$(printf '%s\n' "$bm_out" | sed -n '2p')"
       detect_source="basic-memory project '$bm'"
       # Surface any multi-candidate warning
       local warn_msg
-      warn_msg="$(cat /tmp/thinkos-migrate-bm-warn 2>/dev/null || true)"
+      warn_msg="$(cat "$bm_warn_tmp" 2>/dev/null || true)"
       if [ -n "$warn_msg" ]; then
         log "migrate: $warn_msg"
         log "  Using: $bm ($v0)"
       fi
     fi
-    rm -f /tmp/thinkos-migrate-bm-warn
+    rm -f "$bm_warn_tmp"
   fi
 
   # --- Nothing found ---

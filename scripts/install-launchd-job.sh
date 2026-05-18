@@ -21,15 +21,42 @@
 # =============================================================================
 set -uo pipefail
 
-TASK_ID="${1:-}"
-DRY_RUN=0
-if [[ "${2:-}" == "--dry-run" ]]; then
-  DRY_RUN=1
+# WP-03: root guard
+if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+  echo "$(basename "$0"): must not be run as root. Run as your normal user account." >&2
+  exit 1
 fi
 
+TASK_ID=""
+DRY_RUN=0
+SLACK_HANDLE=""
+
+# Consume the first positional argument as task-id, then parse flags.
+if [[ $# -ge 1 ]] && [[ "$1" != --* ]]; then
+  TASK_ID="$1"
+  shift
+fi
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run) DRY_RUN=1; shift ;;
+    --slack-handle)
+      [[ $# -lt 2 ]] && { echo "--slack-handle requires an argument" >&2; exit 2; }
+      SLACK_HANDLE="$2"; shift 2 ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
+  esac
+done
+
 if [[ -z "$TASK_ID" ]]; then
-  echo "Usage: $0 <task-id> [--dry-run]" >&2
+  echo "Usage: $0 <task-id> [--dry-run] [--slack-handle <handle>]" >&2
   exit 2
+fi
+
+# Write slack handle if provided (WP-13)
+if [[ -n "$SLACK_HANDLE" ]]; then
+  install -m 600 /dev/null "$HOME/.thinkos/slack-handle" 2>/dev/null || true
+  printf '%s\n' "$SLACK_HANDLE" > "$HOME/.thinkos/slack-handle"
+  chmod 600 "$HOME/.thinkos/slack-handle"
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -114,7 +141,7 @@ XML
 </array>
 XML
       ;;
-    calendar|clickup|gmail)
+    calendar|clickup|gmail|linear|jira)
       # Daily 6am
       cat <<'XML'
 <array>
@@ -131,7 +158,7 @@ XML
 SCHEDULE_BLOCK="$(schedule_block_for "$TASK_ID" || true)"
 if [[ -z "$SCHEDULE_BLOCK" ]]; then
   echo "Unknown task id: $TASK_ID" >&2
-  echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola slack calendar clickup gmail" >&2
+  echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola slack calendar clickup gmail linear jira" >&2
   exit 2
 fi
 
@@ -145,18 +172,22 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
 fi
 
 mkdir -p "$LAUNCH_AGENTS" "$LOG_DIR"
+# WP-01: restrict log directory permissions
+chmod 700 "$LOG_DIR" 2>/dev/null || true
 
 # Render the plist via python3 (sed/awk choke on multiline replacements).
 # Pass schedule via env because heredoc + multiline arg is messy.
+# WP-19: XML-escape all paths before substituting into plist content.
 SCHEDULE_BLOCK="$SCHEDULE_BLOCK" python3 - "$TEMPLATE" "$TASK_ID" "$REPO_ROOT" "$LOG_DIR" <<'PY' > "$PLIST_PATH"
 import sys, os
+from xml.sax.saxutils import escape as xml_escape
 template_path, task_id, repo_root, log_dir = sys.argv[1:5]
 template = open(template_path).read()
 schedule_block = os.environ.get("SCHEDULE_BLOCK", "")
 out = (template
-       .replace("__TASK_ID__", task_id)
-       .replace("__REPO_ROOT__", repo_root)
-       .replace("__LOG_DIR__", log_dir)
+       .replace("__TASK_ID__", xml_escape(task_id))
+       .replace("__REPO_ROOT__", xml_escape(repo_root))
+       .replace("__LOG_DIR__", xml_escape(log_dir))
        .replace("__SCHEDULE_BLOCK__", schedule_block))
 sys.stdout.write(out)
 PY

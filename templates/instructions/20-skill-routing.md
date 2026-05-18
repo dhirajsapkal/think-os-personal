@@ -24,14 +24,14 @@ If a listed skill is not installed in the user's environment, fall through grace
 
 These ship with Think OS itself and are always installed alongside the curated instructions:
 
-- **morning brief, daily kickoff, "what's on my plate today"**: `/thinkos-morning`, `/thinkos-plate`.
-- **specific person / colleague / client lookup before drafting**: `/thinkos-who <name>`.
-- **load a project's deep context**: `/thinkos-project <slug>`.
-- **past decisions, "why did we choose X"**: `/thinkos-decisions`.
+- **morning brief, daily kickoff, "what's on my plate today", "what am I doing today"**: invoke `/thinkos-morning` or `/thinkos-plate`.
+- **specific person / colleague / client lookup, "who is X", "tell me about X", before drafting to a named person**: invoke `/thinkos-who <name>`.
+- **load a project's deep context, "tell me about project X", "load context for X"**: invoke `/thinkos-project <slug>`.
+- **past decisions, "why did we choose X", "what did we decide about X", "our decision on X"**: invoke `/thinkos-decisions`.
 - **manual capture: log a thought, decision, or learning mid-session**: `/thinkos-log`, `/thinkos-capture`, `/thinkos-decide`.
 - **what did I do last week / this week**: `/recent-log`.
-- **draft an email or Slack reply**: `/draft-reply` (always drafts, never sends).
-- **weekly digest, Sunday-evening rollup**: `/weekly-review`.
+- **draft an email or Slack reply, "write a reply to X", "help me respond to this"**: invoke `/draft-reply` (always drafts, never sends).
+- **weekly digest, Sunday-evening rollup, "what did I accomplish this week", "weekly review"**: invoke `/weekly-review`.
 - **quarterly maintenance, archive rotation, prune stale**: `/quarterly-review`.
 - **sanity-check the OS for staleness or contradictions**: `/validate-os`.
 - **walk project folders and reconcile against the index**: `/index-projects`.

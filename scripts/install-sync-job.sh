@@ -138,6 +138,8 @@ fi
 
 # ── Write and load ────────────────────────────────────────────────────────────
 mkdir -p "$HOME/Library/LaunchAgents" "$LOG_DIR"
+# WP-01: restrict log directory permissions
+chmod 700 "$LOG_DIR" 2>/dev/null || true
 
 echo "$RENDERED" > "$PLIST_DEST"
 

@@ -106,9 +106,9 @@ INDEX_PY=$(cat <<'PYEOF'
 import json, os, re, subprocess, sys, datetime
 from pathlib import Path
 
-folders = sys.argv[1].split('|') if sys.argv[1] else []
-depth = int(sys.argv[2])
-output_path = sys.argv[3]
+depth = int(sys.argv[1])
+output_path = sys.argv[2]
+folders = sys.argv[3:]
 
 MANIFEST_FILES = {
     'package.json': 'node',
@@ -300,14 +300,11 @@ if len(projects) > 10:
 PYEOF
 )
 
-# Pass folders as pipe-delimited string (avoid shell quoting issues)
-FOLDERS_STR=$(IFS='|'; echo "${FOLDERS[*]}")
-
 if [[ "$EMIT_JSON" -eq 1 ]]; then
-  python3 -c "$INDEX_PY" "$FOLDERS_STR" "$DEPTH" "$OUTPUT"
+  python3 -c "$INDEX_PY" "$DEPTH" "$OUTPUT" "${FOLDERS[@]}"
   cat "$OUTPUT"
 else
-  python3 -c "$INDEX_PY" "$FOLDERS_STR" "$DEPTH" "$OUTPUT"
+  python3 -c "$INDEX_PY" "$DEPTH" "$OUTPUT" "${FOLDERS[@]}"
 fi
 
 printf '\nWrote: %s\n' "$OUTPUT"

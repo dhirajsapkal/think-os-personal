@@ -18,6 +18,11 @@
 # =============================================================================
 set -uo pipefail
 
+if [ "$(id -u)" -eq 0 ]; then
+  echo "Error: Think OS scripts must not be run as root. Run as your normal user." >&2
+  exit 1
+fi
+
 # ---------------------------------------------------------------------------
 # Defaults / flags
 # ---------------------------------------------------------------------------
@@ -27,6 +32,8 @@ REMOVE_MCPS=0
 REMOVE_BASIC_MEMORY=0
 YES=0
 MANIFEST_OVERRIDE=""
+KEEP_LOGS=0
+REMOVE_BACKUPS=0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -68,6 +75,8 @@ Options:
                         --remove-basic-memory. Requires explicit "yes" prompt.
   --yes                 Skip confirmation prompts (DANGEROUS; required for
                         --remove-* flags).
+  --keep-logs           Preserve ~/Library/Logs/ThinkOS/ (default: remove it).
+  --remove-backups      Also delete ~/.thinkos/backups/ (default: keep it).
   --manifest PATH       Read a non-default manifest path.
   -h, --help            Show this help and exit.
 
@@ -94,6 +103,8 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     --yes) YES=1; shift ;;
+    --keep-logs) KEEP_LOGS=1; shift ;;
+    --remove-backups) REMOVE_BACKUPS=1; shift ;;
     --manifest)
       MANIFEST_OVERRIDE="${2:-}"
       if [ -z "$MANIFEST_OVERRIDE" ]; then
@@ -134,37 +145,36 @@ _load_manifest() {
     return 1
   fi
 
-  # Validate + extract fields with python3. Print as a small env-var dump that
-  # we eval back into the shell.
+  # Validate + extract fields with python3. Each key is printed on its own line
+  # as KEY=<value> where value is a literal string (no shell quoting required).
+  # Multi-line values use a sentinel separator so we can read them safely.
+  # We then parse the output with a while/case loop — no eval.
   local extracted
-  extracted="$(MANIFEST_PATH="$path" python3 - <<'PYEOF' 2>/dev/null
-import json, os, sys, shlex
+  extracted="$(python3 - "$path" <<'PYEOF' 2>/dev/null
+import json, sys
 
-p = os.environ["MANIFEST_PATH"]
+path = sys.argv[1]
 try:
-    with open(p) as fh:
+    with open(path) as fh:
         m = json.load(fh)
-except Exception as e:
-    print("MANIFEST_OK=0", flush=True)
+except Exception:
+    print("MANIFEST_OK=0")
     sys.exit(0)
 
 if not isinstance(m, dict) or m.get("version") != 1:
-    print("MANIFEST_OK=0", flush=True)
+    print("MANIFEST_OK=0")
     sys.exit(0)
 
-def lines(lst):
+def safe_lines(lst):
     if not isinstance(lst, list):
         return ""
     return "\n".join(str(x) for x in lst)
 
-def shquote(s):
-    return shlex.quote(str(s))
-
 vault = m.get("vault_path", "") or ""
 bm = m.get("bm_project", "") or "think-os"
 products = ",".join(m.get("products", []) or [])
-files = lines(m.get("files", []))
-cc = lines((m.get("mcps", {}) or {}).get("claude-code", []))
+files = safe_lines(m.get("files", []))
+cc = safe_lines((m.get("mcps", {}) or {}).get("claude-code", []))
 plugins = m.get("plugins", []) or []
 plugin_lines = []
 for pl in plugins:
@@ -176,14 +186,21 @@ for pl in plugins:
 plugins_s = "\n".join(plugin_lines)
 bundle = m.get("bundle", "") or ""
 
+# Print each field as a tagged line; multi-line values are base64-encoded to
+# stay on a single line so the while-read loop can handle them safely.
+import base64
+
+def b64(s):
+    return base64.b64encode(s.encode()).decode()
+
 print("MANIFEST_OK=1")
-print("M_VAULT_PATH=" + shquote(vault))
-print("M_BM_PROJECT=" + shquote(bm))
-print("M_PRODUCTS=" + shquote(products))
-print("M_FILES=" + shquote(files))
-print("M_CC_MCPS=" + shquote(cc))
-print("M_PLUGINS=" + shquote(plugins_s))
-print("M_BUNDLE=" + shquote(bundle))
+print("M_VAULT_PATH_B64=" + b64(vault))
+print("M_BM_PROJECT_B64=" + b64(bm))
+print("M_PRODUCTS_B64=" + b64(products))
+print("M_FILES_B64=" + b64(files))
+print("M_CC_MCPS_B64=" + b64(cc))
+print("M_PLUGINS_B64=" + b64(plugins_s))
+print("M_BUNDLE_B64=" + b64(bundle))
 PYEOF
 )"
 
@@ -191,10 +208,31 @@ PYEOF
     return 1
   fi
 
-  # Eval the assignments. The python output is shell-safe via shlex.quote.
-  eval "$extracted"
+  local _manifest_ok=0
+  # Parse without eval: read each KEY=value line and assign explicitly.
+  while IFS='=' read -r key val; do
+    case "$key" in
+      MANIFEST_OK)    _manifest_ok="$val" ;;
+      M_VAULT_PATH_B64)
+        M_VAULT_PATH="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+      M_BM_PROJECT_B64)
+        M_BM_PROJECT="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+      M_PRODUCTS_B64)
+        M_PRODUCTS="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+      M_FILES_B64)
+        M_FILES="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+      M_CC_MCPS_B64)
+        M_CC_MCPS="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+      M_PLUGINS_B64)
+        M_PLUGINS="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+      M_BUNDLE_B64)
+        M_BUNDLE="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+    esac
+  done <<EOF
+$extracted
+EOF
 
-  if [ "${MANIFEST_OK:-0}" != "1" ]; then
+  if [ "$_manifest_ok" != "1" ]; then
     return 1
   fi
 
@@ -501,7 +539,7 @@ _remove_cc_mcp() {
     return 0
   fi
   # Check if registered.
-  if ! claude mcp list 2>/dev/null | grep -q "$name"; then
+  if ! claude mcp list 2>/dev/null | grep -q "^${name}:"; then
     log "  Skip: MCP '$name' is not registered in claude mcp list"
     return 0
   fi
@@ -555,16 +593,19 @@ _remove_vault_dir() {
   fi
 
   # Last-second sanity guard: never delete a path that ISN'T under $HOME or
-  # is obviously a system path.
-  case "$path" in
-    "$HOME"/*) ;;
+  # is obviously a system path. Canonicalize to resolve symlinks first.
+  local real_path real_home
+  real_path="$(cd "$path" 2>/dev/null && pwd -P)" || real_path="$path"
+  real_home="$(cd "$HOME" 2>/dev/null && pwd -P)" || real_home="$HOME"
+  case "$real_path" in
+    "$real_home"/*) ;;
     *)
-      err "  Refusing to delete vault path outside \$HOME: $path"
+      err "  Refusing to delete vault path outside \$HOME: $path (resolved: $real_path)"
       return 1
       ;;
   esac
-  if [ "$path" = "$HOME" ] || [ "$path" = "/" ]; then
-    err "  Refusing to delete suspicious vault path: $path"
+  if [ "$real_path" = "$real_home" ] || [ "$real_path" = "/" ]; then
+    err "  Refusing to delete \$HOME or root."
     return 1
   fi
 
@@ -658,6 +699,59 @@ _execute() {
         log "  Kept $THINKOS_DIR (still contains user-created files)"
       fi
     fi
+  fi
+
+  # 8b. LaunchAgent jobs, sync job, session capture, logs, and capture state.
+  hdr "Removing LaunchAgent jobs and runtime artifacts"
+  _KNOWN_TASK_IDS="daily-reindex weekly-review quarterly-archive morning-brief granola slack calendar clickup gmail linear jira"
+  for _task_id in $_KNOWN_TASK_IDS; do
+    if [ -f "$SCRIPT_DIR/uninstall-launchd-job.sh" ]; then
+      if [ "$DRY_RUN" -eq 1 ]; then
+        log "  Would run: bash $SCRIPT_DIR/uninstall-launchd-job.sh $_task_id"
+      else
+        bash "$SCRIPT_DIR/uninstall-launchd-job.sh" "$_task_id" 2>/dev/null || true
+      fi
+    fi
+  done
+  if [ -f "$SCRIPT_DIR/uninstall-sync-job.sh" ]; then
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "  Would run: bash $SCRIPT_DIR/uninstall-sync-job.sh"
+    else
+      bash "$SCRIPT_DIR/uninstall-sync-job.sh" 2>/dev/null || true
+    fi
+  fi
+  if [ -f "$SCRIPT_DIR/uninstall-session-capture.sh" ]; then
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "  Would run: bash $SCRIPT_DIR/uninstall-session-capture.sh"
+    else
+      bash "$SCRIPT_DIR/uninstall-session-capture.sh" 2>/dev/null || true
+    fi
+  fi
+  # Remove log directory unless --keep-logs is passed.
+  if [ "${KEEP_LOGS:-0}" -eq 0 ]; then
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "  Would remove: $HOME/Library/Logs/ThinkOS/"
+    elif [ -d "$HOME/Library/Logs/ThinkOS" ]; then
+      rm -rf "$HOME/Library/Logs/ThinkOS"
+      log "  Removed: $HOME/Library/Logs/ThinkOS/"
+    fi
+  else
+    log "  Keeping $HOME/Library/Logs/ThinkOS/ (--keep-logs)"
+  fi
+  # Capture state files.
+  _rm_file "$THINKOS_DIR/last-session-capture"
+  _rm_file "$THINKOS_DIR/capture-log.jsonl"
+  _rm_file "$THINKOS_DIR/capture-log.jsonl.migrated"
+  # Backups only removed with --remove-backups.
+  if [ "${REMOVE_BACKUPS:-0}" -eq 1 ]; then
+    if [ "$DRY_RUN" -eq 1 ]; then
+      log "  Would remove: $THINKOS_DIR/backups/"
+    elif [ -d "$THINKOS_DIR/backups" ]; then
+      rm -rf "$THINKOS_DIR/backups"
+      log "  Removed: $THINKOS_DIR/backups/"
+    fi
+  else
+    log "  Keeping $THINKOS_DIR/backups/ (pass --remove-backups to delete)"
   fi
 
   # 9. Vault directory.

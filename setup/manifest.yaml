@@ -82,10 +82,33 @@ phases:
           label: "GitHub CLI (auth now)"
           description: "Authenticate the GitHub CLI so project vaults, the self-healing feedback loop, and /thinkos-update all work without a second hop."
           install: |
+            if ! command -v brew >/dev/null; then
+              echo "Homebrew not found. Install gh manually: https://cli.github.com/"
+              exit 1
+            fi
             brew list gh >/dev/null 2>&1 || brew install gh
             gh auth status >/dev/null 2>&1 || gh auth login
           verify: "gh auth status"
           time_estimate: "3 min"
+
+  data_disclosure:
+    title: Data disclosure
+    description: |
+      Think OS's automation cron tasks (morning brief, granola capture, etc.)
+      invoke `claude -p` which sends prompt content (including vault content)
+      to Anthropic's API for processing.
+
+      By enabling these tasks (in /thinkos-automate), you consent to this data flow.
+
+      Tasks that run fully LOCAL and don't call Anthropic:
+      - daily-reindex (basic-memory reindex)
+      - session-capture (filesystem read only)
+
+      Tasks that DO call Anthropic via `claude -p`:
+      - morning-brief, weekly-review, quarterly-archive
+      - granola, gmail, calendar, slack, clickup, linear (Phase C ingestion)
+
+      See https://www.anthropic.com/privacy for Anthropic's data policy.
 
   phase_2:
     title: Context seeding
@@ -125,6 +148,7 @@ managed_files:
       - templates/instructions/40-emergent-seeding.md
       - templates/instructions/50-drift-detection.md
       - templates/instructions/60-shared-mode.md
+      - templates/instructions/70-claude-ai-bridge.md
     mode: block         # replaced between BEGIN THINK OS / END THINK OS markers
     products: [claude-code]
 

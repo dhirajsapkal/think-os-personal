@@ -22,7 +22,7 @@
 
 ## IMPORTANT: Hard "always do" rules
 
-9. **ALWAYS plan before non-trivial multi-file edits.** Use TodoWrite or an explicit plan in the response. Skip only for typos and single-line fixes.
+9. **ALWAYS plan before non-trivial multi-file edits.** Use TodoWrite (or the planning tool in your tool list) or an explicit plan in the response. Skip only for typos and single-line fixes.
 
 10. **ALWAYS read existing files before editing them.** Don't write blind. Don't reimplement what already exists.
 

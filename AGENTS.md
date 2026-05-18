@@ -35,12 +35,14 @@ The agent instruction block installed into `~/.claude/CLAUDE.md` is assembled fr
 
 1. **Curated, product-independent guidance** in `templates/instructions/`:
    - `00-think-os-priority.md` — "this user has Think OS, query Basic Memory first, core rules" (includes multi-instance dedup rule and cost-of-context skip rule)
+   - `05-global-rules.md` — non-negotiable behavioral rules (NEVER / ALWAYS)
    - `10-token-efficiency.md` — tool-use defaults (Grep over Read+grep, Edit over Write, batching, etc.)
    - `20-skill-routing.md` — topic → skill mapping (design → `frontend-design`, etc.)
    - `30-think-os-write-targets.md` — content type → vault destination
    - `40-emergent-seeding.md` — HOT-file stub detection, propose-then-save, per-file draft state
    - `50-drift-detection.md` — four contradiction types flagged mid-flow; bounded one-line nudge
    - `60-shared-mode.md` — `tier: sensitive` frontmatter, shared-mode flag file, `/thinkos-shared on|off`
+   - `70-claude-ai-bridge.md` — claude.ai marketplace bridge detection, BRIDGE status vs local `claude mcp add`
 2. **Adapter-specific instructions** in `adapters/claude-code/instructions.md`.
 
 `scripts/thinkos-setup.sh` concatenates layer 1 then layer 2 between `<!-- BEGIN THINK OS -->` / `<!-- END THINK OS -->` markers. `scripts/thinkos-update.sh` re-applies the same block (use after editing curated content or pulling new content from this repo).

@@ -25,7 +25,17 @@ If the marker is absent, the user has already seeded the file — leave it alone
 
 ## Draft state
 
-Per-file draft state lives at `~/.thinkos/emergent-state.json`:
+Per-file draft state lives in the vault at `90 System/Emergent State.md`, managed via `mcp__basic-memory__edit_note`. Storing state in the vault (rather than a local JSON file) means multiple Claude instances share the same draft accumulation and the state survives across machines.
+
+The file uses a fenced JSON block in its body:
+
+```markdown
+---
+title: Emergent State
+permalink: 90-system/emergent-state
+---
+
+# Emergent State
 
 ```json
 {
@@ -35,6 +45,10 @@ Per-file draft state lives at `~/.thinkos/emergent-state.json`:
   "people":        { "draft": "...", "session_count": 0, "last_offered": null }
 }
 ```
+```
+
+To read state: `mcp__basic-memory__read_note("90 System/Emergent State")` and parse the JSON block.
+To update state: `mcp__basic-memory__edit_note(identifier="90-system/emergent-state", operation="find_replace", ...)` with the updated JSON block.
 
 When natural conversation surfaces a detail that maps to a stub HOT file, append it to the relevant `draft` field. Don't save yet — accumulate until an offer is warranted (single coherent fact, not a half sentence).
 
@@ -54,7 +68,7 @@ When the user confirms:
 
 1. `mcp__basic-memory__edit_note(identifier="<HOT file>", operation="replace", content="<rendered draft>")` — replace the stub with the drafted content, preserving frontmatter.
 2. Remove the `<!-- thinkos:stub -->` marker as part of the replace.
-3. Delete that file's key from `~/.thinkos/emergent-state.json`.
+3. Remove that file's key from the JSON block in `90 System/Emergent State.md` via `mcp__basic-memory__edit_note` (find_replace the JSON block).
 4. Append one ledger event to `90 System/Capture Log.md` with `source: emergent`, `via: emergent-seeding`, `topic: <file slug>`.
 
 ## Examples

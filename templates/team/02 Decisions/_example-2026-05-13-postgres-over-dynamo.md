@@ -4,9 +4,9 @@ type: decision
 date: "2026-05-13"
 status: accepted
 deciders:
-  - "@dhiraj"
+  - "@alex"
   - "@maya"
-  - "@sarah"
+  - "@maya"
 supersedes: null
 ---
 
