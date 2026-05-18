@@ -4,7 +4,7 @@
 
 Think OS gives your agentic tools durable memory of who you are, what you're working on, who you work with, and how you like to work. It's a markdown vault plus a context server (Basic Memory MCP) that any modern agent can query and update.
 
-Early alpha — v0.8.4. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
+Early alpha — v0.9.0. Poke at it, break it, [tell me what's confusing](https://github.com/dhirajsapkal/think-os/issues).
 
 ---
 

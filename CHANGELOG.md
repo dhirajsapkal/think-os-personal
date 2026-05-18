@@ -2,6 +2,33 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.9.0] — 2026-05-18 — First external contribution: `tracked_projects` filter + auto-migrate to v2 manifest
+
+**The first external pull request on Think OS.** Dave Drager (Technical Lead, Think Company) installed v0.8 today, hit the session-capture filter dropping all his sessions (because his code lives outside the vault — the typical case), diagnosed three v0.8 bugs of mine + landed an architectural improvement that retires the v0.8.2 recovery flow's hot path. Merged via `--rebase` to preserve his two commits' authorship; this changelog credits him explicitly.
+
+PR: https://github.com/dhirajsapkal/think-os/pull/1
+Commits: `1b961aa` (setup auto-migrate) + `c914a85` (tracked_projects filter + install fixes).
+
+### Added
+
+- **`tracked_projects[]` array in `~/.thinkos/vaults.json`.** Session-capture's default filter now accepts the union of `vaults[].path` and `tracked_projects[].path`. Lets users register code-repo roots without conflating them with vaults — the typical case where the vault holds notes and code lives at `~/Code/`. Backward-compatible: absent field reproduces today's behavior. Older script versions reading a newer `vaults.json` silently ignore the new array.
+- **Visible no-match output in session-capture.** The Python filter now emits one stderr line per run (`filter: M/N sessions matched (K allowed paths)`), and the bash wrapper replaces the silent zero-match exit with a timestamped warning pointing the user at `tracked_projects` or `--all-projects`. The "Recent no-match events" surface in `/thinkos-autosave status` makes the new stderr useful instead of noisy.
+- **`/thinkos-autosave` skill enhancements** (`adapters/claude-code/commands/thinkos-autosave.md`): new "Tracked projects" section explaining the registry; `status` output now lists allowed paths and recent no-match events; `now` captures stderr so filter warnings are visible; "didn't capture anything" FAQ rewritten to point at `tracked_projects` first.
+
+### Fixed
+
+- **`__REPO_ROOT__` substitution missing in `install-session-capture.sh`** (Dave's catch). The plist template referenced `__REPO_ROOT__` (added in v0.8 WP-38) but the install script never replaced it, so `WorkingDirectory` was set to the literal string `__REPO_ROOT__`. Harmless under launchd today (scripts use absolute paths) but ugly and a future footgun. Now substituted via the existing XML-escape pattern for `SCRIPT_PATH` / `LOG_DIR`.
+- **`flock(1)` doesn't ship on macOS** (Dave's catch). v0.8 WP-41's session-capture ledger append assumed `flock(1)` existed. macOS uses fcntl and doesn't bundle BSD-flock by default — every run was printing `flock: command not found` to stderr before writing. Guarded with `command -v flock`; fallback is plain append. Safe because launchd serializes scheduled fires by job label (the lock was defense-in-depth, not load-bearing).
+- **Setup now auto-migrates manifest v1 → v2 on fresh install** (Dave's architectural improvement). Fresh v0.8 installs landed at manifest v1, but `/thinkos-autosave`, `/thinkos-update`, and `/thinkos-capture-setup` all expect v2 fields (`repo_path`, `managed_files`). Result: post-install, those commands couldn't resolve the repo — which is exactly the bug Chris hit on his pre-v0.8 install and that v0.8.2 added a recovery flow for. Setup now invokes the existing idempotent v1→v2 migrator after writing v1. Failure logs a warning + points at manual recovery rather than blocking setup. **This makes v0.8.2's recovery flow the cold path instead of the hot one** — fresh installs no longer hit the bug; the recovery flow remains for upgrading stale pre-v0.8 installs.
+
+### Why this matters
+
+Three of Dave's catches (filter default wrong for typical users, `__REPO_ROOT__`, `flock`) were silent regressions I shipped in v0.8 that nobody hit during my testing because my install happens to match the assumptions I baked in (vault holds the work directory; `flock` exists in my development environment). Dave's install didn't match those assumptions — and the bugs surfaced within an hour.
+
+This is exactly the case for landing v0.9.0 instead of v0.8.5. New `tracked_projects[]` is genuinely additive contract, not a fix for a regression. And it's the first external contribution: the project now has a real second contributor, with proper authorship preserved via rebase.
+
+One known item for v0.9.1 or v1.0: Dave's no-match warning fires on every launchd run with zero matched sessions — could grow `session-capture.err` over time. Mitigation already in place (single-line timestamped messages, surfaced usefully in `status`). Worth folding into the log-rotation work added in v0.7-era if it becomes annoying in practice.
+
 ## [v0.8.4] — 2026-05-18 — Hotfix: `/thinkos-capture` and `/thinkos-decisions` referenced wrong Basic Memory identifier
 
 Caught during a real `/thinkos-capture` run in session-recap mode today. The decision-mode write template used `identifier="Standing Decisions"` — but the actual note in the vault has title `Decisions` (with `Standing Decisions` only as the H1 heading inside the file body). Basic Memory's `edit_note` matches on title, not on H1, so the prepend call **created a new orphan note** at `Standing Decisions.md` instead of prepending to the canonical `04 Knowledge/Decisions.md`. Caught it mid-session, deleted the orphan, and re-prepended to the correct identifier — but the underlying skill template was still wrong and would have repeated the bug on the next session-recap.
