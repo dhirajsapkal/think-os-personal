@@ -539,6 +539,17 @@ for plist in "$HOME/Library/LaunchAgents"/com.thinkos.*.plist; do
   fi
 done
 
+# v0.8.1: detect leaked LaunchAgent plist templates in the vault. These got
+# copied in by setup.sh prior to v0.8.1 because copy_templates() didn't
+# exclude the templates/LaunchAgents/ directory. They are not vault content;
+# they are infrastructure that confuses agents inspecting the vault.
+if [[ -d "$OS_HOME/LaunchAgents" ]]; then
+  leaked_count=$(find "$OS_HOME/LaunchAgents" -maxdepth 1 -type f \( -name '*.plist' -o -name '*.plist.template' \) 2>/dev/null | wc -l | tr -d ' ')
+  if [[ "$leaked_count" -gt 0 ]]; then
+    add_check "vault:launchagents-leaked" warn "$leaked_count plist template(s) leaked into vault at $OS_HOME/LaunchAgents/. Safe to delete (rm -rf \"$OS_HOME/LaunchAgents\") — these are infrastructure templates with unresolved tokens, not vault content. Fixed in v0.8.1 for new installs."
+  fi
+fi
+
 if [[ "$JSON" -eq 1 ]]; then
   printf '{"os_home":"%s","project":"%s","checks":[' "$(json_escape "$OS_HOME")" "$(json_escape "$PROJECT_NAME")"
   for i in "${!CHECK_NAMES[@]}"; do

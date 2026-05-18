@@ -15,13 +15,19 @@ Use AskUserQuestion before installing:
 
 > Session capture will register a launchd job that runs every 2 hours (8am-10pm) and appends a short work-log entry based on which files you edited in Claude Code. It captures file paths and edit counts only — not session transcripts or file contents. Install it?
 
-If the user confirms, run:
+If the user confirms, resolve the Think OS repo path first — it lives in `~/.thinkos/install-manifest.json` under the `repo_path` field:
 
 ```bash
-bash <repo-root>/scripts/install-session-capture.sh
+REPO_ROOT="$(python3 -c "import json,os; print(json.load(open(os.path.expanduser('~/.thinkos/install-manifest.json')))['repo_path'])" 2>/dev/null)"
 ```
 
-Where `<repo-root>` is the Think OS export directory (resolved from the vault path or `~/.thinkos/install-manifest.json`).
+Then run the install script:
+
+```bash
+bash "$REPO_ROOT/scripts/install-session-capture.sh"
+```
+
+If `$REPO_ROOT` is empty (manifest missing or doesn't carry `repo_path`), the install script lives in the Think OS export repo — ask the user where they cloned it, or check the vault's `90 System/OS Instructions.md` for a `repo_path:` hint. **Do not** look for the install script inside the vault — it's not there by design. The unresolved `*.plist.template` files you might see referenced from the vault in older installs are leaked infrastructure (fixed in v0.8.1); they are not the install entrypoint.
 
 After the script exits, confirm:
 
@@ -43,7 +49,8 @@ Use AskUserQuestion before uninstalling:
 If the user confirms, run:
 
 ```bash
-bash <repo-root>/scripts/uninstall-session-capture.sh
+REPO_ROOT="$(python3 -c "import json,os; print(json.load(open(os.path.expanduser('~/.thinkos/install-manifest.json')))['repo_path'])" 2>/dev/null)"
+bash "$REPO_ROOT/scripts/uninstall-session-capture.sh"
 ```
 
 Confirm removal:
@@ -90,7 +97,8 @@ Recent captures:
 Run the capture script once immediately — useful for testing after install or after a coding session:
 
 ```bash
-bash <repo-root>/scripts/thinkos-session-capture.sh
+REPO_ROOT="$(python3 -c "import json,os; print(json.load(open(os.path.expanduser('~/.thinkos/install-manifest.json')))['repo_path'])" 2>/dev/null)"
+bash "$REPO_ROOT/scripts/thinkos-session-capture.sh"
 ```
 
 Confirm completion and show the last line appended to the work log:

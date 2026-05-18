@@ -2,6 +2,36 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.8.1] — 2026-05-18 — Hotfix: LaunchAgent plist templates leaking into the vault
+
+A user installed v0.8.0 and his agent told him session capture was broken. It wasn't — but the agent saw three plist templates with unresolved `__SCRIPT_PATH__` / `__LOG_DIR__` / `__REPO_ROOT__` tokens sitting in his vault at `~/ThinkOS/vault/LaunchAgents/` and reasonably concluded the install was incomplete. The install was fine; the agent's diagnosis was wrong but the symptom was real.
+
+### Fixed
+
+- **`copy_templates()` in `scripts/thinkos-setup.sh` now excludes `LaunchAgents/`.** The function had explicit `continue` clauses for `instructions/` and `team/` (the other two non-vault template directories) but missed `LaunchAgents/`. Every v0.8.0 install copied all three `*.plist.template` files into the vault at `<vault>/LaunchAgents/`. They never belonged there — those templates exist to be processed by `scripts/install-launchd-job.sh`, `install-session-capture.sh`, and `install-sync-job.sh`, which read from the repo and write resolved plists into `~/Library/LaunchAgents/`. One-line fix per loop (two loops in the function); both now skip the directory.
+- **`/thinkos-autosave` skill: explicit `$REPO_ROOT` resolution.** Previously said "resolved from the vault path or `~/.thinkos/install-manifest.json`" without giving the exact command. Now the skill writes `REPO_ROOT="$(python3 -c "...['repo_path']")"` inline for every script invocation in all four subcommands (`on`, `off`, `now`). Also adds an explicit "never look inside the vault for install scripts" sentence so future agents don't repeat the diagnostic error.
+- **`/thinkos-capture-setup` skill: same `$REPO_ROOT` pattern applied to all seven `install-launchd-job.sh` invocations.** Was previously `bash scripts/install-launchd-job.sh <task>`, which only worked if the CWD happened to be the repo. Now `bash "$REPO_ROOT/scripts/install-launchd-job.sh" <task>`. The Step 0 preflight resolves `$REPO_ROOT` once at the top.
+
+### Added
+
+- **`thinkos-doctor.sh` check for leaked plists.** Detects `*.plist` or `*.plist.template` files under `<vault>/LaunchAgents/` and warns with the exact `rm -rf` command to clean them up. Existing v0.8.0 installs can run `bash scripts/thinkos-doctor.sh` to see the warning and apply the cleanup themselves. The check is silent if the directory doesn't exist (which is the new-install default).
+
+### Migration for existing installs
+
+If you installed v0.8.0 or earlier and see `<vault>/LaunchAgents/` in your file browser, it's safe to delete:
+
+```bash
+rm -rf "$HOME/ThinkOS/vault/LaunchAgents"
+```
+
+(Adjust the path if your vault is somewhere else.) The doctor command will tell you whether you have leaked plists and exactly what to delete.
+
+### Why this matters
+
+The bug is small — three orphan files in a vault. The downstream effect was much bigger: a Claude session reading the vault to help a user set up Think OS saw the orphan templates, decided the install was incomplete, and told the user the feature wasn't shipped. The user reported back to the maintainer. The actual install path (`/thinkos-autosave on` → reads skill → calls `install-session-capture.sh`) was always functional; the agent never got there because the leaked artifacts derailed its diagnosis.
+
+Two fixes prevent recurrence: the file leak is closed at the source, and both relevant skills now spell out `$REPO_ROOT` resolution explicitly so a future agent can't make the same wrong inference even if some other infrastructure file leaks somewhere.
+
 ## [v0.8.0] — 2026-05-18 — Comprehensive hardening release
 
 A planned multi-stream code review caught 113 issues — 23 P0, 42 P1, 36 P2, 12 P3 — across bugs, security, agent traps, redundancy, drift, and deploy-readiness. 96 are fixed in this release across 43 work packages executed by 21 parallel Sonnet agents. The remaining 13 P2/P3 defer to v0.9. Four findings require human input (legal, IT, security governance) and are documented as known v0.8 gaps. Full review with per-finding fix instructions at `.plans/2026-05-18-comprehensive-review/plan.md`.

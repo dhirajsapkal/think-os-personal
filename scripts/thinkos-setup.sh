@@ -145,15 +145,24 @@ copy_templates() {
   run mkdir -p "$OS_HOME"
 
   # Subdirectories of templates/ that are NOT personal-vault content:
-  #   instructions/ — curated agent-instruction stack (rendered into the
-  #                   BEGIN/END THINK OS block, never copied into a vault)
-  #   team/         — project-vault template skeleton (copied by
-  #                   thinkos-vault.sh create-project, never into personal hubs)
+  #   instructions/  — curated agent-instruction stack (rendered into the
+  #                    BEGIN/END THINK OS block, never copied into a vault)
+  #   team/          — project-vault template skeleton (copied by
+  #                    thinkos-vault.sh create-project, never into personal hubs)
+  #   LaunchAgents/  — macOS launchd plist templates with __TOKEN__ placeholders.
+  #                    Processed by scripts/install-launchd-job.sh,
+  #                    install-session-capture.sh, and install-sync-job.sh —
+  #                    these read the templates from the repo and write resolved
+  #                    plists into ~/Library/LaunchAgents/. Never copied into
+  #                    a vault. (Fixed in v0.8.1 after a user's Claude session
+  #                    saw the unresolved templates in the vault and concluded
+  #                    the install was incomplete.)
   while IFS= read -r -d '' dir; do
     local rel="${dir#./}"
     [[ "$rel" == "." ]] && continue
     [[ "$rel" == "instructions" || "$rel" == instructions/* ]] && continue
     [[ "$rel" == "team" || "$rel" == team/* ]] && continue
+    [[ "$rel" == "LaunchAgents" || "$rel" == LaunchAgents/* ]] && continue
     run mkdir -p "$OS_HOME/$rel"
   done < <(cd "$TEMPLATE_DIR" && find . -type d -print0)
 
@@ -164,6 +173,7 @@ copy_templates() {
     local rel="${file#./}"
     [[ "$rel" == instructions/* ]] && continue
     [[ "$rel" == team/* ]] && continue
+    [[ "$rel" == LaunchAgents/* ]] && continue
     local dest="$OS_HOME/$rel"
     if [[ -f "$dest" ]]; then
       log "Skip existing: $rel"

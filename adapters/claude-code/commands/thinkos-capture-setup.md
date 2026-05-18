@@ -16,6 +16,11 @@ If the user passes a specific source name (e.g., `/thinkos-capture-setup granola
 Run these silently. Don't paste output to the user. Branch on results.
 
 ```bash
+# Resolve the Think OS repo path. Every `install-launchd-job.sh` invocation
+# below depends on it. The repo lives OUTSIDE the vault — never look inside
+# the vault for install scripts.
+REPO_ROOT="$(python3 -c "import json,os; print(json.load(open(os.path.expanduser('~/.thinkos/install-manifest.json')))['repo_path'])" 2>/dev/null)"
+
 # Resolve the vault-backed ledger path and check it exists
 VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
 LEDGER="$VAULT/90 System/Capture Log.md"
@@ -24,6 +29,8 @@ test -f "$LEDGER" && echo "ledger_ok" || echo "ledger_missing"
 # Check Basic Memory is operational
 # (attempt a read; if it fails, surface the error)
 ```
+
+If `$REPO_ROOT` is empty, the install manifest is missing or stale. Ask the user where they cloned the Think OS export repo before proceeding — every install step below depends on it.
 
 If the ledger is missing:
 > The Phase B audit ledger (`90 System/Capture Log.md` in your vault) doesn't exist yet. This file is required before enabling any capture source — it's the deduplication cursor every trigger reads.
@@ -68,7 +75,7 @@ Read `docs/continuous-capture/sources/granola.md` section "Filter (what's worth 
 
 2. Install the launchd job:
    ```bash
-   bash scripts/install-launchd-job.sh granola
+   bash "$REPO_ROOT/scripts/install-launchd-job.sh" granola
    ```
 
 3. Confirm to the user:
@@ -97,7 +104,7 @@ Use `AskUserQuestion`:
 
 2. Install the launchd job:
    ```bash
-   bash scripts/install-launchd-job.sh calendar
+   bash "$REPO_ROOT/scripts/install-launchd-job.sh" calendar
    ```
    The plist uses local system time — no UTC conversion needed.
 
@@ -129,7 +136,7 @@ Use `AskUserQuestion`:
 
 2. Install the launchd job:
    ```bash
-   bash scripts/install-launchd-job.sh linear
+   bash "$REPO_ROOT/scripts/install-launchd-job.sh" linear
    ```
 
 3. Confirm: > Linear capture enabled. Job `com.thinkos.linear` fires daily at 6am local time when your Mac is awake.
@@ -162,7 +169,7 @@ Use `AskUserQuestion`:
 
 2. Install the launchd job:
    ```bash
-   bash scripts/install-launchd-job.sh jira
+   bash "$REPO_ROOT/scripts/install-launchd-job.sh" jira
    ```
 
 3. Confirm: > Jira capture enabled. Job `com.thinkos.jira` fires daily at 6am local time when your Mac is awake.
@@ -190,7 +197,7 @@ Use `AskUserQuestion`:
 
 2. Install the launchd job:
    ```bash
-   bash scripts/install-launchd-job.sh clickup
+   bash "$REPO_ROOT/scripts/install-launchd-job.sh" clickup
    ```
 
 3. Confirm: > ClickUp capture enabled. Job `com.thinkos.clickup` fires daily at 6am local time when your Mac is awake.
@@ -218,7 +225,7 @@ Use `AskUserQuestion`:
 
 2. Install the launchd job:
    ```bash
-   bash scripts/install-launchd-job.sh gmail
+   bash "$REPO_ROOT/scripts/install-launchd-job.sh" gmail
    ```
 
 3. Confirm: > Gmail capture enabled. Job `com.thinkos.gmail` fires daily at 6am local time when your Mac is awake.
@@ -265,7 +272,7 @@ Then use `AskUserQuestion`:
 
 3. Install the launchd job, passing SLACK_HANDLE so the install script can substitute it into the trigger prompt:
    ```bash
-   bash scripts/install-launchd-job.sh slack --slack-handle SLACK_HANDLE
+   bash "$REPO_ROOT/scripts/install-launchd-job.sh" slack --slack-handle SLACK_HANDLE
    ```
 
 4. Confirm: > Slack capture enabled. Job `com.thinkos.slack` fires every hour when your Mac is awake.
