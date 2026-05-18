@@ -26,7 +26,7 @@ It worked for him on the bridge because claude.ai's Slack connector ships with a
 
 The catalog was implicitly assuming every `mcp_remote` entry supports DCR for local install. Slack breaks that assumption, and any future vendor with a hard-coded OAuth App model will too. The new `requires_bridge` field is the declarative escape hatch: an entry can ship as "bridge-only" without losing its catalog presence, the installer routes around the broken path, and the user gets a clear single-line action ("enable this in claude.ai") instead of a Claude Code error message ten minutes later.
 
-Three back-to-back hotfixes in three hours, all from one user (Dave). Each surfaced a different layer of the same general gap: the catalog assumed too much about local OAuth, the installer didn't handle the doomed path, and `--items <single-id>` had a silent off-by-one in the items parser. All three are now closed.
+Three back-to-back hotfixes in a few hours across two users' installs — v0.8.1 and v0.8.2 came out of Chris Nappi's install (leaked plist templates, then `/thinkos-update` dead-ending on his pre-v0.8 manifest); v0.8.3 came out of Dave Drager's install (Slack DCR failure plus the items-parser bug found while testing the fix). Each surfaced a different layer of the same general gap: the install path made assumptions that didn't have graceful escape hatches when they broke. All three are now closed.
 
 Audit-the-others work is intentionally not in this release. The new field is documented; future cases get added one at a time as users report failed local OAuth, rather than speculatively flagging entries that might still work.
 
