@@ -9,3 +9,6 @@ build/
 !.env.example
 *.log
 *.err
+
+# local planning artifacts — never publish
+.plans/
