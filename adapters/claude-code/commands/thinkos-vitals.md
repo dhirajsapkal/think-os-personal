@@ -19,7 +19,7 @@ If the script errors (non-zero exit, no output), surface the error message and s
 
 ## Step 2 — Offer next actions
 
-After displaying the output, present this chip-picker:
+After displaying the output, present this chip-picker. Load via `ToolSearch select:AskUserQuestion` if needed.
 
 ```
 AskUserQuestion(

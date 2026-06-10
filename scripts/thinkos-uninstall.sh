@@ -161,7 +161,7 @@ except Exception:
     print("MANIFEST_OK=0")
     sys.exit(0)
 
-if not isinstance(m, dict) or m.get("version") != 1:
+if not isinstance(m, dict) or m.get("version") not in (1, 2):
     print("MANIFEST_OK=0")
     sys.exit(0)
 
@@ -173,7 +173,25 @@ def safe_lines(lst):
 vault = m.get("vault_path", "") or ""
 bm = m.get("bm_project", "") or "think-os"
 products = ",".join(m.get("products", []) or [])
-files = safe_lines(m.get("files", []))
+if m.get("version") == 2:
+    # v2 (thinkos-migrate-manifest-v1-to-v2.sh): "files" was superseded by
+    # "managed_files" — [{id, target, mode: block|file, shipped_sha, ...}].
+    # Render to the same line shape v1 used so the rest of the script works
+    # unchanged: block entries get the " (block injected)" suffix.
+    file_lines = []
+    for mf in m.get("managed_files", []) or []:
+        if not isinstance(mf, dict):
+            continue
+        target = mf.get("target", "")
+        if not target:
+            continue
+        if mf.get("mode") == "block":
+            file_lines.append(f"{target} (block injected)")
+        else:
+            file_lines.append(target)
+    files = "\n".join(file_lines)
+else:
+    files = safe_lines(m.get("files", []))
 cc = safe_lines((m.get("mcps", {}) or {}).get("claude-code", []))
 plugins = m.get("plugins", []) or []
 plugin_lines = []
@@ -214,19 +232,19 @@ PYEOF
     case "$key" in
       MANIFEST_OK)    _manifest_ok="$val" ;;
       M_VAULT_PATH_B64)
-        M_VAULT_PATH="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+        M_VAULT_PATH="$(printf '%s' "$val" | python3 -c 'import sys,base64; s=sys.stdin.read().strip(); sys.stdout.write(base64.b64decode(s + "=" * (-len(s) % 4)).decode())')" ;;
       M_BM_PROJECT_B64)
-        M_BM_PROJECT="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+        M_BM_PROJECT="$(printf '%s' "$val" | python3 -c 'import sys,base64; s=sys.stdin.read().strip(); sys.stdout.write(base64.b64decode(s + "=" * (-len(s) % 4)).decode())')" ;;
       M_PRODUCTS_B64)
-        M_PRODUCTS="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+        M_PRODUCTS="$(printf '%s' "$val" | python3 -c 'import sys,base64; s=sys.stdin.read().strip(); sys.stdout.write(base64.b64decode(s + "=" * (-len(s) % 4)).decode())')" ;;
       M_FILES_B64)
-        M_FILES="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+        M_FILES="$(printf '%s' "$val" | python3 -c 'import sys,base64; s=sys.stdin.read().strip(); sys.stdout.write(base64.b64decode(s + "=" * (-len(s) % 4)).decode())')" ;;
       M_CC_MCPS_B64)
-        M_CC_MCPS="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+        M_CC_MCPS="$(printf '%s' "$val" | python3 -c 'import sys,base64; s=sys.stdin.read().strip(); sys.stdout.write(base64.b64decode(s + "=" * (-len(s) % 4)).decode())')" ;;
       M_PLUGINS_B64)
-        M_PLUGINS="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+        M_PLUGINS="$(printf '%s' "$val" | python3 -c 'import sys,base64; s=sys.stdin.read().strip(); sys.stdout.write(base64.b64decode(s + "=" * (-len(s) % 4)).decode())')" ;;
       M_BUNDLE_B64)
-        M_BUNDLE="$(printf '%s' "$val" | python3 -c 'import sys,base64; sys.stdout.write(base64.b64decode(sys.stdin.read().strip()).decode())')" ;;
+        M_BUNDLE="$(printf '%s' "$val" | python3 -c 'import sys,base64; s=sys.stdin.read().strip(); sys.stdout.write(base64.b64decode(s + "=" * (-len(s) % 4)).decode())')" ;;
     esac
   done <<EOF
 $extracted

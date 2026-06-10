@@ -1,11 +1,13 @@
 ---
 // ChangelogPreview — a quiet "See what's new" line under the install prompt.
-// Hard-coded to the latest release to avoid pulling the content collection
-// into the homepage build; the /changelog page renders the real list.
-const latest = {
-  version: '0.7.0',
-  title: 'Honest tool support — adapters that don\'t ship are off main',
-};
+// Pulls the newest entry from the changelog content collection so this line
+// can never go stale; the /changelog page renders the full list.
+import { getCollection } from 'astro:content';
+
+const entries = (await getCollection('changelog')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const latest = entries[0].data;
 ---
 <a
   href="/changelog"

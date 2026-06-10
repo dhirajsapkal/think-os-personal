@@ -106,7 +106,13 @@ add_check() {
 }
 
 json_escape() {
-  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/	/\\t/g'
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\t'/\\t}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  printf '%s' "$s"
 }
 
 has_product() {
@@ -170,6 +176,25 @@ check_file() {
 add_check "repo:templates" "$([[ -d "$TEMPLATE_DIR" ]] && echo ok || echo fail)" "$TEMPLATE_DIR"
 
 # ---------------------------------------------------------------------------
+# Plugin catalog lint (scripts/lib/lint-catalog.sh)
+# ---------------------------------------------------------------------------
+LINT_SCRIPT="$SCRIPT_DIR/lib/lint-catalog.sh"
+if [[ -f "$LINT_SCRIPT" ]]; then
+  LINT_OUT="$(bash "$LINT_SCRIPT" 2>&1)"
+  LINT_EXIT=$?
+  LINT_DETAIL="$(printf '%s' "$LINT_OUT" | tr '\n' ' ')"
+  if [[ "$LINT_EXIT" -eq 0 ]]; then
+    add_check "catalog:lint" ok "data/plugin-catalog.yaml passes lint"
+  elif [[ "$LINT_EXIT" -eq 1 ]]; then
+    add_check "catalog:lint" fail "${LINT_DETAIL:-catalog lint reported errors}"
+  else
+    add_check "catalog:lint" warn "lint script exited $LINT_EXIT: ${LINT_DETAIL:-no output}"
+  fi
+else
+  add_check "catalog:lint" warn "lint script missing: $LINT_SCRIPT"
+fi
+
+# ---------------------------------------------------------------------------
 # Install manifest / version / update awareness
 # ---------------------------------------------------------------------------
 INSTALL_MANIFEST="$HOME/.thinkos/install-manifest.json"
@@ -203,7 +228,7 @@ if [[ -f "$INSTALL_MANIFEST" ]]; then
   # Drift detection — count managed files whose on-disk sha differs from shipped_sha.
   # For mode=block files, sha the content BETWEEN the BEGIN/END markers (not the whole file)
   # so user-owned content outside the block doesn't register as drift.
-  DRIFT_COUNT="$(python3 - "$INSTALL_MANIFEST" <<'PY' 2>/dev/null || echo "0"
+  DRIFT_COUNT="$(python3 - "$INSTALL_MANIFEST" <<'PY' 2>/dev/null || echo "?"
 import json, sys, hashlib, os, re
 m = json.load(open(sys.argv[1]))
 files = m.get("managed_files") or []
@@ -228,7 +253,9 @@ for f in files:
 print(drift)
 PY
 )"
-  if [[ "$DRIFT_COUNT" == "0" ]]; then
+  if [[ "$DRIFT_COUNT" == "?" ]]; then
+    add_check "install:drift" warn "drift check failed to run (python3 error reading $INSTALL_MANIFEST); drift state unknown"
+  elif [[ "$DRIFT_COUNT" == "0" ]]; then
     add_check "install:drift" ok "no managed files drifted"
   else
     add_check "install:drift" warn "$DRIFT_COUNT managed file(s) edited locally; /thinkos-update will prompt before overwriting"
@@ -326,6 +353,8 @@ if [[ "$CHECK_BUNDLE" -eq 1 ]]; then
       cc_preset="$(head -n 1 "$CC_BUNDLE_MARKER" | tr -d '[:space:]')"
       if [[ -z "$cc_preset" ]]; then
         add_check "claude-code:bundle" warn "marker file exists but is empty: $CC_BUNDLE_MARKER"
+      elif [[ ! "$cc_preset" =~ ^[a-z0-9_-]+$ ]]; then
+        add_check "claude-code:bundle" warn "invalid preset name in $CC_BUNDLE_MARKER (only lowercase letters, digits, hyphen, underscore allowed); not resolving it"
       else
         # Source catalog and resolve expected MCP names for this preset
         # shellcheck source=scripts/lib/catalog.sh
@@ -392,7 +421,7 @@ if [[ ! -f "$CAPTURE_LEDGER" ]]; then
   add_check "capture:ledger" ok "no ledger yet — will be created on first capture"
 else
   # Validate: every non-empty line must be parseable JSON
-  CORRUPT_LINES="$(python3 - "$CAPTURE_LEDGER" <<'PY' 2>/dev/null || echo "error"
+  CORRUPT_LINES="$(python3 - "$CAPTURE_LEDGER" <<'PY' 2>/dev/null || echo "?"
 import sys, json
 bad = 0
 with open(sys.argv[1]) as fh:
@@ -407,8 +436,8 @@ with open(sys.argv[1]) as fh:
 print(bad)
 PY
 )"
-  if [[ "$CORRUPT_LINES" == "error" ]]; then
-    add_check "capture:ledger" fail "ledger exists but could not be read: $CAPTURE_LEDGER"
+  if [[ "$CORRUPT_LINES" == "?" ]]; then
+    add_check "capture:ledger" warn "ledger validation check failed to run (python3 error); ledger state unknown: $CAPTURE_LEDGER"
   elif [[ "$CORRUPT_LINES" == "0" ]]; then
     LINE_COUNT="$(python3 -c "
 import sys
@@ -469,7 +498,7 @@ PY
   fi
 
   # 24h event volume — warn if zero (suggests automation is stalled)
-  VOLUME_24H="$(python3 - "$CAPTURE_LEDGER" <<'PY' 2>/dev/null || echo "0"
+  VOLUME_24H="$(python3 - "$CAPTURE_LEDGER" <<'PY' 2>/dev/null || echo "?"
 import sys, json, datetime
 
 ledger = sys.argv[1]
@@ -494,7 +523,9 @@ with open(ledger) as fh:
 print(count)
 PY
 )"
-  if [[ "$VOLUME_24H" == "0" ]]; then
+  if [[ "$VOLUME_24H" == "?" ]]; then
+    add_check "capture:24h_volume" warn "24h volume check failed to run (python3 error); event volume unknown"
+  elif [[ "$VOLUME_24H" == "0" ]]; then
     add_check "capture:24h_volume" warn "0 capture events in the last 24h — automation may be paused or broken"
   else
     add_check "capture:24h_volume" ok "$VOLUME_24H event(s) in last 24h"

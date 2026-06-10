@@ -40,6 +40,8 @@ mcp__basic-memory__edit_note(
 
 This places the new entry at the top of the Rewrite log section (newest-first convention).
 
+If `edit_note` with `operation=insert_after_section` fails (some Basic Memory versions don't support it), fall back to `operation=append` — the entry lands at the end of the file instead.
+
 If `05 Profile/Voice Profile.md` doesn't load or the rule isn't clear from $ARGUMENTS, ask ONCE for the missing piece (usually: "what was the rule you want me to take away from this?") before writing.
 
 Confirm written and quote the rule extracted in one short line.

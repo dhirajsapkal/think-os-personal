@@ -10,11 +10,11 @@ Refresh Basic Memory's view of the personal context OS so any external edits (ma
 ```bash
 BM_PROJECT="$(python3 -c "
 import json, os
+v = json.load(open(os.path.expanduser('~/.thinkos/vaults.json')))
 try:
     av = open(os.path.expanduser('~/.thinkos/active-vault')).read().strip()
-    print(av)
-except FileNotFoundError:
-    v = json.load(open(os.path.expanduser('~/.thinkos/vaults.json')))
+    print(next(x['bm_project'] for x in v['vaults'] if x['id'] == av))
+except (FileNotFoundError, StopIteration):
     print(next(x['bm_project'] for x in v['vaults'] if x.get('default')))
 " 2>/dev/null || echo "think-os")"
 basic-memory reindex --project "$BM_PROJECT"

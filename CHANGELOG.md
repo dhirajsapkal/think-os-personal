@@ -2,6 +2,48 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.9.2] — 2026-06-10 — Verified fix sweep: stale-launchd self-healing, script hardening, and a truth pass across templates, playbooks, docs, and the website
+
+A five-stream verified fix sweep (scripts, templates, adapters, docs, website), with every stream independently re-verified against the working tree before landing. The headline fix: moving the repo silently broke every installed launchd job, because each `com.thinkos.*.plist` bakes the script path in at install time — `/thinkos-update` now detects and regenerates stale jobs automatically. Around it: argv/XML-escaping hardening in the install scripts, an uninstaller that finally understands v2 manifests, doctor checks that no longer report clean when their own probes fail, the last retired `productivity:update` references removed, maintainer-specific content scrubbed from everything that ships to other people's machines, and a docs + website truth pass that brings published claims back in line with what the code actually does.
+
+### Fixed
+
+- **Stale launchd jobs after a repo move** (`scripts/thinkos-update.sh`). New `refresh_launchd_jobs()` step: reads the script path out of each `~/Library/LaunchAgents/com.thinkos.*.plist` via `plutil`, and when it no longer resolves inside the current repo, re-runs the matching installer (`install-sync-job.sh`, `install-session-capture.sh`, or `install-launchd-job.sh`) to regenerate and reload the job with the same label and schedule. Job-specific `--vault` args are recovered from the existing plist. Previously a repo move left every automation pointing at the old path — jobs kept "running" and failing silently until someone read `launchd` logs.
+- **`catalog.sh` shell-interpolation into Python** (`scripts/lib/catalog.sh`). `catalog_resolve_preset` and `catalog_pretty` interpolated `$preset` / `$id` directly into the embedded Python program text; both now pass them as argv. Hostile or merely unusual input can no longer alter the program.
+- **Doctor preset-name validation** (`scripts/thinkos-doctor.sh`). The bundle marker's preset name is validated against `^[a-z0-9_-]+$` before being handed to the catalog resolver, closing the same injection shape from the marker-file side.
+- **`install-sync-job.sh` plist rendering now XML-escapes** `__REPO_ROOT__` / `__VAULT_PATH__` / `__LOG_DIR__` before substitution. A vault path containing `&` or `<` previously produced an invalid plist.
+- **Uninstaller couldn't read v2 manifests** (`scripts/thinkos-uninstall.sh`). The manifest loader rejected anything with `version != 1` — every fresh install since the v0.9.0 auto-migration writes v2, so the uninstaller saw "no manifest" and skipped the managed-file teardown. It now accepts v1 and v2, rendering `managed_files` into the v1 line shape (block entries keep the "(block injected)" suffix). Supporting fix: the base64 decode helpers re-pad before decoding, because the `IFS='='` field split strips base64 padding.
+- **Doctor false-clean fallbacks** (`scripts/thinkos-doctor.sh`). The drift-count, ledger-validation, and 24h-volume probes all defaulted to a clean-looking value (`0`) when their embedded python3 failed — a broken probe reported a healthy install. Each now falls back to `?` and emits an explicit `warn` ("check failed to run; state unknown"). `json_escape` also escapes newlines and carriage returns, so multi-line detail strings no longer corrupt `--json` output.
+- **Vault sync sensitive-path guard widened** (`scripts/thinkos-git.sh`). The pre-stage guard only checked *untracked* files against the sensitive-path patterns (`.claude/`, `.ssh/`, `.gnupg/`, `.aws/`, `.docker/`); `git add -A` would happily stage a tracked-but-modified one. Both sides are now checked.
+- **`render-instructions.sh` clobbered the caller's EXIT trap.** `install_marked_block()` now captures any pre-existing EXIT trap and restores it instead of `trap - EXIT`. Verified functionally on macOS bash 3.2.
+- **Unguarded `*.md` globs** in the slash-command copy loops (`thinkos-setup.sh`, `thinkos-update.sh`) — an empty or missing `adapters/claude-code/commands/` directory now warns and skips instead of copying the literal glob string.
+- **`/thinkos-reindex` resolved the wrong Basic Memory project.** The active-vault snippet printed the vault *id* instead of looking up its `bm_project` in `vaults.json` — reindex targeted a nonexistent BM project whenever the two differed. The lookup is fixed and the snippet python-parses.
+- **`/thinkos-doctor` documented flags the script doesn't have.** The skill's flags table now matches `thinkos-doctor.sh`'s real argument parsing exactly — no more agents confidently passing phantom flags.
+- **`/thinkos-capture-setup` source numbering** repaired (sources renumbered 1–7 with all cross-references reconciled), question-count wording reconciled, and `AskUserQuestion` preambles added before first use in the three skills that called it cold.
+- **Work Log identifier standardized** across `adapters/` (same class of bug as the v0.8.4 `Decisions` fix — identifiers must match the note's `title` field), plus an append-fallback in `/thinkos-voice` and a corrected `find` path in the commands README.
+- **Emergent-seeding spec gaps** (`templates/instructions/40-emergent-seeding.md`): the `n` response now explicitly clears the draft, first-write bootstrap uses `write_note` when the state note doesn't exist yet, and the rendered draft is shown for review before the replace — closing the "propose, never overwrite silently" loophole.
+- **`thinkos-continue.sh`** wizard step renumbering (1, 3 → 1, 2).
+- **Stale `[Unreleased]` changelog block removed.** It described the v0.4-era switch from remote scheduled triggers to local launchd jobs — accurate, but long since shipped and already reflected in the versioned entries that followed. Nothing in it was pending release.
+
+### Changed
+
+- **Retired `productivity:update` references fully removed.** v0.9.1 repointed the live skills; this sweep catches the stragglers (including `templates/01 Now/Tasks.md`'s footer) so no shipped file mentions the dead skill. `grep -r 'productivity:update'` over shipped content comes back empty.
+- **Maintainer-specific content scrubbed from shipped files.** `templates/05 Profile/Business Brain.md` is fully genericized (placeholder org, fill-in sections with examples — no Think Company strategy, voice attributes, or Confluence source links); example names and home-directory paths in docs and playbooks now use neutral placeholders; duplicate `@maya` removed from both team schema examples (uniqueItems now satisfied). Only upstream repo URLs still carry the maintainer's GitHub handle, deliberately.
+- **Docs truth pass.** `docs/continuous-capture/README.md` no longer claims session capture runs via a Claude Code Stop hook (it's the 2-hourly launchd job; the Stop hook is future work per `docs/automation-roadmap.md`); layer naming unified to Layer A/B/C everywhere (was a mix of Layer 1/2/3 and block numbers); `docs/emergent-seeding.md` corrected to the in-vault `90 System/Emergent State.md` state note (the old `~/.thinkos/emergent-state.json` path contradicted the shipped instructions); `docs/multi-vault-architecture.md` status updated to "partially shipped" with an honest still-future list; the skip-rule keyword list in the playbooks now matches `templates/instructions/00-think-os-priority.md` verbatim; `LIMITATIONS.md` restructured and expanded (platform / dependencies / enforcement model / scope); README command table updated with the six non-prefixed commands and corrected descriptions.
+- **Website truth pass.** Version stamp single-sourced: new `website/src/lib/version.ts` reads the repo-root `VERSION` file at build time — Header, Footer, and TrustBar can no longer drift from the actual release. `ChangelogPreview` renders from the changelog content collection instead of a hardcoded snippet. Homepage claims corrected against reality: thirty-six slash commands (was "twenty-seven", table now has all 36 rows), ~500 lines of curated instructions (was ~280), bundle descriptions no longer list Linear / Microsoft 365 (removed from `index.astro` and `setup/manifest.yaml` descriptions to match the actual presets; catalog presets untouched). Stale "docs may lag the repo" disclaimer removed from all seven docs pages; DocsLayout nav gains the missing pages. `letterSpacing` token fixed in `tailwind.config.cjs` so the tracking utility actually emits CSS. PubMed recategorized `crm_analytics` → `research` in the plugin catalog (lint passes, JSON regenerated in sync).
+
+### Added
+
+- **`catalog:lint` doctor check.** `thinkos-doctor.sh` now runs `scripts/lib/lint-catalog.sh` on every invocation: exit 0 → `ok`, 1 → `fail` with the lint output, anything else → `warn`. Present in `--json` output. Catalog drift gets caught at doctor-time instead of at install-time.
+- **`templates/90 System/Emergent State.md`** — the shared draft-state note that the emergent-seeding instructions have referenced since v0.7.6 but no template ever shipped. Valid fenced-JSON block, permalink matching the spec's hardcoded identifier. Installs automatically via `copy_templates()` on fresh installs; existing installs get it on first emergent-seeding write (the new `write_note` bootstrap above).
+- **`/thinkos-vault` Rename branch.** The skill now covers renaming a vault, consistent with `thinkos-vault.sh`'s rename semantics, with the `INSTALL.md` pointer fixed to match.
+- **Website: `404.astro`** — the site previously served the host's default error page.
+- **Website: seven backfilled changelog entries** (`v0.7.1`–`v0.7.6`, `v0.9.1`) — the site's changelog collection had gaps that the repo CHANGELOG didn't; all match the collection schema, tone, and original release dates.
+
+### Why this matters
+
+This release is the difference between "the fixes were written" and "the fixes were verified." Every stream ran through an independent re-verification round against the working tree — the launchd refresh was exercised against a live install with ten stale plists, the uninstaller's manifest loader against synthetic v1/v2/v3 manifests, the XML escaping against a hostile vault path, and the doctor's new checks through a JSON round-trip. Three of the script fixes (stale launchd paths, v2-manifest uninstall, doctor false-cleans) share a theme worth naming: infrastructure that fails *silently* is worse than infrastructure that fails loudly, because the user's mental model says it's working. And the truth passes matter for the same reason at the documentation layer — a doc that describes a Stop hook that doesn't exist, or a homepage that claims twenty-seven commands when thirty-six ship, trains readers (and agents) to distrust everything else. All of it is now either true or deleted.
+
 ## [v0.9.1] — 2026-05-18 — `/thinkos-refresh` skill — connector sweep for `Tasks.md`
 
 Closes a real gap surfaced today: `01 Now/Tasks.md` documented `productivity:update` as its refresh path, but that skill no longer exists in the `/thinkos-*` namespace. Six other skill files referenced it as a fallback. The fix is a new `/thinkos-refresh` command — portable across surfaces (Claude Code, Cowork, desktop agent) via the claude.ai bridge with native MCP fallback. Same job as the old `productivity:update` (Gmail / Slack / Calendar / ClickUp / Atlassian / Notion / Granola → rewrite `Tasks.md`), but lives where users actually look.
@@ -495,28 +537,6 @@ Users routinely run Claude Code in several terminals, Cowork tabs, Desktop, and 
 - No slash commands in Cowork (DXT not built).
 - No autonomous capture in Cowork (no equivalent of `claude -p` non-interactive surface).
 - One manual paste step during install (Cowork's global instructions field has no scriptable storage path that we could locate).
-
-## [Unreleased] — local launchd correction
-
-### Changed
-
-- Phase 3 maintenance triggers and Phase C continuous capture sources
-  now run as local launchd jobs, not remote scheduled triggers. The
-  original "remote triggers run on Anthropic infrastructure, your
-  laptop can be closed" framing was wrong: remote triggers can't write
-  to the user's local personal-hub vault. Local launchd does, with the
-  trade-off that jobs only fire when the Mac is awake.
-- Trigger registration in the Phase 2 wrap-up and standalone slash
-  commands (`/thinkos-automate`, `/thinkos-capture-setup`) now uses
-  `bash scripts/install-launchd-job.sh <name>`. The script names and
-  prompts are unchanged; only the registration mechanism moved.
-- Remote scheduled triggers remain available via the `schedule` skill
-  for use cases that fit (project vaults, posting to Slack/email,
-  anything that doesn't write to the personal vault).
-- Schedule expressions for daily sources changed from UTC cron to local
-  time (launchd uses the system clock, no UTC offset needed).
-
----
 
 ## [0.4.0] — 2026-05-14
 

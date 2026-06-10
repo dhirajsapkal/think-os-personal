@@ -20,21 +20,21 @@ How Think OS passively ingests your work context so your vault stays current wit
 
 Continuous capture has three layers. Each layer builds on the previous one.
 
-### Layer 1 — Session capture (Phase A)
+### Layer A — Session capture (Phase A)
 
-**What**: At the end of every agent session, a session summary is written to `01 Now/Work Log.md`. This captures what you asked about, what decisions were made, what was written.
+**What**: A local launchd job scans recent Claude Code session activity and appends a one-line entry per session (cwd, file count, last commit) to `01 Now/Work Log.md`. No LLM call; no file contents leave your machine.
 
-**When**: Triggered by a Claude Code Stop hook — fires automatically when any Claude session ends.
+**When**: The launchd job runs every ~2 hours during work hours, when the Mac is awake. A Claude Code Stop hook — firing automatically when a session ends — is a future improvement (see `docs/automation-roadmap.md`); it is not how the shipped layer works.
 
-**Privacy**: Session content stays in the personal hub. The Stop hook does not fire for project vault sessions that have no personal signal.
+**Privacy**: Session entries stay in the personal hub.
 
-**Cadence**: Every session — no scheduling needed.
+**Cadence**: Every ~2 hours during work hours. Toggle with `/thinkos-autosave on|off|status`.
 
 **Docs**: `docs/continuous-capture/session-capture.md` (Phase A scope).
 
 ---
 
-### Layer 2 — Audit ledger (Phase B)
+### Layer B — Audit ledger (Phase B)
 
 **What**: Every capture event across all three layers writes a structured JSON line to the vault note "Capture Log" (at `90 System/Capture Log.md`) via `mcp__basic-memory__edit_note`. The ledger is the trust layer — it answers "what did Think OS write, when, from what source, and where."
 
@@ -49,7 +49,7 @@ Continuous capture has three layers. Each layer builds on the previous one.
 
 ---
 
-### Layer 3 — External ingestion (Phase C, this layer)
+### Layer C — External ingestion (Phase C, this layer)
 
 **What**: Local launchd jobs pull from external sources — meetings, calendar, task tools, email, Slack — and write vault files. Each source has a playbook document in `docs/continuous-capture/sources/`.
 

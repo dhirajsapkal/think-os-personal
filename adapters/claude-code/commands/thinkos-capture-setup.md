@@ -126,13 +126,13 @@ Use `AskUserQuestion`:
 
 **On "Show me the filter rules first"**: show "Filter" section from `docs/continuous-capture/sources/linear.md`, re-ask.
 
-**On "Skip"**: move to Source 3b.
+**On "Skip"**: move to Source 4.
 
 **On "Enable"**:
 
 1. Verify the direct Linear MCP is available via `ToolSearch` query `"linear issues"`.
    If unavailable: > Linear MCP isn't connected. Install the Linear plugin and retry. Moving to the Jira path.
-   Move to Source 3b.
+   Move to Source 4.
 
 2. Install the launchd job:
    ```bash
@@ -141,11 +141,11 @@ Use `AskUserQuestion`:
 
 3. Confirm: > Linear capture enabled. Job `com.thinkos.linear` fires daily at 6am local time when your Mac is awake.
 
-Move to Source 3b.
+Move to Source 4.
 
 ---
 
-## Source 3b — Jira / Atlassian
+## Source 4 — Jira / Atlassian
 
 Only proceed with this path if `mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql` exists. Check with `ToolSearch select:mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql`.
 
@@ -159,13 +159,13 @@ Use `AskUserQuestion`:
 
 **On "Show me the filter rules first"**: show "Filter" section from `docs/continuous-capture/sources/jira.md` if it exists, otherwise summarize: assignee = currentUser(), updatedDate >= -25h, status changed. Re-ask.
 
-**On "Skip"**: move to Source 4.
+**On "Skip"**: move to Source 5.
 
 **On "Enable"**:
 
 1. Verify the Atlassian MCP: `ToolSearch select:mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql`.
    If unavailable: > Atlassian MCP isn't connected. Install the Atlassian plugin and retry. Skipping Jira.
-   Move to Source 4.
+   Move to Source 5.
 
 2. Install the launchd job:
    ```bash
@@ -174,11 +174,11 @@ Use `AskUserQuestion`:
 
 3. Confirm: > Jira capture enabled. Job `com.thinkos.jira` fires daily at 6am local time when your Mac is awake.
 
-Move to Source 4.
+Move to Source 5.
 
 ---
 
-## Source 4 — ClickUp
+## Source 5 — ClickUp
 
 ### Offer step
 
@@ -188,7 +188,7 @@ Use `AskUserQuestion`:
 
 **On "Show me the filter rules first"**: show "Filter" section from `docs/continuous-capture/sources/clickup.md`, re-ask.
 
-**On "Skip"**: move to Source 5.
+**On "Skip"**: move to Source 6.
 
 **On "Enable"**:
 
@@ -202,11 +202,11 @@ Use `AskUserQuestion`:
 
 3. Confirm: > ClickUp capture enabled. Job `com.thinkos.clickup` fires daily at 6am local time when your Mac is awake.
 
-Move to Source 5.
+Move to Source 6.
 
 ---
 
-## Source 5 — Gmail
+## Source 6 — Gmail
 
 ### Offer step
 
@@ -216,7 +216,7 @@ Use `AskUserQuestion`:
 
 **On "Show me the filter rules first"**: show "Filter" and "Privacy routing" sections from `docs/continuous-capture/sources/gmail.md`, re-ask.
 
-**On "Skip"**: move to Source 6.
+**On "Skip"**: move to Source 7.
 
 **On "Enable"**:
 
@@ -230,11 +230,11 @@ Use `AskUserQuestion`:
 
 3. Confirm: > Gmail capture enabled. Job `com.thinkos.gmail` fires daily at 6am local time when your Mac is awake.
 
-Move to Source 6.
+Move to Source 7.
 
 ---
 
-## Source 6 — Slack
+## Source 7 — Slack
 
 ### Privacy framing (mandatory — do not skip)
 
@@ -262,7 +262,7 @@ Then use `AskUserQuestion`:
 
 1. Ask for Slack @-handle:
    Use `AskUserQuestion`:
-   - prompt: "What is your Slack @-handle? (e.g., @dhiraj or dhiraj.sapkal — without the @ if you prefer) This is used in the @-mention search query."
+   - prompt: "What is your Slack @-handle? (e.g., @sam or sam.taylor — without the @ if you prefer) This is used in the @-mention search query."
    - chips: `[]` (free text — no chips)
 
    Store the handle as SLACK_HANDLE.
@@ -281,7 +281,7 @@ Then use `AskUserQuestion`:
 
 ## Summary step
 
-After going through all six sources, show a summary.
+After going through all seven sources, show a summary.
 
 Run `launchctl list | grep thinkos` to confirm which jobs are loaded. Show the user:
 

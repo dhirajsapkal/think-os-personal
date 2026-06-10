@@ -6,7 +6,6 @@ author: "@maya"
 participants:
   - "@maya"
   - "@alex"
-  - "@maya"
 ---
 
 # 2026-05-13 Team Standup

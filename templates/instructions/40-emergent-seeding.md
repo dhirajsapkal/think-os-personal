@@ -1,14 +1,14 @@
-# Emergent Seeding — HOT files fill in from conversation
+# Emergent Seeding — seed files fill in from conversation
 
-> When the user hasn't bulk-seeded via Phase 2, their HOT files arrive as empty stubs. Fill them in from natural conversation — propose, never overwrite silently.
+> When the user hasn't bulk-seeded via Phase 2, their seed files arrive as empty stubs. Fill them in from natural conversation — propose, never overwrite silently.
 
 ## When to check
 
-Once per session, **after** the mandatory first-action MCP reads. No extra round-trips: the stub check piggybacks on the reads you already did. If a HOT file's body is empty or matches the shipped template, it's a stub and emergent seeding is active for it.
+Once per session, **after** the mandatory first-action MCP reads. No extra round-trips: the stub check piggybacks on the reads you already did. If a seed file's body is empty or matches the shipped template, it's a stub and emergent seeding is active for it.
 
 ## Stub detection
 
-The shipped templates for the four HOT files carry the literal marker:
+The shipped templates for the four seed files carry the literal marker:
 
 ```
 <!-- thinkos:stub -->
@@ -21,7 +21,7 @@ It sits on its own line, immediately after the frontmatter `---` close. The mark
 - `01 Now/Current Focus.md`
 - `03 People/People.md`
 
-If the marker is absent, the user has already seeded the file — leave it alone.
+Targets are selected by the stub marker, **not** by tier: three are HOT-tier; `03 People/People.md` is `tier: WARM` and is in scope anyway. If the marker is absent, the user has already seeded the file — leave it alone.
 
 ## Draft state
 
@@ -49,8 +49,9 @@ permalink: 90-system/emergent-state
 
 To read state: `mcp__basic-memory__read_note("90 System/Emergent State")` and parse the JSON block.
 To update state: `mcp__basic-memory__edit_note(identifier="90-system/emergent-state", operation="find_replace", ...)` with the updated JSON block.
+If the note does not exist yet, create it first via `mcp__basic-memory__write_note` with the standard structure above (all four keys, empty drafts, `session_count: 0`, `last_offered: null`).
 
-When natural conversation surfaces a detail that maps to a stub HOT file, append it to the relevant `draft` field. Don't save yet — accumulate until an offer is warranted (single coherent fact, not a half sentence).
+When natural conversation surfaces a detail that maps to a stub seed file, append it to the relevant `draft` field. Don't save yet — accumulate until an offer is warranted (single coherent fact, not a half sentence).
 
 ## Offer cadence
 
@@ -60,13 +61,15 @@ When natural conversation surfaces a detail that maps to a stub HOT file, append
 
   > Noticed you mentioned **role: Principal Designer at Think Co**. Want me to save it to your Identity file? (y / n / later)
 
-  `y` → run "Save flow." `n` → discard the draft, do not increment `session_count`. `later` → keep draft, increment `session_count`, suppress this file's offers for the rest of the session.
+  The offer must include — or be immediately followed by — the rendered draft, so the user reviews exactly what will be written (per the show-before-write rule in `30-think-os-write-targets.md`).
+
+  `y` → run "Save flow." `n` → discard the draft: clear that file's `draft` field to `""` in `90 System/Emergent State.md` via `edit_note` (find_replace); do not increment `session_count`. `later` → keep draft, increment `session_count`, suppress this file's offers for the rest of the session.
 
 ## Save flow
 
-When the user confirms:
+When the user confirms (having already seen the rendered draft in the offer):
 
-1. `mcp__basic-memory__edit_note(identifier="<HOT file>", operation="replace", content="<rendered draft>")` — replace the stub with the drafted content, preserving frontmatter.
+1. `mcp__basic-memory__edit_note(identifier="<seed file>", operation="replace", content="<rendered draft>")` — replace the stub with the drafted content, preserving frontmatter.
 2. Remove the `<!-- thinkos:stub -->` marker as part of the replace.
 3. Remove that file's key from the JSON block in `90 System/Emergent State.md` via `mcp__basic-memory__edit_note` (find_replace the JSON block).
 4. Append one ledger event to `90 System/Capture Log.md` with `source: emergent`, `via: emergent-seeding`, `topic: <file slug>`.

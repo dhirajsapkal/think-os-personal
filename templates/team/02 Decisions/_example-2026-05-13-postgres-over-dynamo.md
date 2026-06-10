@@ -6,7 +6,6 @@ status: accepted
 deciders:
   - "@alex"
   - "@maya"
-  - "@maya"
 supersedes: null
 ---
 

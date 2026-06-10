@@ -39,10 +39,12 @@ Do not auto-apply fixes. Surface the proposed commands and wait for explicit app
 
 | Flag | Effect |
 |------|--------|
-| `--json` | Machine-readable output |
+| `--os-home <path>` | Live Think OS vault path (default: `~/ThinkOS/vault`) |
 | `--products <list>` | Scope check to specific products (comma-separated) |
-| `--verbose` | Include debug detail per check |
-| `--quiet` | Only emit WARN/FAIL lines |
+| `--json` | Machine-readable output |
+| `--deep` | Run slower product CLI MCP checks |
+| `--check-bundle` | Compare installed plugins/connectors against the preset in the bundle state files |
+| `--strict` | Exit non-zero if any required check fails |
 
 ## Example invocations
 

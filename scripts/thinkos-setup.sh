@@ -296,10 +296,15 @@ install_claude_code() {
     "$REPO_ROOT/adapters/claude-code/instructions.md"
 
   run mkdir -p "$HOME/.claude/commands"
-  for command_file in "$REPO_ROOT"/adapters/claude-code/commands/*.md; do
-    [[ "$(basename "$command_file")" == "README.md" ]] && continue
-    run cp "$command_file" "$HOME/.claude/commands/"
-  done
+  if [[ -d "$REPO_ROOT/adapters/claude-code/commands" ]]; then
+    for command_file in "$REPO_ROOT"/adapters/claude-code/commands/*.md; do
+      [[ -e "$command_file" ]] || continue
+      [[ "$(basename "$command_file")" == "README.md" ]] && continue
+      run cp "$command_file" "$HOME/.claude/commands/"
+    done
+  else
+    log "WARNING: $REPO_ROOT/adapters/claude-code/commands not found; skipping slash command install."
+  fi
 
   if [[ "$REGISTER_MCP" -eq 1 ]]; then
     if [[ "$DRY_RUN" -eq 1 ]]; then

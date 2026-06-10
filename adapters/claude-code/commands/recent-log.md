@@ -15,7 +15,7 @@ Extract `--days N` from `$ARGUMENTS` if present. Default to 7 if omitted.
 mcp__basic-memory__read_note(identifier="01 Now/Work Log")
 ```
 
-If Basic Memory MCP is unavailable, read the file directly from `$OS_HOME/01 Now/Work Log.md`.
+If Basic Memory MCP is unavailable, read the file directly from `${THINKOS_HOME:-$HOME/ThinkOS/vault}/01 Now/Work Log.md`.
 
 ## Step 3 — Filter to the requested window
 

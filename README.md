@@ -42,10 +42,11 @@ The agent will:
 - Offer to import from an existing markdown vault (Obsidian, old Think OS, etc.) if you have one
 - Pull and cache data from your consented connectors (Granola, Calendar, Slack, Gmail, Linear/Jira/ClickUp)
 - Synthesize drafts of your Identity, Project Index, Current Focus, and People files for review
-- Walk you through all three capture layers at the end:
-  - **Session capture** (Block 1) — local launchd job, every 2h during work hours, no API cost, just metadata
-  - **Vault maintenance** (Block 2) — local launchd jobs: daily reindex (no API tokens), weekly review draft, quarterly archive, optional morning brief
-  - **Continuous capture sources** (Block 3) — opt-in per source: Calendar (default on), Granola, Linear, ClickUp, Gmail starred, Slack DMs + @-mentions
+- Walk you through capture and maintenance setup at the end:
+  - **Session capture** (Layer A) — local launchd job, every 2h during work hours, no API cost, just metadata
+  - **Vault maintenance** (Phase 3 automations) — local launchd jobs: daily reindex (no API tokens), weekly review draft, quarterly archive, optional morning brief
+  - **Continuous capture sources** (Layer C) — opt-in per source: Calendar (default on), Granola, Linear, ClickUp, Gmail starred, Slack DMs + @-mentions
+  - (Layer B — the audit ledger at `90 System/Capture Log.md` — is always on; every capture writes one line to it)
 
 You can pause and resume anytime — state is saved.
 
@@ -128,33 +129,41 @@ think-os/
 
 See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for the full design.
 
-**Slash commands** (Claude Code, all `thinkos-` prefixed):
+**Slash commands** (Claude Code):
 
 | Command | What it does |
 |---|---|
 | `/thinkos-whoami` | Quick identity + role + current focus |
-| `/thinkos-morning` | Daily brief — focus, plate, recent log |
+| `/thinkos-morning` | Daily brief — focus, plate, recent log, calendar |
 | `/thinkos-plate` | What's on your plate today |
+| `/recent-log` | What did I do recently? Summarize last N days of work-log entries |
 | `/thinkos-capture <text>` | Canonical capture — type-infers decision / learning / log / session-recap |
 | `/thinkos-save` | Soft alias → `/thinkos-capture --mode session-recap` |
 | `/thinkos-log <message>` | Soft alias → `/thinkos-capture --mode log` |
 | `/thinkos-who <name>` | What you know about a specific person |
 | `/thinkos-project <slug>` | Load deep context for a project |
+| `/draft-reply` | Draft a reply to an email, Slack message, or comment — ALWAYS produces a draft for review, never sends |
+| `/index-projects` | Scan project directories and reconcile against the active-projects index |
 | `/thinkos-decisions [topic]` | Search your standing decisions |
 | `/thinkos-learnings [topic]` | Search reusable learnings |
 | `/thinkos-decide <decision>` | Soft alias → `/thinkos-capture --mode decision` |
 | `/thinkos-stale` | List notes past their freshness window |
-| `/thinkos-voice <text>` | Rewrite a draft in your voice profile |
+| `/thinkos-voice <text>` | Log a before/after rewrite sample to improve your voice profile |
 | `/thinkos-recent` | See what was captured in the last 24h (the audit view) |
 | `/thinkos-undo-capture` | Remove a recent capture from the vault + ledger |
 | `/thinkos-autosave on\|off\|status` | Manage periodic background session capture |
 | `/thinkos-capture-setup` | Enable continuous-capture sources (Granola, Slack, Gmail, etc.) |
+| `/thinkos-refresh` | Connector sweep — rewrite `01 Now/Tasks.md` from Gmail, Slack, Calendar, ClickUp, Atlassian, Notion, Granola |
 | `/thinkos-reindex` | Refresh Basic Memory's index after external vault edits |
 | `/thinkos-vitals` | Vault-health snapshot — staleness, budgets, broken links, ledger volume |
+| `/validate-os` | Sanity-check the OS for stale entries, broken references, contradictions |
+| `/weekly-review` | Weekly OS digest — refresh Current Focus, surface drift, end-of-week review |
+| `/quarterly-review` | Quarterly OS maintenance — archive rotation, prune stale, audit HOT files |
 | `/thinkos-sync` | Commit + pull --rebase + push your personal-hub vault state |
 | `/thinkos-shared on\|off` | Toggle shared-mode — hides `tier: sensitive` notes from agent reads |
 | `/thinkos-vault` | Manage vaults — list, switch, create-project, clone |
 | `/thinkos-setup` | Run the Think OS first-time setup |
+| `/thinkos-doctor` | Run `thinkos-doctor.sh` to check install health |
 | `/thinkos-continue` | Resume setup after restart (Phase 2 — now opt-in bulk-seed) |
 | `/thinkos-automate` | Set up scheduled triggers (Phase 3 automations) |
 | `/thinkos-update` | Pull latest curated instructions + commands, with drift detection |

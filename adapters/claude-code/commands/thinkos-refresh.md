@@ -5,7 +5,7 @@ permalink: think-os/adapters/claude-code/commands/thinkos-refresh
 
 You are running `/thinkos-refresh`. This is the **connector-sweep** command — it pulls fresh state from the user's connected tools (Gmail, Slack, Calendar, ClickUp, Atlassian, Notion, Granola), reconciles against the current `01 Now/Tasks.md`, and rewrites the file with a fresh `last_synced` timestamp.
 
-This is the canonical refresh path. The previous `productivity:update` skill is retired — its behavior lives here, but in the `/thinkos-*` namespace and portable across surfaces (Claude Code, Cowork, desktop agent — anywhere a connector MCP is reachable).
+This is the canonical refresh path. The previous desktop-only refresh skill is retired — its behavior lives here, but in the `/thinkos-*` namespace and portable across surfaces (Claude Code, Cowork, desktop agent — anywhere a connector MCP is reachable).
 
 ---
 
@@ -237,7 +237,7 @@ sources: [gmail, slack, clickup, atlassian, notion, calendar]
 <list or "Not queried this sync.">
 
 ### Manually added
-*Anything Dhiraj asks Claude to track that doesn't come from a connector lands here.*
+*Anything you ask Claude to track that doesn't come from a connector lands here.*
 <PRESERVED VERBATIM from prior Tasks.md>
 
 ## Done (this week)

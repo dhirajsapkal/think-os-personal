@@ -273,7 +273,7 @@ catalog:
       mcp_name: granola
       bridge_match: Granola
       trust_level: third-party-unverified
-    notes: Local meeting note access via Granola's stdio MCP server. Provided by claude.ai bridge (remote MCP) when the user is signed into claude.ai with Granola connected. Minimum version pinned to granola-mcp>=0.1 in v0.8; exact-version pinning deferred to v0.9 pending vendor audit.
+    notes: Local meeting note access via Granola's stdio MCP server. Provided by claude.ai bridge (remote MCP) when the user is signed into claude.ai with Granola connected. Minimum version pinned to granola-mcp>=0.1 in v0.8; exact-version pinning deferred pending vendor audit, target v1.0.
 
   - id: zoom-claude
     name: Zoom for Claude
@@ -506,7 +506,7 @@ catalog:
 
   - id: pubmed
     name: PubMed
-    category: crm_analytics
+    category: research
     oauth: false
     cowork:
       available: true

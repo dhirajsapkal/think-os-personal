@@ -61,7 +61,7 @@ case "$phase" in
     1. Complete OAuth in each app that asks for it. In Claude Code:
        run 'claude', type '/mcp', authorize each connector.
 
-    3. Restart your agent apps so MCPs and plugins load fresh.
+    2. Restart your agent apps so MCPs and plugins load fresh.
 
   Once those are done, run this script again. The phase will advance to
   'ready_for_seeding' and you can begin Phase 2 (content seeding).

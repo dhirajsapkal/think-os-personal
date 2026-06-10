@@ -142,7 +142,7 @@ basic-memory reindex --project think-os
 
 ## Part 2 — Register Basic Memory in desktop agent (~3 min)
 
-desktop agent manages MCPs through its UI rather than a config file.
+This part covers **Claude Desktop** (the desktop chat app). Claude Code is registered automatically by `scripts/thinkos-setup.sh` (`claude mcp add basic-memory ...`) — skip this part for it. Claude Desktop manages MCPs through its UI rather than a config file.
 
 ### Step 2.1 — Open desktop agent settings
 
@@ -185,7 +185,7 @@ If they don't appear: check the desktop agent connector status. The most common 
 
 ## Part 3 — Tell your agent to use Basic Memory (~2 min)
 
-Update your desktop agent **global personalization** (or per-project instructions). Paste this:
+This part is also for **Claude Desktop** — for Claude Code, the Think OS install writes the equivalent instruction block into `~/.claude/CLAUDE.md` automatically. Update your Claude Desktop **global personalization** (or per-project instructions). Paste this:
 
 ```
 You are operating in my personal context OS. Use the Basic Memory MCP tools to access context:
@@ -274,7 +274,7 @@ Diagnostic order if anything fails: (a) Basic Memory binary works at the CLI? (b
 ## What this doesn't solve
 
 - **Mobile / web reach** — Basic Memory is stdio-only by default. To call it from mobile or web-only tools, you'd need to expose it via HTTPS+OAuth (a remote MCP, HTTPS/OAuth, or a tool-native connector). Defer this unless mobile reach becomes a daily pain.
-- **Auto-refresh of `01 Now/Tasks.md` / `01 Now/Current Focus.md`** — those need `productivity:update` (desktop agent) and `/weekly-review` to run. Schedule those as desktop agent scheduled tasks. See `MAINTENANCE.md` for the cadence model.
+- **Auto-refresh of `01 Now/Tasks.md` / `01 Now/Current Focus.md`** — those need `/thinkos-refresh` (the connector sweep) and `/weekly-review` to run. Run them on demand or schedule them. See `MAINTENANCE.md` for the cadence model.
 - **Cross-Mac sync** — files live on local disk by default. `/thinkos-sync` is the first-class option: it commits, pull --rebases, and pushes your vault on demand (or on an opt-in 18:00-weekday launchd schedule via `bash scripts/install-sync-job.sh`). For non-git strategies (Syncthing, iCloud, Obsidian Sync), see `docs/cross-machine-sync.md`. Each Mac runs its own Basic Memory index; reindex on next session after a remote pull.
 
 ---

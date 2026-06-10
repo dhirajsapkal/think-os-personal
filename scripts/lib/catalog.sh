@@ -104,7 +104,7 @@ for entry in data.get('catalog', []):
 catalog_resolve_preset() {
   local preset="$1"
   _catalog_python "
-preset_name = '$preset'
+preset_name = argv[0]
 presets = data.get('presets', {})
 if preset_name not in presets:
     import sys
@@ -112,7 +112,7 @@ if preset_name not in presets:
     sys.exit(1)
 for item_id in presets[preset_name].get('items', []):
     print(item_id)
-"
+" "$preset"
 }
 
 # Read ids from stdin; print only those where <target>.available is true.
@@ -163,10 +163,10 @@ catalog_kind() {
 catalog_pretty() {
   local id="$1"
   _catalog_python "
-target_id = '$id'
+target_id = argv[0]
 for entry in data.get('catalog', []):
     if entry.get('id') == target_id:
         print('{} ({})'.format(entry.get('name','?'), entry.get('category','?')))
         break
-"
+" "$id"
 }

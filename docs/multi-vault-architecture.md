@@ -1,6 +1,6 @@
 ---
 type: architecture
-status: proposed
+status: partially shipped
 tags:
 - architecture
 - multi-vault
@@ -13,7 +13,7 @@ permalink: think-os/multi-vault-architecture
 
 How Think OS handles personal-and-project knowledge, enforces privacy structurally, and lets teams collaborate via git without leaking individual context.
 
-This document is the authoritative reference for the multi-vault design. Implementation tracks against the slices in §10.
+This document is the authoritative reference for the multi-vault design. Implementation tracks against the slices in §10 — most slices shipped across v0.2–v0.6; still future: schema enforcement (Slice 3) and the cross-vault search hub (Slice 5).
 
 ---
 
@@ -123,8 +123,8 @@ A single source of truth at `~/.thinkos/vaults.json`. The wizard and the vault C
     {
       "id": "personal",
       "type": "personal",
-      "label": "Dhiraj's Think OS",
-      "path": "/Users/dhirajsapkal/ThinkOS/vault",
+      "label": "Your Think OS",
+      "path": "/Users/you/ThinkOS/vault",
       "bm_project": "think-os",
       "default": true,
       "created_at": "2026-05-13T..."
@@ -143,7 +143,7 @@ A single source of truth at `~/.thinkos/vaults.json`. The wizard and the vault C
       "id": "design-system-ref",
       "type": "reference",
       "label": "Material Design Docs",
-      "path": "/Users/dhirajsapkal/refs/material-docs",
+      "path": "/Users/you/refs/material-docs",
       "bm_project": "material-docs",
       "read_only": true
     }

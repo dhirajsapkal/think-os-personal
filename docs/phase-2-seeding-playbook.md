@@ -426,7 +426,7 @@ Identity is short and dense. Pull out:
 
 ## Who I am
 
-Dhiraj Sapkal — Principal Designer at Think Company.
+Sam Reyes — Principal Designer at Cardinal Studio.
 
 ## What I work on
 
@@ -452,7 +452,7 @@ Dhiraj Sapkal — Principal Designer at Think Company.
 
 ```
 Sources used:
-  · Gmail signature (last sent 2026-05-12): "Dhiraj Sapkal · Principal Designer · Think Co"
+  · Gmail signature (last sent 2026-01-15): "Sam Reyes · Principal Designer · Cardinal Studio"
   · Slack profile: title "Principal Designer", pronouns "he/him"
   · Calendar: 60d analysis — 47% design review, 22% client, 18% internal
 ```

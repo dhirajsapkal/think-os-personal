@@ -1,5 +1,6 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
+import { VERSION } from '../lib/version';
 const path = Astro.url.pathname;
 const onDocs = path.startsWith('/docs');
 ---
@@ -8,7 +9,7 @@ const onDocs = path.startsWith('/docs');
     <div class="h-16 flex items-center justify-between">
       <a href="/" class="flex items-baseline gap-2 group">
         <span class="font-display text-[22px] tracking-tightest leading-none">Think OS</span>
-        <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">v0.9.0 · alpha</span>
+        <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">v{VERSION} · alpha</span>
       </a>
 
       <nav class="flex items-center gap-7">

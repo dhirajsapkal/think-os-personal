@@ -82,7 +82,7 @@ Session: <verbatim content>
 Use today's date and current time. Derive `<project-or-context>` from CWD if it's under a known project root; otherwise infer from the content or use "CLI agent session." Keep the user's wording verbatim — no preamble, no summary.
 
 ```
-mcp__basic-memory__edit_note(identifier="Work Log", operation="append", content="<formatted entry>")
+mcp__basic-memory__edit_note(identifier="01 Now/Work Log", operation="append", content="<formatted entry>")
 ```
 
 ### Mode: session-recap
@@ -225,7 +225,7 @@ For each queued draft, append via `mcp__basic-memory__edit_note`:
 
 | Type | identifier | operation |
 |---|---|---|
-| Work Log | `Work Log` | `append` |
+| Work Log | `01 Now/Work Log` | `append` |
 | Decision | `Decisions` | `prepend` |
 | Learning | `Learnings` | `append` |
 | Person | `People` | `append` |

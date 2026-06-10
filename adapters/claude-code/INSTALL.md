@@ -132,7 +132,7 @@ Don't ask the user. Run:
 git config user.name 2>/dev/null || whoami
 ```
 
-Build the display label as `<that name>'s Think OS`. This is just a friendly string shown in `thinkos vault list`. The user can rename later with `thinkos vault rename`.
+Build the display label as `<that name>'s Think OS`. This is just a friendly string shown in `thinkos vault list`. The user can rename later via `/thinkos-vault` → "Rename a vault".
 
 ---
 
@@ -262,7 +262,7 @@ Don't say it if `gh` isn't authenticated; the line is a promise you can't keep w
 - **Don't read every doc in this repo.** The user is waiting. This playbook plus `data/plugin-catalog.yaml` (only if they ask what's in a bundle) is enough.
 - **Use bracketed defaults visibly.** Users skim. Showing `[~/ThinkOS/vault]` lets them just press ENTER.
 - **One question at a time.** Batching feels like a form; one-at-a-time feels like a conversation.
-- **Wait for the user's answer** before running anything. Don't pre-emptively run setup.sh until all 5 questions are answered.
+- **Wait for the user's answer** before running anything. Don't pre-emptively run setup.sh until all 4 questions are answered (the optional-capabilities multi-select comes after, in Step 4.5).
 - **Surface failures verbatim.** Don't paraphrase script errors — the user might recognize them.
 - **The setup script is idempotent.** Re-running with the same args is safe; existing files aren't overwritten. If the user's machine has partial Think OS state from a prior attempt, just re-run.
 - **OAuth steps are the user's responsibility.** The script can't authorize browser flows.

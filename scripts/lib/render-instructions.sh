@@ -89,6 +89,10 @@ install_marked_block() {
 
   local tmp2
   tmp2="$(mktemp "$(dirname "$target")/.claude-md-XXXXXX")" || tmp2="$(mktemp)"
+  # Capture any EXIT trap the caller already had so we can restore it instead
+  # of clobbering it when our temp-file cleanup trap is removed.
+  local prev_exit_trap
+  prev_exit_trap="$(trap -p EXIT)"
   trap 'rm -f "$tmp" "$tmp2"' EXIT
   {
     cat "$tmp"
@@ -98,5 +102,9 @@ install_marked_block() {
   } > "$tmp2"
   mv "$tmp2" "$target"
   rm -f "$tmp"
-  trap - EXIT
+  if [[ -n "$prev_exit_trap" ]]; then
+    eval "$prev_exit_trap"
+  else
+    trap - EXIT
+  fi
 }

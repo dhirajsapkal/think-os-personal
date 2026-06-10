@@ -17,7 +17,7 @@ module.exports = {
         accent: 'var(--accent)',
         soft: 'var(--soft)',
       },
-      letterspacing: {
+      letterSpacing: {
         tightest: '-0.04em',
       },
     },

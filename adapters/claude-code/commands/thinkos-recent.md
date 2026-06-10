@@ -23,7 +23,7 @@ If the total is 0 but the ledger exists, note: "Automations may be paused or the
 
 ## Step 3 — Offer to inspect a specific source (interactive)
 
-After the table, ask:
+After the table, ask. Load via `ToolSearch select:AskUserQuestion` if needed.
 
 ```
 AskUserQuestion(

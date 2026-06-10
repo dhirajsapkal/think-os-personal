@@ -2,7 +2,6 @@
 title: Business Brain
 aliases:
 - business-brain
-- think-co-strategy
 - org context
 type: note
 permalink: think-os/business-brain
@@ -10,80 +9,66 @@ tier: WARM
 last_reviewed: {{YYYY-MM-DD}}
 tags:
 - business
-- think-company
 - voice
 - warm-tier
 ---
 
-# Business Brain — Think Company
+# Business Brain — <Your Organization>
 
-> **This is the Think Co shared baseline.** It reflects company-level strategy, voice, and working principles that apply to every Think Co employee. Customize the [Your context] section below to reflect your own role, clients, and working style.
+> **This is your organization's shared baseline.** It captures company-level strategy, voice, and working principles the agent should apply when drafting anything under your org's name. Fill in each section below, then customize the [Your context] section to reflect your own role, clients, and working style.
 >
-> Optional: if you maintain a separate canonical source for this content, link it here.
+> Optional: if you maintain a separate canonical source for this content (wiki, brand guide, handbook), link it here.
 
 **Refresh cadence**: hand review once a year, or when company strategy or brand guidelines materially shift.
 
 ---
 
-## Think Company at a glance
+## <Organization> at a glance
 
-**Mission**: *To envision, design, and create experiences that enhance people's lives.*
+**Mission**: *<your organization's mission statement, one sentence>*
 
-**What Think is**: an experience design and development consultancy, in business since 2007. Roughly 120+ researchers, designers, technologists, and consultants. Powerfully independent with no plans to change that.
+**What it is**: <what the org does, since when, rough size, ownership/independence — 2-3 sentences>
+*e.g., "A product analytics company, founded 2015. ~80 engineers, designers, and data scientists. Bootstrapped and independent."*
 
-**Verticals — deep expertise in complex and regulated industries**: pharmaceuticals and life sciences, financial services, telecommunications.
+**Verticals / domains**: <the industries or problem spaces where the org has deep expertise>
 
-**Core values**: Be excellent. Be kind to people. Be honest. Work together. Continuously improve. Be of service.
+**Core values**: <the org's stated values, verbatim if they exist>
 
-**Scope of practice — four pillars**:
-- **Audience Insights** — Research, Strategic Visioning, and Product Roadmaps
-- **Exploration** — Product Discovery, Exploration, and Prototyping
-- **Product and Service Design** — Data-Backed and Customer-Informed Innovation
-- **Evaluation** — Audits, Digital Accessibility, and Inclusive Design
+**Scope of practice**: <the main service lines, product areas, or pillars — one line each>
 
-*Sources: Positioning Guidance + About Think Company — Confluence, last updated Jan 2025.*
+*Source: <link to canonical doc, if any> — last updated <date>.*
 
-## How Think wins work
+## How <organization> wins work
 
-Think occupies a sweet spot between large consultancies (which offshore and rely on less-experienced contributors) and small agencies (which lack domain knowledge in regulated industries). That positioning is the through-line in every pitch.
+<The positioning story: what differentiates the org from larger and smaller competitors, and the through-line used in every pitch. If there is a canonical entry-point offering (a discovery engagement, a pilot, a free tier), name it and when to lead with it.>
 
-The **Think Session** — a short, facilitated discovery engagement — is the canonical on-ramp to larger project work. Use it to demonstrate value before scope is defined.
+*e.g., "We sit between big firms (slow, generic) and freelancers (no depth in healthcare compliance). A 2-week paid audit is the standard on-ramp to larger engagements."*
 
-*Source: Positioning Guidance — Confluence.*
+*Source: <link to canonical doc, if any>.*
 
 ## Voice & tone
 
-When drafting anything under the Think Co brand, apply these five voice attributes and four tone principles.
+When drafting anything under the <organization> brand, apply these voice attributes and tone principles.
 
-**Voice attributes**:
-- **Capable** — expertise is always clear, without going deep in the weeds about why.
-- **Clever** — smart and creative without being inaccessible or overly intellectual.
-- **Attentive** — speaks to the audience's challenges and aspirations because we've seen them before.
-- **Valuable** — impactful to clients' businesses and to the industries we serve. Having Think on your side feels like an asset.
-- **Human** — accessible, collaborative, and mindful. Technical experts who bring concepts to everyone's level without patronizing.
+**Voice attributes** (3-5, each with a one-line gloss):
+- **<Attribute>** — <what it means in practice and what it rules out>
+*e.g., "**Direct** — lead with the point; no throat-clearing or hedging."*
 
-**Tone principles**:
-- *Be bold* — bold ≠ arrogant, rude, or slick.
-- *Be playful from time to time* — hold it back when the moment calls for integrity (accessibility statements, regulated content).
-- *Prioritize clean, uncomplicated language* — avoid jargon and superfluous words.
-- *Business casual, not black tie* — speak and write conversationally.
+**Tone principles** (3-4 short rules):
+- *<Rule>* — <including when to dial it back>
+*e.g., "Be playful sometimes — but never in regulated or accessibility content."*
 
-**Sample headlines Think has shipped**: *"Your competition knows our name"*; *"Burn the velvet curtain: Why torching big website launches is better business"*; *"The whiteboards are clean and the coffee's on; come check out our studios."*
+**Sample lines the org has shipped**: <2-3 real headlines or sentences that exemplify the voice>
 
-*Source: Think Company Voice and Tone — Confluence, last updated Feb 2024.*
+*Source: <link to brand / voice guide, if any> — last updated <date>.*
 
-## Prototyping philosophy
+## Craft & methodology
 
-Think distinguishes two modes:
+<How the org approaches its core craft: named methods, frameworks, tool preferences, and any standing caveats the agent should repeat when relevant.>
 
-- **Traditional** — meticulously crafted against a wireframe or early visual design; deterministic flow; struggles with non-deterministic, text-input-driven journeys.
-- **Prototyping 2.0** — AI-generated via prompting; probabilistic journeys based on user intent; *"front-end code is the limit to what can be produced."*
+*e.g., "Two delivery modes: fixed-scope builds vs. embedded teams. Standing caveat: AI-generated output is a prototype, not production-ready, until it passes the review checklist."*
 
-**Four tool quadrants**: Infrastructure & Logic (unstyled coded prototypes) — Generative AI Prototyping — Rapid Ideation (blueprinting / wireframing) — High-End Prototyping (pixel-perfect).
-
-**Standing caveat**: AI coding tools are great at building full apps, but output from those tools should still be treated as a prototype rather than production-ready.
-
-*Source: Guide to Prototyping — Confluence, last updated Feb 2026.*
+*Source: <link to methodology doc, if any> — last updated <date>.*
 
 ## Outbound communication rules
 
@@ -91,6 +76,7 @@ Think distinguishes two modes:
 - Slack drafts are treated the same.
 - LinkedIn / public posts: always full draft and author review before anything is published.
 - Never reference clients in drafts unless explicitly named in the prompt.
+- <Any org-specific additions: legal review triggers, NDA-covered topics, approved spokespeople.>
 
 ---
 
@@ -100,12 +86,12 @@ Think distinguishes two modes:
 
 **My role**: {{e.g., "Senior Designer / Strategist on the studio team. Day-to-day focus: X."}}
 
-**Current clients / engagements** (project-level detail lives in `active-projects/`):
+**Current clients / engagements** (project-level detail lives in `02 Projects/`):
 - {{Client or engagement name}} — {{one-line description}}
 
-**What I personally bring to Think work**:
+**What I personally bring**:
 {{1-2 sentences: your specific orientation — research, AI, frontend, facilitation, etc.}}
 
 ---
 
-*Last reviewed: {{YYYY-MM-DD}}. Sections 1–5 reflect company-wide content sourced from Confluence (Jan–Feb 2025/2026). The [Your context] section is deliberately blank — fill it in after installing Think OS.*
+*Last reviewed: {{YYYY-MM-DD}}. Sections 1–5 are company-wide content — fill them from your org's canonical sources. The [Your context] section is yours — fill it in after installing Think OS.*

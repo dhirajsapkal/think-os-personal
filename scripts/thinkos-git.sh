@@ -384,7 +384,10 @@ for v in entries:
       printf '%s\n' "$porcelain_out" | sed 's/^/  /'
     else
       log "Staging changes..."
-      if git -C "$vault_path" ls-files --others --exclude-standard | grep -qE '^(\.claude/|\.ssh/|\.gnupg/|\.aws/|\.docker/)'; then
+      # Guard both untracked files AND tracked-but-modified files (staged or
+      # unstaged) — git add -A would stage either.
+      if git -C "$vault_path" ls-files --others --exclude-standard | grep -qE '^(\.claude/|\.ssh/|\.gnupg/|\.aws/|\.docker/)' \
+        || git -C "$vault_path" diff --name-only HEAD 2>/dev/null | grep -qE '^(\.claude/|\.ssh/|\.gnupg/|\.aws/|\.docker/)'; then
         err "WARNING: sync would stage files matching sensitive paths. Aborting."
         err "Inspect with: git -C \"$vault_path\" status"
         return 1

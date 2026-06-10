@@ -1,5 +1,6 @@
 ---
 import ThinkCompanyMark from './ThinkCompanyMark.astro';
+import { VERSION } from '../lib/version';
 const year = new Date().getFullYear();
 ---
 <footer class="mt-32 border-t border-rule">
@@ -37,7 +38,7 @@ const year = new Date().getFullYear();
     <div class="grid grid-cols-12 gap-8 pt-10">
       <div class="col-span-12 md:col-span-7">
         <p class="font-mono text-[11px] tracking-[0.18em] uppercase text-muted">
-          Think OS · v0.9.0 · alpha
+          Think OS · v{VERSION} · alpha
         </p>
         <p class="mt-2 text-sm text-muted">
           <a href="https://github.com/dhirajsapkal/think-os" class="link-anim hover:text-accent">

@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Page not found · Think OS"
+  description="The page you're looking for doesn't exist."
+>
+  <section class="mx-auto max-w-[1200px] px-6 md:px-10 pt-20 md:pt-28 pb-24 md:pb-36">
+    <div class="grid grid-cols-12 gap-6">
+      <div class="col-span-12 md:col-span-9 md:col-start-2">
+        <p class="kicker">404</p>
+        <h1 class="display mt-6 text-[44px] md:text-[80px] tracking-tightest">
+          Page not found.
+        </h1>
+        <p class="mt-8 max-w-[58ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
+          The page you're looking for doesn't exist or has moved. The vault
+          remembers everything — the website, evidently, does not.
+        </p>
+        <p class="mt-10 font-mono text-[11px] tracking-[0.18em] uppercase">
+          <a href="/" class="link-anim text-muted">← Back to the front page</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING ORNAMENT -->
+  <div class="ornament py-16">❦ &nbsp; · &nbsp; ❦ &nbsp; · &nbsp; ❦</div>
+</BaseLayout>

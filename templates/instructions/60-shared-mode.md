@@ -52,7 +52,7 @@ Files under `05 Profile/` whose title or top-level heading contains any of these
 - `health`, `medical`, `family`
 - `personal` (when in a `05 Profile/` context)
 
-The one-time classifier `scripts/thinkos-classify-tiers.sh` (shipped separately) proposes a list and asks the user to confirm. The agent never silently re-tiers a note.
+Review and confirm tier classifications via `/thinkos-vitals` — it surfaces profile notes matching these keywords; propose `tier: sensitive` and let the user confirm each one. The agent never silently re-tiers a note.
 
 ## Drift / vitals interaction
 

@@ -1,5 +1,5 @@
 ---
-description: Manage Think OS vaults — create, clone, switch, add reference, or remove
+description: Manage Think OS vaults — create, clone, switch, rename, add reference, or remove
 permalink: think-os/adapters/claude-code/commands/thinkos-vault
 ---
 
@@ -35,6 +35,7 @@ Run `bash scripts/thinkos-vault.sh list` silently to know what's currently regis
   | "Clone existing project vault" | "Pull a teammate's vault from a git URL." |
   | "Add reference vault" | "Register a folder of markdown as read-only context." |
   | "Switch active vault" | "Change which vault the agent treats as 'current'." |
+  | "Rename a vault" | "Change a vault's id and/or label (path and files untouched)." |
   | "Remove a vault" | "Deregister a vault (files stay on disk)." |
 
 Branch on the answer. The flows below all use `AskUserQuestion` for sub-choices.
@@ -224,6 +225,47 @@ bash scripts/thinkos-vault.sh remove <id> --yes
 ```
 
 End: "Removed `<id>` from the registry. Files at `<path>` are untouched."
+
+---
+
+## Branch 6 — Rename a vault
+
+### 6a. Which vault
+
+`AskUserQuestion`:
+- Header: "Rename which vault?"
+- Question: "Which vault should I rename? (Path and `bm_project` stay unchanged.)"
+- multiSelect: false
+- Options: one chip per registered vault (parse from the `list` output you ran in Step 1). Add a final "Cancel" chip.
+
+If user picks "Cancel", stop immediately.
+
+### 6b. New id / label (free text)
+
+Ask plainly: "New id? (Enter to keep `<old-id>`.) Lowercase letters, digits, hyphens only (e.g., `acme-health-team`)." Validate `[a-z0-9-]+`; re-ask if invalid.
+
+Then: "New label? (Enter to keep `<old label>`.)"
+
+If both are kept unchanged, stop: "Nothing to rename."
+
+### 6c. Confirm + run
+
+`AskUserQuestion`:
+- Header: "Confirm rename"
+- Question: "Rename `<old-id>` → id `<new-id>`, label `<new label>`? Path and `bm_project` are untouched; if the active-vault pointer references `<old-id>`, the script updates it."
+- Options:
+  | label | description |
+  |---|---|
+  | "Yes, rename" | "Update the registry entry." |
+  | "Cancel" | "Don't touch anything." |
+
+If confirmed:
+
+```bash
+bash scripts/thinkos-vault.sh rename <old-id> [--id <new-id>] [--label "<new label>"] --yes
+```
+
+Pass `--id` and/or `--label` only for the values the user changed. Show output. End: "Renamed `<old-id>` → `<new-id>` (`<new label>`)."
 
 ---
 

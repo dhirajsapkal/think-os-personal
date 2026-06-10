@@ -52,7 +52,7 @@ The update flow records, for each managed file at install/update time:
 ```json
 {
   "id": "claude-code-commands/thinkos-vault.md",
-  "target": "/Users/dhiraj/.claude/commands/thinkos-vault.md",
+  "target": "/Users/you/.claude/commands/thinkos-vault.md",
   "shipped_sha": "a1b2…",        // sha256 of the file as shipped at the installed version
   "current_sha": "a1b2…"          // sha256 on disk at last write (informational)
 }
@@ -91,22 +91,22 @@ A third synthetic mode, **`file_dir`** (a glob over a directory), is treated as 
   "channel": "stable",
   "installed_at": "2026-05-13T22:53:49Z",
   "last_updated_at": "2026-05-14T09:00:00Z",
-  "repo_path": "/Users/dhiraj/code/think-os",
-  "vault_path": "/Users/dhiraj/ThinkOS/vault",
+  "repo_path": "/Users/you/code/think-os",
+  "vault_path": "/Users/you/ThinkOS/vault",
   "bm_project": "think-os",
   "bundle": "design",
   "products": ["claude-code"],
   "managed_files": [
     {
       "id": "claude-code-block",
-      "target": "/Users/dhiraj/.claude/CLAUDE.md",
+      "target": "/Users/you/.claude/CLAUDE.md",
       "mode": "block",
       "shipped_sha": "…",
       "current_sha": "…"
     },
     {
       "id": "claude-code-commands/thinkos-vault.md",
-      "target": "/Users/dhiraj/.claude/commands/thinkos-vault.md",
+      "target": "/Users/you/.claude/commands/thinkos-vault.md",
       "mode": "file",
       "shipped_sha": "…",
       "current_sha": "…"
@@ -141,12 +141,12 @@ migrations:
     to_version: 2
     target: install-manifest.json
     description: "Add managed_files tracking with sha256 drift detection."
-    playbook: docs/migrations/install-manifest-v1-to-v2.md
+    script: scripts/thinkos-migrate-manifest-v1-to-v2.sh
 ```
 
-`/thinkos-update` runs any migration whose `from_version` matches the user's current state-file version, in order. Migrations are executable playbooks (markdown the agent follows), not opaque scripts — they should be reviewable by the user before running.
+`/thinkos-update` runs any migration whose `from_version` matches the user's current state-file version, in order. Migrations are small, versioned shell scripts in `scripts/` — reviewable by the user before running, and idempotent (re-running on an already-migrated file is a no-op).
 
-The migration playbook owns its own backup: every state file gets copied to `~/.thinkos/backups/<timestamp>/state/` before transformation.
+The migration script owns its own backup: every state file gets copied to `~/.thinkos/backups/<timestamp>/state/` before transformation.
 
 ---
 

@@ -46,10 +46,10 @@ phases:
         prompt: "Which bundle do you want?"
         kind: single
         options:
-          - { label: "Product Management", value: "pm",     description: "Slack, Gmail, Google Calendar, Google Drive, Notion, Linear, Granola, Figma + PM and Productivity skills." }
-          - { label: "Engineering",        value: "eng",    description: "Slack, Gmail, Google Calendar, Google Drive, Atlassian Rovo, Linear + Engineering and Productivity skills." }
+          - { label: "Product Management", value: "pm",     description: "Slack, Gmail, Google Calendar, Google Drive, Notion, Granola, Figma + PM and Productivity skills." }
+          - { label: "Engineering",        value: "eng",    description: "Slack, Gmail, Google Calendar, Google Drive, Atlassian Rovo + Engineering and Productivity skills." }
           - { label: "Design",             value: "design", description: "Slack, Gmail, Google Calendar, Google Drive, Notion, Figma, Granola + Design and Productivity skills." }
-          - { label: "Operations",         value: "ops",    description: "Slack, Gmail, Google Calendar, Microsoft 365, Notion, QuickBooks + Productivity skills." }
+          - { label: "Operations",         value: "ops",    description: "Slack, Gmail, Google Calendar, Notion, QuickBooks + Productivity skills." }
           - { label: "Skip",               value: null,     description: "Add tools individually later." }
       - id: vault_id
         prompt: "What do you want to call your vault?"

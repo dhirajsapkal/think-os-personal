@@ -27,7 +27,7 @@ The nudge points the user at a remediation command. No further explanation; the 
 
 ## Mute scope
 
-- After `/weekly-review` runs, write `~/.thinkos/drift-muted.json` with `{ "until": "<next Sunday ISO>" }`. Skip all drift nudges until that timestamp.
+- After `/weekly-review` runs, write `~/.thinkos/drift-muted.json` with `{ "until": "<next Sunday ISO>" }`. Skip all drift nudges until that timestamp. Write it with plain Bash — `echo '{ "until": "<ISO>" }' > ~/.thinkos/drift-muted.json` — this is a local config file, not a vault note.
 - When shared-mode is on (see `60-shared-mode.md`), drift nudges are silent. Shared sessions should not surface unrequested vault internals.
 - Users can manually suppress drift nudges for a topic by adding it to `~/.thinkos/drift-muted.json` under a `topics` map.
 

@@ -1,6 +1,6 @@
 # Vitals Design
 
-Status: shipped · Target: v0.6.0 · Author: maintainer
+Status: shipped · Author: maintainer
 
 ## Rationale — why separate from doctor
 

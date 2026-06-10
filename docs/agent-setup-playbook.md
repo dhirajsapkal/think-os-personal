@@ -21,8 +21,7 @@ Read only what you need:
 1. `AGENTS.md`
 2. `README.md`
 3. This file
-4. `adapters/README.md`
-5. The selected adapter README(s)
+4. `adapters/claude-code/README.md`
 
 Do not read all templates. Do not inspect the user's live vault content unless they ask.
 

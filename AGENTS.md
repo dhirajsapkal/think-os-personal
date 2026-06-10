@@ -63,7 +63,7 @@ When working on Think OS itself, prefer editing the curated files over duplicati
 Onboarding has three paths. The line between them matters:
 
 - **Phase 1** — Infrastructure. Setup installs vault templates, Basic Memory MCP, the Claude Code adapter, and the plugin bundle. No connector data is read. Ends by writing `~/.thinkos/wizard-state.json` with `phase: awaiting_oauth_and_restart`.
-- **Emergent seeding (default)** — After Phase 1, HOT-tier files start as stubs. The agent detects the `<!-- thinkos:stub -->` marker, proposes facts from conversation turn-by-turn, and saves with explicit per-fact confirmation. Per-file draft state lives at `~/.thinkos/emergent-state.json`. No bulk connector reads required. See `docs/emergent-seeding.md`.
+- **Emergent seeding (default)** — After Phase 1, HOT-tier files start as stubs. The agent detects the `<!-- thinkos:stub -->` marker, proposes facts from conversation turn-by-turn, and saves with explicit per-fact confirmation. Per-file draft state lives in the vault note `90 System/Emergent State.md` (fenced JSON block, managed via `mcp__basic-memory__edit_note`). No bulk connector reads required. See `docs/emergent-seeding.md`.
 - **Phase 2 (opt-in bulk-seed)** — For users with rich connector data who want to front-load. After OAuth + restart, the user runs `/thinkos-continue`. The agent follows `docs/phase-2-seeding-playbook.md` and *does* read from connectors — but only with per-source consent, only the minimum needed, and only drafts content (the user approves before each commit).
 
 On every new session, check whether setup is in progress:

@@ -29,7 +29,7 @@ The shipped HOT-file templates carry a literal marker:
 
 The marker sits on its own line, immediately after the frontmatter `---` close. Its presence tells the agent the file is empty and emergent seeding is active for it. The marker is removed when emergent seeding promotes a draft into the file.
 
-Per-file draft state is tracked at `~/.thinkos/emergent-state.json`. As the agent observes facts in conversation that map to a stub HOT file, it appends them to that file's `draft` field. When the draft is coherent enough to surface, the agent offers it at the end of the turn:
+Per-file draft state is tracked in the vault note `90 System/Emergent State.md` — a fenced JSON block managed via `mcp__basic-memory__edit_note`, so multiple Claude instances share the same draft accumulation and the state survives across machines. As the agent observes facts in conversation that map to a stub HOT file, it appends them to that file's `draft` field. When the draft is coherent enough to surface, the agent offers it at the end of the turn:
 
 > Noticed you mentioned **role: Principal Designer at Think Co**. Want me to save it to your Identity file? (y / n / later)
 

@@ -40,6 +40,10 @@ What gets re-applied:
   - The BEGIN/END THINK OS block in:
       ~/.claude/CLAUDE.md             (Claude Code)
   - Slash commands in ~/.claude/commands/ (overwrites older versions)
+  - launchd jobs (~/Library/LaunchAgents/com.thinkos.*.plist) whose baked-in
+    script path no longer resolves inside this repo (e.g. after moving the
+    repo): the matching installer script is re-run to regenerate and reload
+    the job, preserving its name and schedule.
 
 What this does NOT do:
   - Re-install Basic Memory
@@ -124,6 +128,7 @@ maybe_git_pull() {
   local old_sha
   old_sha="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "")"
   run git -C "$REPO_ROOT" pull --ff-only
+  local new_sha
   new_sha="$(git -C "$REPO_ROOT" rev-parse HEAD)"
   log "Pulled to commit: $new_sha"
   if [[ -n "$old_sha" && "$old_sha" != "$new_sha" ]]; then
@@ -159,9 +164,97 @@ update_claude_code() {
   log "Refreshing Claude Code slash commands at ~/.claude/commands/"
   run mkdir -p "$HOME/.claude/commands"
   local command_file
-  for command_file in "$REPO_ROOT"/adapters/claude-code/commands/*.md; do
-    [[ "$(basename "$command_file")" == "README.md" ]] && continue
-    run cp "$command_file" "$HOME/.claude/commands/"
+  if [[ -d "$REPO_ROOT/adapters/claude-code/commands" ]]; then
+    for command_file in "$REPO_ROOT"/adapters/claude-code/commands/*.md; do
+      [[ -e "$command_file" ]] || continue
+      [[ "$(basename "$command_file")" == "README.md" ]] && continue
+      run cp "$command_file" "$HOME/.claude/commands/"
+    done
+  else
+    log "WARNING: $REPO_ROOT/adapters/claude-code/commands not found; skipping slash command refresh."
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Refresh launchd jobs that point at a moved repo.
+#
+# install-launchd-job.sh, install-sync-job.sh, and install-session-capture.sh
+# bake the repo path into ~/Library/LaunchAgents/com.thinkos.*.plist at install
+# time. If the user moves the repo, every job keeps pointing at the old path.
+# Detect stale plists by reading the script path out of ProgramArguments and
+# re-run the matching installer (which regenerates + reloads the job with the
+# same label and schedule). Job-specific args (--vault) are recovered from the
+# existing plist before regeneration.
+# ---------------------------------------------------------------------------
+refresh_launchd_jobs() {
+  [[ "$(uname -s)" == "Darwin" ]] || return 0
+
+  local plist label script_path
+  for plist in "$HOME/Library/LaunchAgents"/com.thinkos.*.plist; do
+    [[ -e "$plist" ]] || continue
+    label="$(basename "$plist" .plist)"
+    script_path="$(plutil -extract ProgramArguments.1 raw "$plist" 2>/dev/null || true)"
+
+    if [[ -z "$script_path" ]]; then
+      log "WARNING: cannot read ProgramArguments from $plist (plutil failed or key missing)."
+      log "         Re-install this job manually — see scripts/install-launchd-job.sh,"
+      log "         scripts/install-sync-job.sh, or scripts/install-session-capture.sh."
+      continue
+    fi
+
+    case "$script_path" in
+      "$REPO_ROOT"/*) continue ;;  # already points into the current repo
+    esac
+
+    case "$label" in
+      com.thinkos.sync)
+        # ProgramArguments: [/bin/bash, <repo>/scripts/thinkos-git.sh, sync-vault, --vault, <path>]
+        local sync_vault
+        sync_vault="$(plutil -extract ProgramArguments.4 raw "$plist" 2>/dev/null || true)"
+        log "Refreshing launchd job $label (stale script path: $script_path)"
+        if [[ -n "$sync_vault" ]]; then
+          if ! run bash "$REPO_ROOT/scripts/install-sync-job.sh" --vault "$sync_vault"; then
+            log "WARNING: failed to regenerate $label."
+            log "         Run manually: bash $REPO_ROOT/scripts/install-sync-job.sh --vault \"$sync_vault\""
+          fi
+        else
+          log "WARNING: could not recover the vault path from $plist; not regenerating automatically."
+          log "         Run manually: bash $REPO_ROOT/scripts/install-sync-job.sh --vault <vault-path>"
+        fi
+        ;;
+      com.thinkos.session-capture)
+        # ProgramArguments: [/bin/bash, <repo>/scripts/thinkos-session-capture.sh, (--vault, <path>)?]
+        local cap_vault="" cap_idx=2 cap_arg
+        while cap_arg="$(plutil -extract "ProgramArguments.$cap_idx" raw "$plist" 2>/dev/null)"; do
+          if [[ "$cap_arg" == "--vault" ]]; then
+            cap_vault="$(plutil -extract "ProgramArguments.$((cap_idx + 1))" raw "$plist" 2>/dev/null || true)"
+            break
+          fi
+          cap_idx=$((cap_idx + 1))
+        done
+        log "Refreshing launchd job $label (stale script path: $script_path)"
+        local cap_status=0
+        if [[ -n "$cap_vault" ]]; then
+          run bash "$REPO_ROOT/scripts/install-session-capture.sh" --vault "$cap_vault" || cap_status=$?
+        else
+          run bash "$REPO_ROOT/scripts/install-session-capture.sh" || cap_status=$?
+        fi
+        if [[ "$cap_status" -ne 0 ]]; then
+          log "WARNING: failed to regenerate $label."
+          log "         Run manually: bash $REPO_ROOT/scripts/install-session-capture.sh${cap_vault:+ --vault \"$cap_vault\"}"
+        fi
+        ;;
+      com.thinkos.*)
+        # Cron task: ProgramArguments: [/bin/bash, <repo>/scripts/thinkos-cron-run.sh, <task-id>]
+        # The schedule is keyed off the task id inside install-launchd-job.sh.
+        local task_id="${label#com.thinkos.}"
+        log "Refreshing launchd job $label (stale script path: $script_path)"
+        if ! run bash "$REPO_ROOT/scripts/install-launchd-job.sh" "$task_id"; then
+          log "WARNING: failed to regenerate $label (task id '$task_id' may be unknown to the installer)."
+          log "         Run manually: bash $REPO_ROOT/scripts/install-launchd-job.sh $task_id"
+        fi
+        ;;
+    esac
   done
 }
 
@@ -254,6 +347,11 @@ print(f"[manifest] thinkos_version → {new_version[:10]}, shipped_sha refreshed
 PY
   fi
 fi
+
+# ---------------------------------------------------------------------------
+# Refresh launchd jobs whose plists were baked with an old repo path.
+# ---------------------------------------------------------------------------
+refresh_launchd_jobs
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
   log "(Dry run — no files were modified.)"

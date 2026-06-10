@@ -34,17 +34,17 @@ const installed = [
   {
     n: '01',
     title: 'Curated agent guidance',
-    body: 'A five-file instruction stack drops into the agent\'s always-loaded context. Consult the vault first. Draft, never send. Plan before multi-file edits. Cite path:line. Surface freshness warnings. Never commit secrets. ~280 lines of distilled prompt engineering — refreshable in place with /thinkos-update.',
+    body: 'A five-file instruction stack drops into the agent\'s always-loaded context. Consult the vault first. Draft, never send. Plan before multi-file edits. Cite path:line. Surface freshness warnings. Never commit secrets. ~500 lines of distilled prompt engineering — refreshable in place with /thinkos-update.',
   },
   {
     n: '02',
-    title: 'Twenty-seven slash commands',
+    title: 'Thirty-six slash commands',
     body: 'Pre-built playbooks for daily flows: /thinkos-morning, /thinkos-plate, /thinkos-capture, /thinkos-who, /thinkos-vitals, /thinkos-sync, /thinkos-update. Each is a plain markdown file at ~/.claude/commands/ — auditable, editable, yours. Full list in § VI.',
   },
   {
     n: '03',
     title: 'Role-based bundles',
-    body: 'Pick one preset and the right MCPs install for you: PM (Slack + Gmail + Notion + Linear + Granola + Figma), Engineering (Slack + Gmail + Atlassian + Linear), Design (Slack + Gmail + Notion + Figma + Granola), Operations (Slack + Gmail + Microsoft 365 + Notion + QuickBooks). Each pulls the matching Anthropic skill packs too.',
+    body: 'Pick one preset and the right MCPs install for you: PM (Slack + Gmail + Google Calendar + Google Drive + Notion + Granola + Figma), Engineering (Slack + Gmail + Google Calendar + Google Drive + Atlassian), Design (Slack + Gmail + Notion + Figma + Granola), Operations (Slack + Gmail + Google Calendar + Notion + QuickBooks). Each pulls the matching Anthropic skill packs too.',
   },
   {
     n: '04',
@@ -121,6 +121,7 @@ const commandGroups = [
       ['/thinkos-decisions',    'Search your standing decisions'],
       ['/thinkos-learnings',    'Search reusable learnings by topic'],
       ['/thinkos-undo-capture', 'Remove a capture from both vault and ledger'],
+      ['/recent-log',           'Summarize the last N days of work-log entries'],
     ],
   },
   {
@@ -129,6 +130,8 @@ const commandGroups = [
     items: [
       ['/thinkos-who',     'What you know about a specific person'],
       ['/thinkos-project', 'Load deep context for a project by slug'],
+      ['/draft-reply',     'Draft a reply to an email or Slack message — never sends'],
+      ['/index-projects',  'Walk project folders and reconcile against the index'],
     ],
   },
   {
@@ -137,10 +140,14 @@ const commandGroups = [
     items: [
       ['/thinkos-vitals',  'Vault-health snapshot — staleness, broken links, ledger volume'],
       ['/thinkos-stale',   'List notes past their freshness window'],
+      ['/thinkos-refresh', 'Refresh Tasks.md from your connected tools'],
       ['/thinkos-sync',    'Cross-machine vault sync — pauses to you on conflict'],
       ['/thinkos-shared',  'Toggle shared-mode — hides tier: sensitive notes for screen sharing'],
       ['/thinkos-reindex', 'Refresh Basic Memory\'s index after external vault edits'],
       ['/thinkos-voice',   'Rewrite a draft in your voice profile'],
+      ['/validate-os',     'Sanity-check the OS for stale entries and contradictions'],
+      ['/weekly-review',   'Weekly digest — refresh Current Focus, surface drift'],
+      ['/quarterly-review', 'Quarterly maintenance — archive rotation, prune stale projects'],
     ],
   },
   {
@@ -154,6 +161,7 @@ const commandGroups = [
       ['/thinkos-capture-setup', 'Enable continuous-capture sources one at a time'],
       ['/thinkos-automate',      'Set up scheduled triggers (daily, weekly, quarterly)'],
       ['/thinkos-update',        'Pull latest instructions and commands, with drift detection'],
+      ['/thinkos-doctor',        'Check install health — manifest, MCP, launchd jobs'],
     ],
   },
   {
@@ -282,7 +290,7 @@ const faqs = [
         <div class="col-span-12 md:col-span-8 md:col-start-5">
           <p class="text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
             Think OS isn't just a folder of markdown. Installing it drops a curated
-            agent instruction stack, twenty pre-built playbooks, a role-based MCP
+            agent instruction stack, thirty-six pre-built playbooks, a role-based MCP
             bundle, and skill routing into your environment. Every agent that touches
             the vault knows what to do without you teaching it.
           </p>
@@ -454,8 +462,8 @@ const faqs = [
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
           <p class="text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            Every Think OS slash command, prefixed so they autocomplete as a group.
-            Type <code class="font-mono bg-soft px-1.5 py-0.5 rounded text-[13px]">/thinkos</code> in
+            Every Think OS slash command. Most are prefixed so they autocomplete
+            as a group — type <code class="font-mono bg-soft px-1.5 py-0.5 rounded text-[13px]">/thinkos</code> in
             Claude Code and tab through the list.
           </p>
         </div>

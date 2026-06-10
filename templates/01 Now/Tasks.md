@@ -79,4 +79,4 @@ _Last synced: {{YYYY-MM-DD HH:MM}}_
 
 ---
 
-*Auto-refreshed by `productivity:update` in desktop agent. Manual edits to the "Manually added" section survive sync; edits elsewhere don't.*
+*Auto-refreshed by `/thinkos-refresh` (connector sweep). Manual edits to the "Manually added" section survive sync; edits elsewhere don't.*

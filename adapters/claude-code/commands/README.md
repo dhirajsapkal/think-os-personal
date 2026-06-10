@@ -15,7 +15,7 @@ The slash commands listed in /thinkos-help for using your personal context OS fr
 
 ```bash
 mkdir -p ~/.claude/commands
-find /path/to/this/export/think-os-alpha/adapters/claude-code/commands -maxdepth 1 -name "*.md" ! -name "README.md" -exec cp {} ~/.claude/commands/ \;
+find /path/to/think-os/adapters/claude-code/commands -maxdepth 1 -name "*.md" ! -name "README.md" -exec cp {} ~/.claude/commands/ \;
 ```
 
 After that, every new CLI agent session will autocomplete these as you type `/`.
@@ -64,7 +64,7 @@ The connector-sweep workflow is `/thinkos-refresh` — pulls from Gmail / Slack 
 - **Cowork (web)** — same bridge tools.
 - **Desktop agent** — uses native connector MCPs if registered locally, otherwise falls through to the bridge.
 
-The legacy `/productivity:update` skill (desktop-only) is retired — its behavior lives in `/thinkos-refresh`.
+The legacy desktop-only refresh skill is retired — its behavior lives in `/thinkos-refresh`.
 
 ## Maintenance
 

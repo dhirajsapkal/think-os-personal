@@ -32,7 +32,7 @@ These aren't notifications — they're maintenance. Your vault gets healthier ov
 
 ## How Phase 3 scheduling works
 
-Phase 3 triggers run as **local launchd jobs** — the same mechanism Phase A session capture uses. Each job is a `templates/LaunchAgents/com.thinkos.<name>.plist` that invokes a single generic dispatcher: `scripts/thinkos-cron-run.sh <name>`. The dispatcher knows whether the task is deterministic (e.g., `basic-memory reindex` for daily-reindex) or LLM-prompted (reads `scripts/cron-prompts/<name>.txt` and runs `claude -p` against it).
+Phase 3 triggers run as **local launchd jobs** — the same mechanism Layer A session capture uses. Each job is a `templates/LaunchAgents/com.thinkos.<name>.plist` that invokes a single generic dispatcher: `scripts/thinkos-cron-run.sh <name>`. The dispatcher knows whether the task is deterministic (e.g., `basic-memory reindex` for daily-reindex) or LLM-prompted (reads `scripts/cron-prompts/<name>.txt` and runs `claude -p` against it).
 
 Key properties:
 
@@ -289,7 +289,7 @@ When the user runs `/thinkos-automate remove <name>`, run `launchctl unload ~/Li
 Phase 3 automations handle scheduled maintenance. For ongoing passive logging of what you actually work on, see continuous capture:
 
 - **Session capture** (Layer A, live) — `/thinkos-autosave on` starts a launchd job that appends a one-line stub to Work Log every 2 hours. No LLM call.
-- **External ingestion** (Layer B, opt-in per source) — Granola, Slack, Gmail, Calendar, Linear, ClickUp. Configure via `/thinkos-capture-setup`.
-- **Audit ledger** (Layer C) — every capture is recorded in the vault note "Capture Log" at `90 System/Capture Log.md`. Review with `/thinkos-recent`; undo with `/thinkos-undo-capture`.
+- **Audit ledger** (Layer B) — every capture is recorded in the vault note "Capture Log" at `90 System/Capture Log.md`. Review with `/thinkos-recent`; undo with `/thinkos-undo-capture`.
+- **External ingestion** (Layer C, opt-in per source) — Granola, Slack, Gmail, Calendar, Linear, ClickUp. Configure via `/thinkos-capture-setup`.
 
 Design: `docs/continuous-capture/README.md`.

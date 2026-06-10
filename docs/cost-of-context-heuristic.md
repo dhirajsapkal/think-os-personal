@@ -16,7 +16,7 @@ This doc explains the skip rule added to `templates/instructions/00-think-os-pri
 
 > - **Project-local generic question.** If ALL of the following are true, skip the mandatory reads and answer directly:
 >   - CWD is a registered project (matches a path in `vaults.json` with `type: project`), AND
->   - the question does not mention any of: "I", "me", "my", "we", "our", a person's proper name, the words "identity"/"focus"/"decisions"/"learnings"/"vault"/"focus"/"week"/"last week", AND
+>   - the question does not mention any of: "I", "me", "my", "we", "our", a person's proper name, the words "identity"/"focus"/"decisions"/"learnings"/"vault"/"week"/"last week", AND
 >   - the question is a how-to / factual / single-file pattern ("how does this function work?", "what does this script do?", "where is X defined?", "fix this typo").
 >   - When ANY criterion is uncertain, read. Conservative bias: false negatives (skipping when context would have helped) are recoverable; false positives (skipping in personal contexts) are not.
 

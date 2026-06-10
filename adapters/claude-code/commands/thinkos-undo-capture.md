@@ -23,7 +23,7 @@ If no actionable events exist, tell the user: "No captures to undo in the last 4
 
 ## Step 2 — Ask which capture to undo
 
-Present a picker:
+Present a picker. Load via `ToolSearch select:AskUserQuestion` if needed.
 
 ```
 AskUserQuestion(

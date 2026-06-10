@@ -112,13 +112,15 @@ fi
 VAULT_PATH="${VAULT_PATH/#\~/$HOME}"
 
 # ── Render plist via python3 ──────────────────────────────────────────────────
+# WP-19: XML-escape all paths before substituting into plist content.
 RENDERED="$(python3 - "$PLIST_TEMPLATE" "$REPO_ROOT" "$VAULT_PATH" "$LOG_DIR" <<'PY'
 import sys
+from xml.sax.saxutils import escape as xml_escape
 tmpl_path, repo_root, vault_path, log_dir = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 content = open(tmpl_path).read()
-content = content.replace('__REPO_ROOT__', repo_root)
-content = content.replace('__VAULT_PATH__', vault_path)
-content = content.replace('__LOG_DIR__', log_dir)
+content = content.replace('__REPO_ROOT__', xml_escape(repo_root))
+content = content.replace('__VAULT_PATH__', xml_escape(vault_path))
+content = content.replace('__LOG_DIR__', xml_escape(log_dir))
 sys.stdout.write(content)
 PY
 )"

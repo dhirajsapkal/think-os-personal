@@ -214,14 +214,17 @@ Capture behavior:
 
 ## Implementation status
 
-### Shipped (v0.7.0 current)
+### Shipped (v0.9.1 current)
 - `templates/05 Profile/Business Brain.md` — sanitized Think Co shared template
 - `data/plugin-catalog.yaml` — full connector catalog with OAuth flags
 - The MCP-driven Phase 2 playbook (`docs/phase-2-seeding-playbook.md`) — now opt-in; default is emergent seeding (`docs/emergent-seeding.md`)
 - `scripts/thinkos-index.sh` — filesystem + git + manifest indexer
 - Phase 2 playbook updated: indexer runs first, agent reads `.index/*.json`
 - Folder selector UX in `/thinkos-continue`
-- Connector polling for ongoing context refresh (continuous capture, `docs/continuous-capture/`)
+- Continuous capture — Layers A/B/C: launchd session capture, audit ledger, opt-in external ingestion (`docs/continuous-capture/`)
+- Linear / Jira split into independent tracker paths in `/thinkos-capture-setup` (v0.8.x)
+- `tracked_projects[]` filter in `~/.thinkos/vaults.json` so session capture sees code repos outside the vault (v0.9.0)
+- `/thinkos-refresh` — connector sweep that rewrites `01 Now/Tasks.md` (v0.9.1; replaces the retired desktop-only refresh skill)
 - `/thinkos-reindex` for manual re-index
 
 ### Future

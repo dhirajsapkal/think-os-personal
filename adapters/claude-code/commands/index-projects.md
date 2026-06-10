@@ -23,7 +23,7 @@ Read `02 Projects/Project Index.md` via `mcp__basic-memory__read_note`. Extract 
 
 Read `~/.thinkos/vaults.json` if it exists. For each vault with `type: project`, list the subfolders under `02 Projects/` in that vault.
 
-Also check `$OS_HOME/02 Projects/` in the personal hub.
+Also check `${THINKOS_HOME:-$HOME/ThinkOS/vault}/02 Projects/` in the personal hub.
 
 ## Step 4 — Reconcile
 
