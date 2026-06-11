@@ -1,0 +1,17 @@
+# Netlify config for deploying the website folder standalone (e.g. linking
+# or drag-and-dropping just this directory). When the whole repo is linked
+# instead, the repo-root netlify.toml (base = "website") applies — keep the
+# two in sync.
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Pretty 404 page when a route doesn't match.
+[[redirects]]
+  from   = "/*"
+  to     = "/404.html"
+  status = 404
