@@ -5,7 +5,7 @@
 /* ---------------------------------------------------------
    Theme tokens — Think Company palette
    Pulled from thinkcompany.com: navy #173145, Think blue,
-   Inter + Newsreader, white backgrounds.
+   white backgrounds. The palette is the brand; it stays.
    --------------------------------------------------------- */
 :root {
   --paper:   #FFFFFF;
@@ -21,6 +21,7 @@
 
   --paper-rgb: 255 255 255;
   --ink-rgb:    23 49 69;
+  --accent-rgb:  0 88 204;
 }
 
 [data-theme="dark"] {
@@ -36,6 +37,7 @@
 
   --paper-rgb: 10 22 34;
   --ink-rgb:   237 242 247;
+  --accent-rgb: 91 156 240;
 }
 
 /* ---------------------------------------------------------
@@ -46,40 +48,49 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: 'ss01', 'ss02', 'cv11';
   }
   body {
     background: var(--paper);
     color: var(--ink);
-    font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: 'cv11';
+    font-family: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+    font-optical-sizing: auto;
   }
   ::selection {
     background: var(--accent);
     color: var(--paper);
   }
+  /* Visible focus everywhere — keyboard users get the brand blue. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
 }
 
 /* ---------------------------------------------------------
-   Display type — Newsreader. Tighter optical, italics matter.
+   Display type — Newsreader (Think Company's own serif),
+   served at its display optical size. Italics matter.
    --------------------------------------------------------- */
 .display {
-  font-family: 'Newsreader', ui-serif, Georgia, serif;
-  font-weight: 400;
-  font-feature-settings: 'kern', 'liga', 'calt', 'ss01';
+  font-family: 'Newsreader Variable', ui-serif, Georgia, serif;
+  font-weight: 380;
+  font-optical-sizing: auto;
+  font-variation-settings: 'opsz' 72;
+  font-feature-settings: 'kern', 'liga', 'calt';
   letter-spacing: -0.025em;
   line-height: 0.98;
+  text-wrap: balance;
 }
 .display em {
   font-style: italic;
-  font-feature-settings: 'kern', 'liga', 'calt';
+  font-weight: 360;
 }
 
 /* ---------------------------------------------------------
    Editorial chrome
    --------------------------------------------------------- */
 .kicker {
-  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -87,28 +98,93 @@
 }
 
 .numeral {
-  font-family: 'Newsreader', serif;
+  font-family: 'Newsreader Variable', serif;
   font-style: italic;
   font-weight: 300;
+  font-variation-settings: 'opsz' 72;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
+}
+
+/* Signature: oversized section numerals. Hollow in light of the
+   accent so they read as architecture, not content. */
+.section-numeral {
+  font-family: 'Newsreader Variable', serif;
+  font-style: italic;
+  font-weight: 280;
+  font-variation-settings: 'opsz' 72;
+  font-size: clamp(64px, 9vw, 112px);
+  line-height: 0.8;
+  letter-spacing: -0.03em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(var(--accent-rgb) / 0.55);
+  user-select: none;
+}
+@supports not (-webkit-text-stroke: 1px black) {
+  .section-numeral { color: rgb(var(--accent-rgb) / 0.30); }
 }
 
 .hrule {
   border-color: var(--rule);
 }
 
+/* Pull quote — manifesto lines get the serif at size, with a
+   hairline accent rule instead of quotation marks. */
+.pullquote {
+  font-family: 'Newsreader Variable', serif;
+  font-style: italic;
+  font-weight: 340;
+  font-variation-settings: 'opsz' 60;
+  letter-spacing: -0.015em;
+  line-height: 1.18;
+  text-wrap: balance;
+  border-left: 1px solid var(--accent);
+  padding-left: clamp(1.25rem, 3vw, 2.25rem);
+}
+
 /* Section divider ornament */
 .ornament {
   text-align: center;
   color: var(--muted);
-  font-family: 'Newsreader', serif;
+  font-family: 'Newsreader Variable', serif;
   font-style: italic;
   font-size: 18px;
   letter-spacing: 1em;
   padding-left: 1em; /* compensate for trailing letter-spacing */
   user-select: none;
+}
+
+/* ---------------------------------------------------------
+   Atmosphere — quiet gradient washes in brand hues.
+   Hairlines and negative space do the rest.
+   --------------------------------------------------------- */
+.wash-hero {
+  position: relative;
+}
+.wash-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 70% at 80% -10%, rgb(var(--accent-rgb) / 0.05), transparent 60%),
+    linear-gradient(to bottom, rgb(var(--ink-rgb) / 0.015), transparent 30%);
+}
+[data-theme="dark"] .wash-hero::before {
+  background:
+    radial-gradient(120% 70% at 80% -10%, rgb(var(--accent-rgb) / 0.09), transparent 60%),
+    linear-gradient(to bottom, rgb(var(--accent-rgb) / 0.02), transparent 30%);
+}
+.wash-section {
+  position: relative;
+}
+.wash-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(var(--accent-rgb) / 0.025), transparent 45%);
 }
 
 /* ---------------------------------------------------------
@@ -119,6 +195,10 @@
   border: 1px solid var(--rule);
   border-radius: 4px;
   position: relative;
+  transition: border-color 200ms ease;
+}
+.install-card:hover {
+  border-color: rgb(var(--accent-rgb) / 0.4);
 }
 .install-card::before,
 .install-card::after {
@@ -127,6 +207,11 @@
   width: 8px;
   height: 8px;
   border: 1px solid var(--rule);
+  transition: border-color 200ms ease;
+}
+.install-card:hover::before,
+.install-card:hover::after {
+  border-color: rgb(var(--accent-rgb) / 0.5);
 }
 .install-card::before {
   top: -4px;
@@ -154,19 +239,53 @@
 }
 
 /* ---------------------------------------------------------
-   Subtle paper noise (very low opacity)
+   Version chip — changelog signature
+   --------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--paper);
+  text-decoration: none;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+.chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chip--latest {
+  border-color: rgb(var(--accent-rgb) / 0.45);
+  color: var(--accent);
+}
+.chip--latest::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* ---------------------------------------------------------
+   Subtle paper noise (very low opacity, finer grain)
    --------------------------------------------------------- */
 .paper-noise {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: 0.022;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   mix-blend-mode: multiply;
 }
 [data-theme="dark"] .paper-noise {
-  opacity: 0.04;
+  opacity: 0.05;
   mix-blend-mode: screen;
 }
 
@@ -179,7 +298,8 @@
   max-width: 68ch;
 }
 .prose h1, .prose h2, .prose h3 {
-  font-family: 'Newsreader', serif;
+  font-family: 'Newsreader Variable', serif;
+  font-variation-settings: 'opsz' 44;
   letter-spacing: -0.02em;
   line-height: 1.15;
 }
@@ -194,8 +314,8 @@
   text-underline-offset: 3px;
 }
 .prose code {
-  font-family: 'Geist Mono', monospace;
-  font-size: 0.9em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.875em;
   background: var(--soft);
   padding: 0.1em 0.35em;
   border-radius: 3px;
@@ -238,14 +358,19 @@ details.faq summary {
   display: flex;
   justify-content: space-between;
   gap: 2rem;
-  font-family: 'Newsreader', serif;
+  font-family: 'Newsreader Variable', serif;
+  font-variation-settings: 'opsz' 24;
   font-size: 1.15rem;
   color: var(--ink);
+  transition: color 140ms ease;
+}
+details.faq summary:hover {
+  color: var(--accent);
 }
 details.faq summary::-webkit-details-marker { display: none; }
 details.faq summary::after {
   content: '+';
-  font-family: 'Geist Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   color: var(--muted);
   transition: transform 200ms ease;
 }
@@ -263,27 +388,99 @@ details.faq .faq-body {
 }
 
 /* ---------------------------------------------------------
-   Hover anchors / links in nav
+   Links — hairline underline that draws in on hover
    --------------------------------------------------------- */
 .link-anim {
   position: relative;
   transition: color 140ms ease;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: color 140ms ease, background-size 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.link-anim:hover { color: var(--accent); }
+.link-anim:hover {
+  color: var(--accent);
+  background-size: 100% 1px;
+}
+
+/* Row hover — command tables, list rows. A hairline accent slides in. */
+.hover-row {
+  position: relative;
+  transition: background-color 160ms ease;
+}
+.hover-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.hover-row:hover::before {
+  transform: scaleY(1);
+}
+
+/* Card hover — panels in bordered grids */
+.hover-card {
+  transition: background-color 200ms ease;
+}
+.hover-card:hover {
+  background-color: var(--soft);
+}
 
 /* ---------------------------------------------------------
-   Small reveal on load
+   Motion — hero load sequence + scroll reveals.
+   STRICT prefers-reduced-motion respect: every animation in
+   this block collapses to a static, fully-visible state.
    --------------------------------------------------------- */
 @keyframes lift {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: none; }
 }
 .lift {
-  opacity: 0;
-  animation: lift 700ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation: lift 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 .lift-1 { animation-delay: 60ms; }
-.lift-2 { animation-delay: 140ms; }
-.lift-3 { animation-delay: 240ms; }
-.lift-4 { animation-delay: 360ms; }
-.lift-5 { animation-delay: 500ms; }
+.lift-2 { animation-delay: 160ms; }
+.lift-3 { animation-delay: 280ms; }
+.lift-4 { animation-delay: 420ms; }
+.lift-5 { animation-delay: 560ms; }
+.lift-6 { animation-delay: 700ms; }
+
+/* Scroll reveals are opt-in: JS adds .reveal-ready to <html> only
+   when motion is allowed. No JS, or reduced motion → content is
+   simply visible. */
+html.reveal-ready .reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 650ms cubic-bezier(0.2, 0.7, 0.2, 1),
+              transform 650ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+html.reveal-ready .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lift,
+  .lift-1, .lift-2, .lift-3, .lift-4, .lift-5, .lift-6 {
+    animation: none;
+  }
+  html.reveal-ready .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .link-anim,
+  .hover-row::before,
+  .install-card,
+  .chip {
+    transition: none;
+  }
+}

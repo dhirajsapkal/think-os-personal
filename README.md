@@ -115,7 +115,8 @@ think-os/
 ├── docs/
 │   ├── multi-vault-architecture.md   ← personal + project + reference vault design
 │   ├── phase-2-seeding-playbook.md   ← how Phase 2 drafts your core context files from connectors
-│   └── agent-setup-playbook.md       ← first-run behavior for agents
+│   ├── agent-setup-playbook.md       ← first-run behavior for agents
+│   └── why-files-not-a-database.md   ← canonical answer to "shouldn't this be a vector/graph DB?"
 └── data/plugin-catalog.yaml    ← plugins/connectors per role bundle
 ```
 
@@ -182,8 +183,8 @@ Full design: [`docs/continuous-capture/README.md`](docs/continuous-capture/READM
 
 ## The three rules (the architecture in one screen)
 
-1. **Files are the source of truth.** Tool memory and indexes are caches.
-2. **Always-loaded context stays small** (~280 lines). Detail lives in files the agent loads on demand.
+1. **Files are the source of truth.** The hybrid index underneath (SQLite FTS5 + local vectors + relation graph via Basic Memory) is a derived, rebuildable cache — see [`docs/why-files-not-a-database.md`](docs/why-files-not-a-database.md) for why this beats a memory database.
+2. **Always-loaded context stays small.** Detail lives in files and skills the agent loads on demand.
 3. **Default write targets are explicit.** Memory → personal hub. Project work → that project's vault. Never write to your `~/Documents/` root.
 
 ## Staying current

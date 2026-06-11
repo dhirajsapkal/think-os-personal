@@ -20,7 +20,31 @@ You almost never call these directly. Ask in natural language; the agent picks t
 | `recent_activity(timeframe)` | Show what changed recently in the vault |
 | `build_context(topics)` | Load a rich multi-note context around a set of topics |
 
-Operations for `edit_note`: `append`, `prepend`, `replace`, `insert_after_section`.
+Operations for `edit_note`: `append`, `prepend`, `replace`, `find_replace`, `insert_after_section`.
+
+---
+
+## Retrieval doctrine — how agents read the vault efficiently
+
+This is the reference card. Every Think OS playbook follows these rules; agents answering ad-hoc questions should too.
+
+**1. Search lean, escalate on miss.** Mandated first-action searches run with `page_size=3` (measured: ~520 tokens vs ~1,620 at `page_size=10`, with top-3 recall held). On a miss, escalate in order: `page=2` → `page_size=10` → `read_note` of the best candidate. Don't start wide.
+
+**2. Snippets are pointers, not sources.** Never quote or synthesize from a search-result snippet without reading the source span first. A snippet tells you *where* the answer lives; `read_note` (or a scoped extraction) is what grounds the answer.
+
+**3. No same-session re-reads.** If a note was read this session, refer to context. Re-read only if it may have changed — and then only the relevant range.
+
+**4. `build_context`: text mode, explicit timeframe.** Always pass `output_format="text"` and an explicit `timeframe` — the default 7d silently drops older relations, which looks like missing data but isn't. Its bodies are truncated at 4k: treat them as pointers requiring `read_note` before quoting.
+
+**5. Small HOT files: whole-file reads are correct.** Identity (~1.2k tokens) and Current Focus (~1.65k) are read in full via `read_note`. Verbatim reads are the grounding — don't optimize them away.
+
+**6. Large files: never read in full.** Scoped extraction patterns (read-only shell reads of vault files are allowed and preferred for large files; vault *writes* always go through Basic Memory):
+
+| File | ~Size | Scoped-read pattern |
+|---|---|---|
+| `01 Now/Work Log.md` | ~9.3k tokens | `bash <repo>/scripts/thinkos-recent.sh --worklog --days N --json` (fallback: `search_notes` with `after_date`) |
+| `90 System/Capture Log.md` | ~6.5k tokens | `tail -n 30` of the file (read-only) — the dedup check only needs the recent tail |
+| `01 Now/Tasks.md` | ~4k tokens | Extract the `## Today` section (and `## This week` if present) via `sed -n` / `awk` (fallback: `read_note`) |
 
 ---
 
@@ -30,11 +54,11 @@ The agent translates your intent to the right tool call. You don't need to know 
 
 | What you say | What the agent does under the hood |
 |---|---|
-| "What do I know about Alex Park?" | `search_notes("Alex Park", page_size=5)` |
-| "What did I decide about auth patterns?" | `search_notes("decisions auth patterns")` |
+| "What do I know about Alex Park?" | `search_notes("Alex Park", page_size=3)` — escalate on miss |
+| "What did I decide about auth patterns?" | `search_notes("decisions auth patterns", page_size=3)` |
 | "Show me my current focus" | `read_note("Current Focus")` |
-| "What learnings do I have tagged #facilitation?" | `search_notes("learnings #facilitation", page_size=10)` |
-| "Load context on the Acme Health project" | `read_note("02 Projects/Acme Health")` then `build_context(["Acme Health"])` |
+| "What learnings do I have tagged #facilitation?" | `search_notes("learnings #facilitation", page_size=3)` — widen to 10 only if the top 3 miss |
+| "Load context on the Acme Health project" | `read_note("02 Projects/Acme Health")` then `build_context(["Acme Health"], output_format="text", timeframe="90d")` |
 | "What changed in my vault today?" | `recent_activity("1d")` |
 
 ---

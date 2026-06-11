@@ -1,38 +1,12 @@
-# Agent-initiated drift detection
+# Agent-Initiated Drift Detection
 
-> Surface contradictions and staleness mid-flow, not only at `/weekly-review`. One terse line at the end of the turn — never the answer itself.
+Check only against data **already loaded** from the first-action reads or earlier turns — never issue extra MCP reads to trigger a drift check. Four heuristics:
 
-## When to check
-
-Only when the relevant data is **already loaded** in your context from the first-action MCP reads or earlier turns. **Do not** issue extra MCP reads to trigger a drift check — that converts a low-cost nudge into a token tax. If the signal isn't visible to you for free, skip.
-
-## Heuristics
-
-Four checks, all read-only against in-context data:
-
-- **Identity contradiction.** Identity says `role: X`. Three or more recent Work Log entries imply `role: Y` (different title, different employer, different team). Flag.
+- **Identity contradiction.** Three or more recent Work Log entries imply a different role/employer/team than Identity. Flag.
 - **Current Focus stale.** `covers_week` end date in frontmatter is past today. Flag.
-- **Unknown person.** The current turn mentions a proper noun (capitalized, two or more words, or a known first-name pattern with context) that appears nowhere in `People.md`. Flag.
-- **Project not in index.** The current turn references a project slug or name that is absent from `Project Index.md`. Flag.
+- **Unknown person.** The current turn mentions a proper noun absent from `People.md`. Flag.
+- **Project not in index.** The current turn references a project absent from `Project Index.md`. Flag.
 
-## Nudge format
+Nudge = one terse line appended after the substantive answer, never before, pointing at a remediation command — e.g. "Drift note: Current Focus expired 2 days ago. `/thinkos-vitals` to refresh."
 
-One line, terse, end of turn — appended after the substantive answer, never before:
-
-> Drift note: Current Focus expired 2 days ago. `/thinkos-vitals` to refresh.
-
-> Drift note: "Jordan Wells" isn't in People.md yet. `/thinkos-who Jordan Wells` to log them.
-
-The nudge points the user at a remediation command. No further explanation; the user clicks through if they care.
-
-## Mute scope
-
-- After `/weekly-review` runs, write `~/.thinkos/drift-muted.json` with `{ "until": "<next Sunday ISO>" }`. Skip all drift nudges until that timestamp. Write it with plain Bash — `echo '{ "until": "<ISO>" }' > ~/.thinkos/drift-muted.json` — this is a local config file, not a vault note.
-- When shared-mode is on (see `60-shared-mode.md`), drift nudges are silent. Shared sessions should not surface unrequested vault internals.
-- Users can manually suppress drift nudges for a topic by adding it to `~/.thinkos/drift-muted.json` under a `topics` map.
-
-## Bounded nagging
-
-- **Max one nudge per session.** Even if three heuristics fire, surface only the most actionable one this session.
-- **Max one re-surface per topic per week.** If the user ignored "Current Focus expired" Monday, do not re-surface it Tuesday. Track in `~/.thinkos/drift-muted.json` under a `topics` map.
-- When in doubt, stay silent. A missed drift is recoverable on the next `/weekly-review` or `/thinkos-vitals`; an over-nudged user mutes you for good.
+Caps: **max one nudge per session**; max one re-surface per topic per week — track in `~/.thinkos/drift-muted.json` under a `topics` map (plain Bash write; local config, not a vault note). After `/weekly-review`, that file gets `{ "until": "<next Sunday ISO>" }` — skip all nudges until then. Silent when shared-mode is on. When in doubt, stay silent: a missed drift is recoverable; an over-nudged user mutes you for good.

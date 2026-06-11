@@ -188,12 +188,16 @@ def mtime_days(path):
         return None
 
 def parse_covers_week_end(s):
-    """Parse 'YYYY-MM-DD-to-YYYY-MM-DD' → end date."""
+    """End date = last YYYY-MM-DD in the covers_week value.
+
+    Matches doctor/session-start semantics: tolerates '-to-', ' to ', '-',
+    and the '→' arrow form ('2026-05-18 → 2026-05-24') used by the seeding
+    playbook, plus single-date values."""
     if not s:
         return None
-    m = re.search(r"(\d{4}-\d{2}-\d{2})(?:\s*-to-\s*|\s+to\s+|\s*-\s*)(\d{4}-\d{2}-\d{2})", s)
-    if m:
-        return parse_date(m.group(2))
+    dates = re.findall(r"\d{4}-\d{2}-\d{2}", s)
+    if dates:
+        return parse_date(dates[-1])
     return None
 
 # ---------------------------------------------------------------------------
@@ -454,6 +458,68 @@ for section_name, rel_path in SECTION_LOG_FILES:
         section_ages.append({"section": section_name, "last_appended_days": days, "status": "ok"})
 
 # ---------------------------------------------------------------------------
+# v0.9.3 signals: focus freshness, Basic Memory index drift, derived staleness
+# (same three signals thinkos-doctor.sh checks — surfaced here for content health)
+# ---------------------------------------------------------------------------
+
+# Focus freshness — covers_week end date vs today
+focus_path = os.path.join(vault, "01 Now", "Current Focus.md")
+if not os.path.isfile(focus_path):
+    focus_freshness = {"status": "missing", "covers_week_end": None}
+else:
+    focus_end = parse_covers_week_end(parse_frontmatter(focus_path).get("covers_week", ""))
+    if focus_end is None:
+        focus_freshness = {"status": "unknown", "covers_week_end": None}
+    elif today > focus_end:
+        focus_freshness = {"status": "stale", "covers_week_end": focus_end.isoformat()}
+    else:
+        focus_freshness = {"status": "fresh", "covers_week_end": focus_end.isoformat()}
+
+# Index drift — Basic Memory FTS search_index rows vs actual table rowcounts
+import sqlite3
+bm_db = os.path.join(os.path.expanduser("~"), ".basic-memory", "memory.db")
+index_drift = {"status": "no_db", "counts": None}
+if os.path.isfile(bm_db):
+    try:
+        conn = sqlite3.connect("file:{}?mode=ro".format(bm_db), uri=True)
+        cur = conn.cursor()
+        counts = {}
+        for tbl in ("entity", "observation", "relation"):
+            si = cur.execute("SELECT COUNT(*) FROM search_index WHERE type=?", (tbl,)).fetchone()[0]
+            actual = cur.execute("SELECT COUNT(*) FROM {}".format(tbl)).fetchone()[0]
+            counts[tbl] = {"search_index": si, "actual": actual}
+        conn.close()
+        drifted = any(v["search_index"] != v["actual"] for v in counts.values())
+        index_drift = {"status": "drift" if drifted else "ok", "counts": counts}
+    except sqlite3.Error as e:
+        index_drift = {"status": "error", "counts": None, "detail": str(e)}
+
+# Derived-artifact staleness — "90 System" notes with generated_at older than 24h
+derived_notes = []
+system_dir = os.path.join(vault, "90 System")
+now_utc = datetime.datetime.now(datetime.timezone.utc)
+if os.path.isdir(system_dir):
+    for fn in sorted(os.listdir(system_dir)):
+        if not fn.endswith(".md"):
+            continue
+        gen = parse_frontmatter(os.path.join(system_dir, fn)).get("generated_at", "").strip().strip('"').strip("'")
+        if not gen:
+            continue
+        try:
+            ts = datetime.datetime.fromisoformat(gen.rstrip("Z"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=datetime.timezone.utc)
+            age_h = (now_utc - ts).total_seconds() / 3600
+            derived_notes.append({
+                "file": fn,
+                "generated_at": gen,
+                "age_hours": round(age_h, 1),
+                "status": "stale" if age_h > 24 else "ok",
+            })
+        except ValueError:
+            derived_notes.append({"file": fn, "generated_at": gen, "age_hours": None, "status": "unparseable"})
+
+# ---------------------------------------------------------------------------
 # Assemble output
 # ---------------------------------------------------------------------------
 try:
@@ -467,6 +533,9 @@ try:
         "ledger_status": ledger_status,
         "broken_links": unique_broken,
         "section_ages": section_ages,
+        "focus_freshness": focus_freshness,
+        "index_drift": index_drift,
+        "derived_notes": derived_notes,
     }
     print(json.dumps(output))
 except Exception as e:
@@ -557,6 +626,45 @@ for sa in data["section_ages"]:
     age = str(sa["last_appended_days"]) if sa["last_appended_days"] is not None else "—"
     icon = status_icon(sa["status"])
     print(f"  {sa['section']:<15} {age:<22} {icon}")
+
+# Freshness + index signals (v0.9.3 — same three signals as thinkos-doctor.sh)
+print("\nFRESHNESS & INDEX SIGNALS")
+ff = data.get("focus_freshness", {})
+ff_status = ff.get("status", "unknown")
+ff_end = ff.get("covers_week_end")
+if ff_status == "fresh":
+    print(f"  Focus freshness     : OK — covers_week current through {ff_end}")
+elif ff_status == "stale":
+    print(f"  Focus freshness     : STALE — covers_week ended {ff_end}; run /weekly-review")
+elif ff_status == "missing":
+    print("  Focus freshness     : MISS — Current Focus not found")
+else:
+    print("  Focus freshness     : ?  — covers_week missing or unparseable")
+
+idx = data.get("index_drift", {})
+idx_status = idx.get("status", "no_db")
+if idx_status == "ok":
+    c = idx["counts"]
+    print(f"  Index drift         : OK — search_index matches tables "
+          f"(entities {c['entity']['actual']}, observations {c['observation']['actual']}, relations {c['relation']['actual']})")
+elif idx_status == "drift":
+    c = idx["counts"]
+    pairs = ", ".join(f"{t} {c[t]['search_index']}/{c[t]['actual']}" for t in ("entity", "observation", "relation"))
+    print(f"  Index drift         : DRIFT — search_index/actual rows: {pairs}; run /thinkos-reindex")
+elif idx_status == "no_db":
+    print("  Index drift         : —  — no ~/.basic-memory/memory.db yet")
+else:
+    print(f"  Index drift         : ERR — {idx.get('detail', 'query failed')}")
+
+dn = data.get("derived_notes", [])
+stale_dn = [d for d in dn if d["status"] != "ok"]
+if not dn:
+    print("  Derived notes       : —  — no generated_at notes under 90 System")
+elif not stale_dn:
+    print(f"  Derived notes       : OK — {len(dn)} generated note(s), all <24h old")
+else:
+    items = "; ".join(f"{d['file']} ({d['generated_at']})" for d in stale_dn)
+    print(f"  Derived notes       : STALE — {items}")
 
 print()
 print("Run with --json for machine-readable output.")

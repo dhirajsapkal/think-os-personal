@@ -51,13 +51,15 @@ If `ToolSearch` for a needed source returns nothing AND `claude mcp list` shows 
 
 ---
 
-## Step 2 — Read current state
+## Step 2 — Read current state (section-scoped, never the full note)
 
-Read the current Tasks.md so the agent has the baseline for dedup + preservation:
+Tasks.md is ~4k tokens; don't `read_note` the whole thing. Extract only the connector-managed region — frontmatter through the line before `### Manually added` — via a deterministic read-only Bash read (vault *writes* still go through Basic Memory; read-only shell extraction is allowed and preferred for large files):
 
+```bash
+sed -n '1,/^### Manually added/p' "${THINKOS_HOME:-$HOME/ThinkOS/vault}/01 Now/Tasks.md"
 ```
-mcp__basic-memory__read_note("Tasks")
-```
+
+This gives you the dedup baseline: `last_synced` frontmatter, the `## Today` section (legacy files: `## Open`), the Slack tracker `**Watching**` list, and the informational sections. The preserved-verbatim sections (`### Manually added`, `## Done (this week)`, `## Conventions`) are deliberately NOT read — with the section-scoped write in Step 6 they stay on disk untouched, so they never need to enter context. Fallback if shell is unavailable: `mcp__basic-memory__read_note("Tasks")`.
 
 Note the `last_synced` value in frontmatter — this becomes the lower bound of the lookback if larger than the default window.
 
@@ -168,9 +170,9 @@ If `--dry-run`, print the diff summary + the proposed Tasks.md content (or a uni
 
 ---
 
-## Step 6 — Write Tasks.md
+## Step 6 — Write Tasks.md (section-scoped where possible)
 
-Compose the new Tasks.md preserving the canonical section order:
+Compose the refreshed connector-managed region preserving the canonical section order (`## Today` is the anchor — it holds today's actionable open items; older files may still say `## Open`):
 
 ```
 ---
@@ -197,7 +199,7 @@ sources: [gmail, slack, clickup, atlassian, notion, calendar]
 
 **<human timestamp>** — `/thinkos-refresh` (sources: <list>). <One-line summary of what changed.>
 
-## Open
+## Today
 
 ### ⏰ Action items
 <merged items from Gmail/Slack/manual, prioritized>
@@ -251,7 +253,20 @@ sources: [gmail, slack, clickup, atlassian, notion, calendar]
 *Last reviewed: <today>. Refreshed via /thinkos-refresh.*
 ```
 
-Write via:
+**Preferred write — section-scoped `find_replace` against the `## Today` anchor.** The old section text is already in context from Step 2; replace it with the newly rendered region. This never touches `### Manually added`, `## Done (this week)`, or `## Conventions`:
+
+```
+mcp__basic-memory__edit_note(
+  identifier="Tasks",
+  operation="find_replace",
+  find_text="<old connector-managed region, from '## Today' through the line before '### Manually added'>",
+  content="<newly rendered region for the same span>"
+)
+```
+
+Update `last_synced` in frontmatter the same way (`find_replace` on the old `last_synced: '...'` line), and append RESOLVED items to `## Done (this week)` via a separate `insert_after_section` / `append`-style edit — never by rewriting that section.
+
+**Fallback — full replace** only when section-scoped editing isn't possible: the `## Today` anchor is absent (legacy `## Open` files migrate to the canonical structure on this one run), the file's structure has drifted from the canonical order, or `find_replace` fails:
 
 ```
 mcp__basic-memory__edit_note(
@@ -261,7 +276,7 @@ mcp__basic-memory__edit_note(
 )
 ```
 
-If `edit_note` with `operation=replace` fails (some Basic Memory versions don't support full replace), fall back to `mcp__basic-memory__write_note` with `overwrite=true`.
+If `operation=replace` also fails (some Basic Memory versions don't support full replace), fall back to `mcp__basic-memory__write_note` with `overwrite=true`. On any full rewrite, the preserved-verbatim sections must first be read (one `read_note("Tasks")` is acceptable for this fallback path only) and carried over unchanged.
 
 ---
 
@@ -271,7 +286,7 @@ If `edit_note` with `operation=replace` fails (some Basic Memory versions don't 
 mcp__basic-memory__edit_note(
   identifier="Capture Log",
   operation="append",
-  content='{"ts":"<ISO8601 UTC>","source":"connector-sync","detail":{"via":"thinkos-refresh","sources":["gmail","slack","calendar","clickup",...],"new":<N>,"changed":<N>,"resolved":<N>,"unavailable":[<list>]},"output":"01 Now/Tasks.md","mode":"replace","bytes":<bytes of new file>}\n'
+  content='{"ts":"<ISO8601 UTC>","source":"connector-sync","detail":{"via":"thinkos-refresh","sources":["gmail","slack","calendar","clickup",...],"new":<N>,"changed":<N>,"resolved":<N>,"unavailable":[<list>]},"output":"01 Now/Tasks.md","mode":"<find_replace|replace — whichever Step 6 actually used>","bytes":<bytes written>}\n'
 )
 ```
 
@@ -302,6 +317,7 @@ If any source was unavailable, append a second line:
 ## Hard rules
 
 - **Parallel pulls only.** Sequential connector calls add 5-10x latency. Always batch in one assistant turn.
+- **Section-scoped first.** Read via the Step 2 Bash extraction, write via `find_replace` on the `## Today` anchor. Full-note read/replace is the exception, not the default.
 - **Never silently drop manual entries.** The `### Manually added` section is sacred.
 - **Never overwrite `Done (this week)`** — only append.
 - **Honest unavailability.** If Notion connector isn't registered, say "Notion unavailable" — don't pretend it returned empty.

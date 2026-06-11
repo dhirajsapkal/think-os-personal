@@ -3,10 +3,18 @@ description: Daily brief — focus, plate, recent log, calendar
 permalink: think-os/adapters/claude-code/commands/thinkos-morning
 ---
 
-Pull a complete morning brief from the personal context OS via Basic Memory MCP:
-- `mcp__basic-memory__search_notes("identity")`
-- `mcp__basic-memory__read_note("Current Focus")`
-- `mcp__basic-memory__read_note("Tasks")`
+**No re-reads:** if identity / Current Focus were already loaded this session, do not re-issue those searches/reads — refer to context and load only what's missing.
+
+Pull a complete morning brief from the personal context OS:
+- `mcp__basic-memory__search_notes("identity", page_size=3)` — escalate on a miss (page=2 → page_size=10 → read_note of the best candidate)
+- `mcp__basic-memory__read_note("Current Focus")` — small HOT file; whole-file read is correct
+- Tasks — **section-scoped, never the full note** (~4k tokens). Deterministic read-only extraction of the `## Today` section (and `## This week` if present):
+
+  ```bash
+  awk '/^## (Today|This week)([[:space:]]|$)/{p=1; print; next} /^## /{p=0} p' "${THINKOS_HOME:-$HOME/ThinkOS/vault}/01 Now/Tasks.md"
+  ```
+
+  Fallback only if shell is unavailable or the anchors don't exist in the file: `mcp__basic-memory__read_note("Tasks")`.
 
 Then deliver in this order (≤250 words total):
 

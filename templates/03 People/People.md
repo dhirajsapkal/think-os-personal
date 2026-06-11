@@ -22,6 +22,7 @@ Mini personal CRM. Colleagues, clients, stakeholders, useful contacts. Used when
 
 ```markdown
 ## <Canonical Name>
+- **Aliases**: <nicknames, Slack handles, email prefixes — anything I call them>
 - **Role**: <title, team>
 - **Organization**: <employer, or "external" / "client at X">
 - **Working relationship**: <how I know them, frequency, channel>
@@ -32,11 +33,14 @@ Mini personal CRM. Colleagues, clients, stakeholders, useful contacts. Used when
 - **Avoid**: <topics or framings that don't land well, if any>
 ```
 
+**The `aliases:` convention** — one person, one entry. When a nickname or handle comes up ("AC said...", "@alexc pinged me"), match it against `Aliases` lines before creating a new entry. Cheap manual entity resolution: the agent adds newly observed nicknames/handles here instead of spawning duplicates.
+
 ---
 
 ## People (alphabetical by first name or canonical handle)
 
 ## {{Example: Alex Chen}}
+- **Aliases**: {{e.g., "AC", "@alexc", "alex.chen@"}}
 - **Role**: {{e.g., Product Manager, Platform team}}
 - **Organization**: {{Same Org / Client X / external}}
 - **Working relationship**: {{e.g., "Weekly sync on the X engagement since March; mostly Slack DM"}}

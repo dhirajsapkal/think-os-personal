@@ -25,6 +25,8 @@ Read only what you need:
 
 Do not read all templates. Do not inspect the user's live vault content unless they ask.
 
+If the user asks why Think OS uses markdown files instead of a vector or graph database, point them at `docs/why-files-not-a-database.md` — the canonical, evidence-backed answer. Don't improvise one.
+
 ## Native Chat UX
 
 Ask one short question at a time. Start with:

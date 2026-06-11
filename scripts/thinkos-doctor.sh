@@ -581,6 +581,158 @@ if [[ -d "$OS_HOME/LaunchAgents" ]]; then
   fi
 fi
 
+# ---------------------------------------------------------------------------
+# v0.9.3: focus freshness — covers_week end date vs today (mechanical, not prose)
+# ---------------------------------------------------------------------------
+FOCUS_FILE="$OS_HOME/01 Now/Current Focus.md"
+TODAY="$(date +%Y-%m-%d)"
+NOW_ISO="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+FOCUS_END=""
+FOCUS_STATE="unknown"
+
+if [[ ! -f "$FOCUS_FILE" ]]; then
+  FOCUS_STATE="missing"
+  add_check "focus:freshness" warn "Current Focus missing: $FOCUS_FILE"
+else
+  # covers_week from frontmatter only; end date = last YYYY-MM-DD on the line.
+  # Template placeholders ({{YYYY-MM-DD}}) contain no digits -> unparseable.
+  FOCUS_END="$(awk '/^---[[:space:]]*$/ { c++; next } c == 1 && /^covers_week:/ { print; exit } c >= 2 { exit }' "$FOCUS_FILE" 2>/dev/null \
+    | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | tail -n 1 || true)"
+  if [[ -z "$FOCUS_END" ]]; then
+    FOCUS_STATE="unknown"
+    add_check "focus:freshness" warn "covers_week missing or unparseable in Current Focus frontmatter (template placeholder?)"
+  elif [[ "$FOCUS_END" < "$TODAY" ]]; then
+    FOCUS_STATE="stale"
+    add_check "focus:freshness" warn "covers_week ended $FOCUS_END (today is $TODAY); run /weekly-review"
+  else
+    FOCUS_STATE="fresh"
+    add_check "focus:freshness" ok "covers_week current through $FOCUS_END"
+  fi
+fi
+
+# Doctor (not the session hook) maintains the non-CLI freshness one-liner in
+# the vault: "90 System/Focus Freshness.md". Machinery-owned, deterministic,
+# safe to overwrite — one line plus minimal frontmatter.
+if [[ -d "$OS_HOME/90 System" ]]; then
+  FRESHNESS_NOTE="$OS_HOME/90 System/Focus Freshness.md"
+  case "$FOCUS_STATE" in
+    fresh) FRESHNESS_LINE="focus-fresh: YES — covers_week current through $FOCUS_END (generated_at: $NOW_ISO)" ;;
+    stale) FRESHNESS_LINE="focus-fresh: NO — covers_week ended $FOCUS_END (generated_at: $NOW_ISO)" ;;
+    *)     FRESHNESS_LINE="focus-fresh: UNKNOWN — covers_week missing or unparseable (generated_at: $NOW_ISO)" ;;
+  esac
+  if cat >"$FRESHNESS_NOTE" <<EOF
+---
+title: Focus Freshness
+permalink: 90-system/focus-freshness
+generated_at: $NOW_ISO
+---
+$FRESHNESS_LINE
+EOF
+  then
+    add_check "focus:freshness-note" ok "updated $FRESHNESS_NOTE"
+  else
+    add_check "focus:freshness-note" warn "could not write $FRESHNESS_NOTE"
+  fi
+else
+  add_check "focus:freshness-note" ok "skipped — no 90 System directory at $OS_HOME"
+fi
+
+# ---------------------------------------------------------------------------
+# v0.9.3: index drift — Basic Memory FTS search_index vs actual table rowcounts.
+# Concurrent per-session servers can race delete+insert on FTS5, leaving
+# duplicate rows in search_index. /thinkos-reindex rebuilds it.
+# ---------------------------------------------------------------------------
+BM_DB="$HOME/.basic-memory/memory.db"
+if ! command -v sqlite3 >/dev/null 2>&1; then
+  add_check "index:drift" ok "sqlite3 unavailable"
+elif [[ ! -f "$BM_DB" ]]; then
+  add_check "index:drift" ok "no memory.db yet at $BM_DB"
+else
+  DRIFT_ROW="$(sqlite3 -readonly "$BM_DB" "
+    SELECT
+      (SELECT COUNT(*) FROM search_index WHERE type='entity'),
+      (SELECT COUNT(*) FROM entity),
+      (SELECT COUNT(*) FROM search_index WHERE type='observation'),
+      (SELECT COUNT(*) FROM observation),
+      (SELECT COUNT(*) FROM search_index WHERE type='relation'),
+      (SELECT COUNT(*) FROM relation);" 2>/dev/null || true)"
+  if [[ -z "$DRIFT_ROW" ]]; then
+    add_check "index:drift" ok "memory.db not queryable (locked or schema mismatch); skipped"
+  else
+    IFS='|' read -r SI_ENT ACT_ENT SI_OBS ACT_OBS SI_REL ACT_REL <<<"$DRIFT_ROW"
+    if [[ "$SI_ENT" == "$ACT_ENT" && "$SI_OBS" == "$ACT_OBS" && "$SI_REL" == "$ACT_REL" ]]; then
+      add_check "index:drift" ok "search_index matches tables (entities $ACT_ENT, observations $ACT_OBS, relations $ACT_REL)"
+    else
+      add_check "index:drift" warn "search_index vs actual rowcount mismatch — entities $SI_ENT/$ACT_ENT, observations $SI_OBS/$ACT_OBS, relations $SI_REL/$ACT_REL; duplicate/stale FTS rows — run /thinkos-reindex"
+    fi
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# v0.9.3: derived freshness — any "90 System" note carrying a generated_at
+# frontmatter field older than 24h is a stale derived artifact.
+# (Focus Freshness.md was just rewritten above, so it reads fresh here;
+# this check covers artifacts doctor does not own.)
+# ---------------------------------------------------------------------------
+SYSTEM_DIR="$OS_HOME/90 System"
+if [[ ! -d "$SYSTEM_DIR" ]]; then
+  add_check "derived:freshness" ok "no 90 System directory yet"
+else
+  DERIVED_OUT="$(python3 - "$SYSTEM_DIR" <<'PY' 2>/dev/null || echo "?"
+import sys, os, datetime
+
+d = sys.argv[1]
+now = datetime.datetime.now(datetime.timezone.utc)
+checked = 0
+stale = []
+for fn in sorted(os.listdir(d)):
+    if not fn.endswith(".md"):
+        continue
+    path = os.path.join(d, fn)
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            lines = fh.readlines()
+    except OSError:
+        continue
+    if not lines or lines[0].strip() != "---":
+        continue
+    gen = None
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        if line.startswith("generated_at:"):
+            gen = line.partition(":")[2].strip().strip('"').strip("'")
+            break
+    if gen is None:
+        continue
+    checked += 1
+    try:
+        ts = datetime.datetime.fromisoformat(gen.rstrip("Z"))
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=datetime.timezone.utc)
+    except ValueError:
+        stale.append(f"{fn} (unparseable generated_at: {gen})")
+        continue
+    if (now - ts).total_seconds() > 24 * 3600:
+        stale.append(f"{fn} (generated_at {gen})")
+print(f"{checked}\t" + "; ".join(stale))
+PY
+)"
+  if [[ "$DERIVED_OUT" == "?" ]]; then
+    add_check "derived:freshness" warn "derived freshness check failed to run (python3 error); state unknown"
+  else
+    DERIVED_CHECKED="${DERIVED_OUT%%$'\t'*}"
+    DERIVED_STALE="${DERIVED_OUT#*$'\t'}"
+    if [[ "$DERIVED_CHECKED" == "0" ]]; then
+      add_check "derived:freshness" ok "no generated_at notes under 90 System"
+    elif [[ -z "$DERIVED_STALE" ]]; then
+      add_check "derived:freshness" ok "$DERIVED_CHECKED generated note(s) under 90 System, all <24h old"
+    else
+      add_check "derived:freshness" warn "stale derived note(s) >24h old: $DERIVED_STALE"
+    fi
+  fi
+fi
+
 if [[ "$JSON" -eq 1 ]]; then
   printf '{"os_home":"%s","project":"%s","checks":[' "$(json_escape "$OS_HOME")" "$(json_escape "$PROJECT_NAME")"
   for i in "${!CHECK_NAMES[@]}"; do

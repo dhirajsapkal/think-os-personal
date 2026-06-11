@@ -51,6 +51,14 @@ Extract topic, decision, why, context, applies-to from the content. If anything 
 mcp__basic-memory__edit_note(identifier="Decisions", operation="prepend", content="<formatted entry>")
 ```
 
+**Supersedes convention.** If this decision replaces an earlier one, set `**Supersedes**: <YYYY-MM-DD — old topic slug>` in the new entry, then mark the old entry as superseded — add a `**Superseded-by**: <YYYY-MM-DD — new topic>` line to it via:
+
+```
+mcp__basic-memory__edit_note(identifier="Decisions", operation="find_replace", find_text="## <old date> — <old topic>", content="## <old date> — <old topic>\n**Superseded-by**: <new date> — <new topic>")
+```
+
+Both edges of the link matter: `/thinkos-decisions` uses `Superseded-by` to filter stale decisions out of default answers.
+
 ### Mode: learning
 
 Append to `04 Knowledge/Learnings.md`. Format (preserve from the previous `/thinkos-capture`):
@@ -103,9 +111,7 @@ mcp__basic-memory__edit_note(
 )
 ```
 
-The `topic` field is **required, not optional** — it's what enables the next capture to detect semantic overlap without re-reading vault content. Use a 5–10 word slug that captures the gist (e.g., `"git as default vault sync"`, `"role principal designer think co"`).
-
-The `via` field differentiates the mode: `via: thinkos-capture-decision`, `via: thinkos-capture-learning`, `via: thinkos-capture-log`, `via: thinkos-capture-session-recap`. This preserves the audit-trail differentiation that the v0.4.4 topic-overlap dedup relies on.
+The `topic` field is **required** — a 5–10 word slug capturing the gist (e.g., `"git as default vault sync"`). It's what lets the next capture detect semantic overlap without re-reading vault content. The `via` field carries the mode (`thinkos-capture-decision|learning|log|session-recap`) for the audit trail.
 
 Privacy keywords: if the draft contains any of `comp, salary, compensation, bonus, raise, offer letter, HR, performance review, PIP, health, medical, family, personal, confidential, private`, write the entry to the vault but add `"redacted": true` to the ledger event and omit detail content fields. The vault file itself is the personal hub — content is fine there; the ledger just doesn't surface the sensitive label.
 
@@ -127,7 +133,7 @@ This embeds the previous `/thinkos-save` flow verbatim. Run when `--mode session
 
 ### Step 0a — Silent triage (do this before asking the user anything)
 
-> **Important context:** Multi-instance Claude usage is normal. A user can run Claude Code in multiple terminals, Cowork tabs, Desktop, and mobile throughout the day. A session recap from any one of those will see ledger entries from OTHER concurrent sessions. **That's parallel work, not a conflict.** Don't treat it as duplication unless the *topics* of recent saves actually overlap with what THIS session would save.
+> **Important context:** Multi-instance Claude is normal — ledger entries from other concurrent sessions are parallel work, not conflicts. Treat a recent save as a duplicate only if its *topic* overlaps with what THIS session would save, never on timestamp proximity alone.
 
 Read the recent conversation context (you already have it loaded — no fetching). Following the format rules below, internally compose:
 
@@ -142,17 +148,17 @@ If triage produces zero candidates across all four categories, exit cleanly:
 
 ### Step 0b — Topic-overlap dedup check (silent unless real overlap found)
 
-Read recent manual-save topics from the capture ledger:
+Read recent manual-save topics from the tail of the ledger file — **do not** `read_note` the full Capture Log (it's ~6.5k tokens; the dedup only needs the recent tail). This is a deterministic read-only extraction, which is allowed; vault *writes* still go through Basic Memory.
 
+```bash
+tail -n 30 "${THINKOS_HOME:-$HOME/ThinkOS/vault}/90 System/Capture Log.md"
 ```
-mcp__basic-memory__read_note("Capture Log")
-```
 
-Extract the last 15 lines matching `"source":"manual"` and pull their `"topic"` fields.
+From those lines, parse the JSON events, keep up to the last 15 matching `"source":"manual"`, and pull their `"topic"` fields. (Fallback if shell is unavailable: `mcp__basic-memory__read_note("Capture Log")` and use only the tail.)
 
-For each topic from the ledger, judge semantically whether it overlaps with any of THIS session's candidate topics from Step 0a.
+For each ledger topic, judge semantically whether it overlaps with any of THIS session's candidate topics from Step 0a.
 
-- **No semantic overlap** → proceed silently to Step 1. Do NOT surface the recent saves to the user. (They're from concurrent sessions doing different work.)
+- **No semantic overlap** → proceed silently to Step 1. Do NOT surface the recent saves to the user.
 - **Semantic overlap on one or more candidates** → use `AskUserQuestion` (one question per overlapping pair):
   - Header: "Possible duplicate"
   - Question: `Topic "<your candidate slug>" looks similar to a recent save: "<matching ledger topic>". Save anyway, or skip this one?`
@@ -164,7 +170,7 @@ For each topic from the ledger, judge semantically whether it overlaps with any 
 
   Non-overlapping candidates proceed to Step 1 without prompting.
 
-When in doubt about overlap, lean toward NOT prompting. False positives (asking about a non-duplicate) are worse than false negatives (saving something redundant) — the user can still decline at the per-draft chip-picker. The earlier blunt "any recent save → prompt" rule was wrong; correct it by using meaning, not timestamps.
+When in doubt, lean toward NOT prompting — the user can still decline at the per-draft chip-picker, and false-positive duplicate prompts cost more trust than an occasional redundant save.
 
 ### Step 1 — Triage what to save
 
@@ -230,7 +236,7 @@ For each queued draft, append via `mcp__basic-memory__edit_note`:
 | Learning | `Learnings` | `append` |
 | Person | `People` | `append` |
 
-For each write, append one ledger event with `via: thinkos-capture-session-recap` and the `topic` slug from Step 0a. The `topic` field is required — without it, future dedup falls back to noisy timestamp-only checks.
+For each write, append one ledger event with `via: thinkos-capture-session-recap` and the required `topic` slug from Step 0a.
 
 ### Step 4 — Reindex + report
 
@@ -259,7 +265,7 @@ If the user picked Skip for everything:
 - **Personal hub only.** Saved entries land in the personal hub regardless of active vault.
 - **No client names.** Per Identity guardrail #7. If the content references clients by name, redact them as `[client]` in drafts before showing.
 - **Honesty about triviality.** If a session-recap surfaces no substance, say so and exit.
-- **Don't duplicate yourself.** In session-recap mode, the Step 0a/0b dedup check is mandatory. Use semantic overlap, not timestamp proximity.
+- **Don't duplicate yourself.** In session-recap mode, the Step 0a/0b dedup check (tail of the ledger, semantic overlap) is mandatory.
 - **Be terse.** Drafts read like the user's own writing — direct, no padding.
 
 User message: $ARGUMENTS

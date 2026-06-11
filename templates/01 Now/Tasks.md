@@ -24,12 +24,21 @@ Connector-synced inbox: open items pulled from email, chat, project trackers, ca
 
 Each section is a source. Auto-generated entries note the source link. Manually added entries go in the dedicated section so they don't get overwritten on next sync.
 
+- **Today** — today's working set; automation reads and writes this section by name
 - **Manually added** — things I typed in, never overwritten by sync
 - **Email** — flagged / unread threads needing response
 - **Chat** — Slack / Teams threads where someone's waiting on me
 - **Project tracker** — issues / tickets assigned to me or watched
 - **Calendar** — upcoming meetings with prep required
 - **Awaiting** — things I'm waiting on others for
+
+---
+
+## Today
+
+<!-- Automation anchor: /thinkos-morning, /thinkos-plate, and /thinkos-refresh read and write exactly this section by its heading. Do not rename it. -->
+
+- {{Today's working set — promoted from the sections below, plus anything added by hand}}
 
 ---
 

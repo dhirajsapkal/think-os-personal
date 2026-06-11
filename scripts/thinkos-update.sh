@@ -40,6 +40,9 @@ What gets re-applied:
   - The BEGIN/END THINK OS block in:
       ~/.claude/CLAUDE.md             (Claude Code)
   - Slash commands in ~/.claude/commands/ (overwrites older versions)
+  - Skills in ~/.claude/skills/thinkos-*/ (overwrites older versions)
+  - The Think OS SessionStart hook in ~/.claude/settings.json (merged
+    idempotently; existing user hooks are preserved and backed up first)
   - launchd jobs (~/Library/LaunchAgents/com.thinkos.*.plist) whose baked-in
     script path no longer resolves inside this repo (e.g. after moving the
     repo): the matching installer script is re-run to regenerate and reload
@@ -153,6 +156,95 @@ has_product() {
   [[ ",$PRODUCTS," == *",$needle,"* ]]
 }
 
+install_claude_skills() {
+  if [[ ! -d "$REPO_ROOT/adapters/claude-code/skills" ]]; then
+    log "WARNING: $REPO_ROOT/adapters/claude-code/skills not found; skipping skill refresh."
+    return 0
+  fi
+  local skill_dir skill_name skill_file
+  for skill_dir in "$REPO_ROOT"/adapters/claude-code/skills/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    skill_name="$(basename "$skill_dir")"
+    run mkdir -p "$HOME/.claude/skills/$skill_name"
+    for skill_file in "$skill_dir"*; do
+      [[ -f "$skill_file" ]] || continue
+      run cp "$skill_file" "$HOME/.claude/skills/$skill_name/"
+    done
+  done
+}
+
+# Idempotently install the Think OS SessionStart hook into ~/.claude/settings.json.
+# Merges into any existing SessionStart hook array (never clobbers user hooks),
+# never duplicates the entry on re-run (matched on the script filename), and
+# backs up settings.json before modifying it. The hook script itself lives at
+# scripts/thinkos-session-start.sh in this repo.
+install_session_start_hook() {
+  local settings="$HOME/.claude/settings.json"
+  local hook_script="$REPO_ROOT/scripts/thinkos-session-start.sh"
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "Would install SessionStart hook ($hook_script) into $settings"
+    return 0
+  fi
+
+  mkdir -p "$HOME/.claude"
+  SETTINGS_FILE="$settings" HOOK_SCRIPT="$hook_script" python3 - <<'PYEOF'
+import datetime, json, os, shutil, sys
+
+settings_path = os.environ["SETTINGS_FILE"]
+hook_command = 'bash "%s"' % os.environ["HOOK_SCRIPT"]
+marker = "thinkos-session-start.sh"
+
+data = {}
+existed = os.path.exists(settings_path)
+if existed:
+    try:
+        with open(settings_path) as fh:
+            data = json.load(fh)
+    except (json.JSONDecodeError, OSError) as e:
+        print("WARNING: could not parse %s (%s); leaving it untouched." % (settings_path, e))
+        print("         Add the SessionStart hook manually: %s" % hook_command)
+        sys.exit(0)
+
+if not isinstance(data, dict):
+    print("WARNING: %s is not a JSON object; leaving it untouched." % settings_path)
+    sys.exit(0)
+
+hooks = data.setdefault("hooks", {})
+session_start = hooks.setdefault("SessionStart", [])
+
+changed = False
+found = False
+for entry in session_start:
+    if not isinstance(entry, dict):
+        continue
+    for h in entry.get("hooks", []):
+        if isinstance(h, dict) and marker in h.get("command", ""):
+            found = True
+            if h["command"] != hook_command:
+                h["command"] = hook_command  # refresh stale repo path
+                changed = True
+if not found:
+    session_start.append({"hooks": [{"type": "command", "command": hook_command}]})
+    changed = True
+
+if not changed:
+    print("SessionStart hook already present in %s" % settings_path)
+    sys.exit(0)
+
+if existed:
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    shutil.copy2(settings_path, "%s.thinkos-bak-%s" % (settings_path, stamp))
+
+tmp = settings_path + ".thinkos-tmp"
+with open(tmp, "w") as fh:
+    json.dump(data, fh, indent=2)
+    fh.write("\n")
+os.replace(tmp, settings_path)
+print("SessionStart hook installed in %s" % settings_path)
+PYEOF
+}
+
 update_claude_code() {
   log "Refreshing Claude Code instructions"
   install_marked_block \
@@ -173,6 +265,12 @@ update_claude_code() {
   else
     log "WARNING: $REPO_ROOT/adapters/claude-code/commands not found; skipping slash command refresh."
   fi
+
+  log "Refreshing Claude Code skills at ~/.claude/skills/"
+  install_claude_skills
+
+  log "Ensuring SessionStart hook in ~/.claude/settings.json"
+  install_session_start_hook
 }
 
 # ---------------------------------------------------------------------------

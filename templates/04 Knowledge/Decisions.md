@@ -28,6 +28,25 @@ Long-term decisions I've already made, so the agent does not re-litigate them ev
 **Supersedes**: <link to earlier decision if any, or "none">
 ```
 
+### The `supersedes:` convention
+
+Decisions form a chain, not a pile. When a new decision replaces an old one:
+
+- The **new** entry carries `**Supersedes**: [[YYYY-MM-DD — <old topic>]]`.
+- The **old** entry gets a `**Superseded-by**: [[YYYY-MM-DD — <new topic>]]` line added as its first body line. Don't delete the old entry — the history is the point.
+
+Search will still surface the old entry; the `Superseded-by` line tells the agent (and you) which one is live. Quick example:
+
+```markdown
+## 2026-03-02 — deploys go through CI only
+**Decision**: All deploys run through CI; no laptop deploys.
+**Supersedes**: [[2025-11-10 — manual deploys allowed for hotfixes]]
+
+## 2025-11-10 — manual deploys allowed for hotfixes
+**Superseded-by**: [[2026-03-02 — deploys go through CI only]]
+**Decision**: Hotfixes may be deployed from a laptop with a second approver.
+```
+
 ---
 
 ## Decisions (newest first)

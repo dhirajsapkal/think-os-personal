@@ -8,19 +8,26 @@ The markdown files in this directory are the **always-on guidance** that gets in
 
 The order below matches the `curated_instruction_files()` function in `scripts/lib/render-instructions.sh`. Line counts are approximate and reflect the current state of each file; run `wc -l templates/instructions/*.md` to check live sizes.
 
-1. `00-think-os-priority.md` (~59 lines) — "this user has Think OS, MUST query Basic Memory first, core rules"
-2. `05-global-rules.md` (~47 lines) — non-negotiable NEVER / ALWAYS rules (destructive ops, scope, secrets, drafts-never-send, plan-before-edit, etc.)
-3. `10-token-efficiency.md` (~19 lines) — tool-use defaults (Grep over Read+grep, Edit over Write, batch parallel calls, etc.)
-4. `20-skill-routing.md` (~41 lines) — topic → skill mapping (design → `frontend-design:frontend-design`, decisions → `/thinkos-decisions`, etc.)
-5. `30-think-os-write-targets.md` (~42 lines) — where new content goes by content type
-6. `40-emergent-seeding.md` (~80 lines) — detect HOT-file stubs and progressively fill them from conversation; offer-then-confirm, one per turn
-7. `50-drift-detection.md` (~38 lines) — flag contradictions (expired Current Focus, unknown people, missing project entries) mid-flow as a single end-of-turn line
-8. `60-shared-mode.md` (~60 lines) — when shared-mode is on, redact `tier: sensitive` notes at read time; the toggle skill only sets the flag, this block does the enforcement
-9. `70-claude-ai-bridge.md` (~47 lines) — how the `mcp__claude_ai_*` deferred-tool surface works; read before declaring a connector unavailable
+1. `00-think-os-priority.md` (~50 lines) — "this user has Think OS, MUST query Basic Memory first", retrieval doctrine, core rules
+2. `05-global-rules.md` (~47 lines) — non-negotiable NEVER / ALWAYS rules (destructive ops, scope, secrets, drafts-never-send, plan-before-edit, etc.). **Do not slim this file** — it is load-bearing safety.
+3. `10-token-efficiency.md` (~21 lines) — tool-use defaults + Think OS large-file read rules (Work Log / Capture Log / Tasks extraction, build_context discipline)
+4. `20-skill-routing.md` (~25 lines) — topic → skill mapping (design → `frontend-design:frontend-design`, decisions → `/thinkos-decisions`, etc.)
+5. `30-think-os-write-targets.md` (~22 lines) — where new content goes by content type + multi-vault routing
+6. `40-emergent-seeding.md` (~10 lines) — resident core only (stub marker, four target files, offer cadence); save-flow mechanics live in `adapters/claude-code/skills/thinkos-emergent-seeding/SKILL.md`
+7. `50-drift-detection.md` (~14 lines) — flag contradictions (expired Current Focus, unknown people, missing project entries) mid-flow as a single end-of-turn line
+8. `60-shared-mode.md` (~7 lines) — resident redaction core (detection signals + search/read redaction, which must always fire); full spec lives in `adapters/claude-code/skills/thinkos-shared-mode/SKILL.md`
+9. `70-claude-ai-bridge.md` (~3 lines) — pointer stub; full bridge guide lives in `adapters/claude-code/skills/thinkos-bridge/SKILL.md`
 
 When the wired list changes, also update the "Where to look next" section in `00-think-os-priority.md` so the preamble's promise matches what actually gets concatenated.
 
-The resulting block is ~390–530 lines depending on installed blocks; run `wc -l templates/instructions/*.md adapters/claude-code/instructions.md` to check current size.
+Since v0.9.3 the assembled block (curated files + `adapters/claude-code/instructions.md`) is budgeted at **~240 lines / ~18,000 chars (~4.5k tokens)** — measure with:
+
+```bash
+REPO_ROOT=$PWD DRY_RUN=0 OS_HOME=~/ThinkOS/vault bash -c \
+  'source scripts/lib/render-instructions.sh; render_think_os_block adapters/claude-code/instructions.md' | wc -l -c
+```
+
+Skill-ified blocks (bridge, shared-mode full spec, emergent-seeding save flow) are installed to `~/.claude/skills/` by `thinkos-setup.sh` / `thinkos-update.sh` and load on demand instead of every session. Keep the resident stubs pointing at them. The assembled block must stay byte-stable across sessions (no dynamic content) so prompt caching holds; dynamic state arrives via the SessionStart hook (`scripts/thinkos-session-start.sh`).
 
 ## Editing
 
@@ -40,4 +47,4 @@ bash scripts/thinkos-update.sh
 - New non-negotiable behavioral rule (NEVER / ALWAYS) → `05-global-rules.md`
 - New core rule that applies before all others / changes the priority protocol → `00-think-os-priority.md`
 
-Keep each file under ~120 lines. If a file outgrows that, the right move is usually to factor a subsection into a docs/ note and link to it from the curated file rather than appending forever.
+Keep each file within its budget above. If a block outgrows it, the right move is to factor the detail into a skill under `adapters/claude-code/skills/` (loaded on demand) or a docs/ note, leaving a resident pointer stub — not to append forever. Passive conversation-triggered behaviors (drift nudges, seeding offers, redaction) must keep their trigger logic resident: a skill the model never loads is a behavior that never fires.
