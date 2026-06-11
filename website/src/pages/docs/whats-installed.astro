@@ -1,0 +1,68 @@
+---
+// /docs/whats-installed — the "Built in" cards, moved off the homepage.
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+const installed = [
+  {
+    n: '01',
+    title: 'Curated agent guidance',
+    body: 'A curated instruction stack drops into the agent\'s always-loaded context — kept deliberately lean, with heavyweight playbooks loading on demand instead of riding along in every session. Consult the vault first. Draft, never send. Cite path:line. Never commit secrets. Refreshable in place with /thinkos-update.',
+  },
+  {
+    n: '02',
+    title: 'Thirty-six slash commands',
+    body: 'Pre-built playbooks for daily flows: /thinkos-morning, /thinkos-plate, /thinkos-capture, /thinkos-who, /thinkos-vitals, /thinkos-sync, /thinkos-update. Each is a plain markdown file at ~/.claude/commands/ — auditable, editable, yours.',
+  },
+  {
+    n: '03',
+    title: 'Role-based bundles',
+    body: 'Pick one preset and the right MCPs install for you: PM (Slack + Gmail + Google Calendar + Google Drive + Notion + Granola + Figma), Engineering (Slack + Gmail + Google Calendar + Google Drive + Atlassian), Design (Slack + Gmail + Google Calendar + Google Drive + Notion + Figma + Granola), Operations (Slack + Gmail + Google Calendar + Notion + QuickBooks). Each pulls matching Anthropic skill packs too.',
+  },
+  {
+    n: '04',
+    title: 'Skill routing baked in',
+    body: 'The instructions teach the agent which Anthropic skill to invoke for which task. UI work routes to frontend-design. PR review to review. Security audits to security-review. SDK code to claude-api. You ask in plain English; the agent picks the right tool.',
+  },
+  {
+    n: '05',
+    title: 'Three-vault privacy model',
+    body: 'Personal hub (local-only, never shared). Project vaults (shared via git, schema-enforced). Reference vaults (read-only imports). Personal content stays out of team repos by structural design — project vault schemas physically don\'t accept it. Privacy as architecture, not policy.',
+  },
+  {
+    n: '06',
+    title: 'Self-healing onboarding',
+    body: 'If anything in setup feels off — wrong command, missing step, confusing prompt — tell the agent. It opens a PR upstream so the next person doesn\'t hit it. The install gets better every time someone runs it. (Gated on gh CLI being authenticated.)',
+  },
+];
+---
+<DocsLayout
+  title="What's installed"
+  description="Think OS isn't just a folder of markdown. Installing it drops a curated agent instruction stack, thirty-six pre-built playbooks, a role-based MCP bundle, and skill routing into your environment."
+  current="whats-installed"
+>
+  <p>
+    Every agent that touches the vault knows what to do without you teaching
+    it. Here is what the install actually drops into your environment.
+  </p>
+
+  <div class="not-prose mt-10 space-y-10">
+    {installed.map((b) => (
+      <div class="grid grid-cols-12 gap-4 border-t border-rule pt-6">
+        <div class="col-span-2 md:col-span-1">
+          <p class="numeral text-3xl md:text-4xl leading-none">{b.n}</p>
+        </div>
+        <div class="col-span-10 md:col-span-11">
+          <h2 class="font-display text-xl md:text-2xl tracking-tight">{b.title}</h2>
+          <p class="mt-3 text-[15px] leading-relaxed text-muted max-w-[62ch]">{b.body}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <h2>Next</h2>
+  <p>
+    The full command list lives at <a href="/commands">/commands</a>. What to
+    actually do with all of it, day to day, is
+    <a href="/guide">How to use it</a>.
+  </p>
+</DocsLayout>

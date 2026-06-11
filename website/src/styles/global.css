@@ -341,6 +341,15 @@
   border-color: var(--rule);
   margin: 2.5rem 0;
 }
+.prose blockquote {
+  margin: 1.25rem 0;
+  border-left: 1px solid var(--accent);
+  padding-left: 1.25rem;
+  color: var(--muted);
+  font-family: 'Newsreader Variable', serif;
+  font-variation-settings: 'opsz' 24;
+  font-size: 1.05em;
+}
 
 /* ---------------------------------------------------------
    FAQ details

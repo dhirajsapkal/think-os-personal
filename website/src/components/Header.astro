@@ -9,10 +9,18 @@ const onDocs = path.startsWith('/docs');
     <div class="h-16 flex items-center justify-between">
       <a href="/" class="flex items-baseline gap-2 group">
         <span class="font-display text-[22px] tracking-tightest leading-none">Think OS</span>
-        <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">v{VERSION} · alpha</span>
+        <span class="hidden sm:inline font-mono text-[10px] tracking-[0.18em] uppercase text-muted">v{VERSION} · alpha</span>
       </a>
 
-      <nav class="flex items-center gap-7">
+      <nav class="flex items-center gap-4 md:gap-7">
+        <a
+          href="/guide"
+          class={`font-mono text-[11px] tracking-[0.18em] uppercase link-anim ${path.startsWith('/guide') ? 'text-ink' : 'text-muted'}`}
+        ><span class="md:hidden">Guide</span><span class="hidden md:inline">How to use it</span></a>
+        <a
+          href="/commands"
+          class={`font-mono text-[11px] tracking-[0.18em] uppercase link-anim ${path.startsWith('/commands') ? 'text-ink' : 'text-muted'}`}
+        >Commands</a>
         <a
           href="/docs"
           class={`font-mono text-[11px] tracking-[0.18em] uppercase link-anim ${onDocs ? 'text-ink' : 'text-muted'}`}
@@ -25,7 +33,7 @@ const onDocs = path.startsWith('/docs');
           href="https://github.com/dhirajsapkal/think-os"
           target="_blank"
           rel="noopener noreferrer"
-          class="font-mono text-[11px] tracking-[0.18em] uppercase text-muted link-anim"
+          class="hidden sm:inline font-mono text-[11px] tracking-[0.18em] uppercase text-muted link-anim"
         >GitHub ↗</a>
         <ThemeToggle />
       </nav>

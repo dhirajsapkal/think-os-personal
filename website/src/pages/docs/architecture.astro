@@ -1,0 +1,66 @@
+---
+// /docs/architecture — "Your files are already the database", moved off
+// the homepage intact: header copy, pullquote, three cards, GitHub link.
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+const architecture = [
+  {
+    n: '01',
+    title: 'Against context-stuffing',
+    body: 'Whole-file injection of large files is the documented accuracy killer — irrelevant tokens crowd out the question. So large files are never read end-to-end: the work log is extracted by date window, tasks by section, the capture ledger by tail. Search locates; the agent reads only the span it needs.',
+  },
+  {
+    n: '02',
+    title: 'Against DB-native memory',
+    body: 'Memory systems that extract "facts" into a store pay an LLM toll on every write and inherit its mistakes forever. Here, writes are deterministic — nothing is paraphrased on the way in. The index is a disposable cache: corrupt it, delete it, rebuild it from the files. Your notes stay git-diffable and readable in any editor.',
+  },
+  {
+    n: '03',
+    title: 'Freshness is mechanical',
+    body: 'A session-start check flags a stale Current Focus the moment a session opens — one line, enforced by the harness rather than by hoping the model remembers. The doctor compares index row counts against the files on disk and points you at the one-command rebuild when they drift.',
+  },
+];
+---
+<DocsLayout
+  title="Your files are already the database"
+  description="Why Think OS keeps your notes as plain markdown and treats everything else as a rebuildable index."
+  current="architecture"
+>
+  <p>
+    Think OS doesn't read your whole vault into context, and it doesn't move
+    your notes into a store you can't open. The vault is plain markdown on
+    disk, fronted by Basic Memory's hybrid index — SQLite full-text search,
+    vector embeddings computed locally with zero API calls, and a knowledge
+    graph built from your notes' own links. Search runs against the index;
+    every answer terminates in a verbatim read of the file itself.
+  </p>
+
+  <div class="not-prose my-10">
+    <p class="pullquote text-2xl md:text-[30px] max-w-[26ch]">
+      Markdown is the source of truth. Everything else is a rebuildable index.
+    </p>
+  </div>
+
+  <div class="not-prose space-y-10">
+    {architecture.map((a) => (
+      <div class="grid grid-cols-12 gap-4 border-t border-rule pt-6">
+        <div class="col-span-2 md:col-span-1">
+          <p class="numeral text-3xl md:text-4xl leading-none">{a.n}</p>
+        </div>
+        <div class="col-span-10 md:col-span-11">
+          <h2 class="font-display text-xl md:text-2xl tracking-tight">{a.title}</h2>
+          <p class="mt-3 text-[15px] leading-relaxed text-muted max-w-[62ch]">{a.body}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <h2>The full argument</h2>
+  <p>
+    The full argument — including what dedicated vector and graph databases
+    genuinely do better, and why none of it pays off at personal-vault scale —
+    lives in
+    <a href="https://github.com/dhirajsapkal/think-os/blob/main/docs/why-files-not-a-database.md">
+      docs/why-files-not-a-database.md</a>.
+  </p>
+</DocsLayout>

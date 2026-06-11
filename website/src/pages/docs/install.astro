@@ -3,7 +3,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 ---
 <DocsLayout
   title="Install"
-  description="One line, four questions, about five minutes."
+  description="One line, five questions, about five minutes."
   current="install"
 >
   <p>
@@ -14,9 +14,11 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
   <p>
     The agent clones the repo, finds <code>adapters/claude-code/INSTALL.md</code>,
-    and follows it. You'll be asked four short questions — vault location,
-    Basic Memory, plugin bundle, vault name — each with a recommended default
-    you can click without typing.
+    and follows it. You'll be asked five short questions — vault location,
+    Basic Memory, plugin bundle, vault name, and which folders hold your real
+    work — each with a recommended default you can click without typing. The
+    work-folders question matters: automatic session capture watches only the
+    folders you list there.
   </p>
 
   <h2>What it touches</h2>
@@ -36,5 +38,11 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
       adapters/claude-code/INSTALL.md
     </a>
     in the repo.
+  </p>
+
+  <h2>Installed?</h2>
+  <p>
+    Read <a href="/guide">How to use it</a> — what to do daily, weekly, and
+    when something feels off.
   </p>
 </DocsLayout>

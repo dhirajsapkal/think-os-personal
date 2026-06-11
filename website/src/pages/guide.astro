@@ -1,0 +1,570 @@
+---
+// /guide — "How to use it". The full user-facing playbook: mental model,
+// first week, daily + weekly rhythm, maintenance, dos & don'ts, and the
+// ten commands that matter. Renders in the full-width editorial layout
+// (numbered sections, same type system as the homepage), not DocsLayout.
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const dos = [
+  ['Answer the save offers.', 'A one-keystroke y is the price of memory. Claude never captures silently, so deferring forever means an empty vault.'],
+  ['Keep Current Focus to 3–5 priorities.', 'The file itself says it: if a fifth item is fighting for space, something fell off. The morning brief surfaces the top three — a ten-item list defeats it.'],
+  ['Edit vault files directly, in any editor.', 'The files are yours — Obsidian, VS Code, whatever. After heavy outside editing, run /thinkos-reindex so search catches up; doctor will flag it if you forget.'],
+  ['Track your real work folders.', 'Automatic capture only watches folders you’ve listed. scripts/thinkos-vault.sh track ~/code once, and your work log starts writing itself.'],
+  ['Run /weekly-review before the nag does.', 'Once Current Focus expires, every session opens with a staleness warning. Sunday evening, twenty minutes, done.'],
+  ['Check the ledger when curious.', '/thinkos-recent shows everything that was captured and from where. Trust it because you can verify it.'],
+  ['Tell Claude things in plain English.', '"Log this", "who is Sam?", "what’s on my plate?" all work. The slash commands are precision tools, not the only door.'],
+];
+
+const donts = [
+  ['Don’t paste secrets into notes headed for shared vaults.', 'Project vaults sync via git to your team. Personal-marker content (comp, health, HR, family) is auto-routed to your private hub, but an API key in a meeting note is on you. Mark genuinely private notes tier: sensitive and they’re hidden when you screen-share with /thinkos-shared on.'],
+  ['Don’t hand-edit ~/.thinkos/vaults.json.', 'It’s the registry the whole system reads. Use /thinkos-vault or the track/untrack script commands — they validate; your text editor doesn’t.'],
+  ['Don’t worry about the index.', 'It’s a disposable cache rebuilt from your files. If it corrupts, nothing is lost — doctor detects it, /thinkos-reindex repairs it. Your markdown was never wrong.'],
+  ['Don’t treat capture as surveillance — it isn’t built to be.', 'The background job records session metadata: directories, file counts, a commit hash. Not file contents, not transcripts, not anything you typed. It runs locally, makes no network calls, and every entry it writes is listed in the ledger and removable with /thinkos-undo-capture.'],
+  ['Don’t bulk-paste your life into the vault on day one.', 'The system is built to fill in from real use. If you do want to front-load, use /thinkos-continue — it drafts for your review instead of you transcribing.'],
+  ['Don’t ignore the doctor.', 'If /thinkos-recent shows nothing for days, capture is probably misconfigured, not quietly perfect. /thinkos-doctor says which.'],
+  ['Don’t expect Claude to remember what never reached a file.', 'A brilliant conclusion that ends with the session is gone. One /thinkos-log line is the difference.'],
+];
+
+const tenCommands = [
+  ['/thinkos-morning', '"good morning"', 'Daily brief: focus, plate, who you’re waiting on, calendar'],
+  ['/thinkos-plate', '"what’s on my plate today?"', 'Today’s tasks against this week’s priorities; flags overdue'],
+  ['/thinkos-log <note>', '"log this: ..."', 'Timestamped entry in your work log'],
+  ['/thinkos-decide <decision>', '"we decided to..."', 'Standing decision recorded with date, reasoning, scope'],
+  ['/thinkos-who <name>', '"who is Jordan?"', 'Everything you know about a person, before you message them'],
+  ['/thinkos-decisions <topic>', '"what did we decide about X?"', 'Searches past decisions; superseded ones filtered out'],
+  ['/recent-log', '"what did I do this week?"', 'Summary of recent work-log entries'],
+  ['/weekly-review', '—', 'Sunday ritual: digest the week, refresh Current Focus'],
+  ['/thinkos-refresh', '—', 'Rebuild the task inbox from your connected tools'],
+  ['/thinkos-vitals', '"is my vault healthy?"', 'One-screen health snapshot + fix-it picker'],
+];
+---
+<BaseLayout
+  title="How to use Think OS"
+  description="What to do daily, weekly, and quarterly with Think OS — the mental model, the first week, the rhythms, and the dos and don'ts."
+>
+
+  <!-- PAGE HEADER -->
+  <section class="wash-hero">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-16 md:pb-24">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-9 md:col-start-2">
+          <p class="kicker lift lift-1">§ Guide</p>
+          <h1 class="display lift lift-2 mt-6 text-[40px] md:text-[72px] lg:text-[84px] tracking-tightest">
+            How to use Think OS
+          </h1>
+          <p class="lift lift-3 mt-8 max-w-[62ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
+            You installed it. Now what? This page is the answer: what Think OS
+            is doing underneath, what your first week looks like, what to type
+            each morning, what to run on Sundays, and what to leave alone.
+            Fifteen minutes of reading, then it should disappear into your
+            routine.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- § I — THE MENTAL MODEL -->
+  <section class="border-t border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-3 reveal">
+          <p class="section-numeral" aria-hidden="true">I</p>
+          <p class="kicker mt-5">§ I — The mental model</p>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
+          <h2 class="display text-3xl md:text-5xl">Three things, plainly</h2>
+          <div class="prose mt-8">
+            <p>
+              Think OS is three things. Get these and everything else on this
+              page is obvious.
+            </p>
+
+            <h3>1. A folder of markdown files. Yours.</h3>
+            <p>
+              Your vault is a plain folder on your disk — by default
+              <code>~/ThinkOS/vault</code>. Inside it: a file about who you are
+              (<code>Identity</code>), a file about what you're doing this week
+              (<code>Current Focus</code>), a list of your projects, your
+              people, your decisions, your learnings, and a running work log.
+              You can open any of them in Obsidian, VS Code, or TextEdit.
+              Nothing is hidden, encoded, or locked in.
+            </p>
+
+            <h3>2. An index that lets Claude find things fast.</h3>
+            <p>
+              A small local program called Basic Memory reads your files and
+              builds a search index from them — so when you ask "what did I
+              decide about the design tokens?", Claude searches rather than
+              reading your whole vault. The index is a copy of your files, not
+              the other way around. If it ever breaks or goes stale, one
+              command (<code>/thinkos-reindex</code>) rebuilds it from the
+              files. You never have to care for it.
+            </p>
+
+            <h3>3. Commands that keep the files fresh.</h3>
+            <p>
+              Files go stale on their own. So Think OS ships a set of slash
+              commands — small playbooks Claude follows when you type them.
+              Almost all start with <code>/thinkos</code>, so you can type that
+              and tab through the list. A handful of ritual commands are named
+              for what they do instead: <code>/weekly-review</code>,
+              <code>/quarterly-review</code>, <code>/recent-log</code>,
+              <code>/draft-reply</code>, <code>/validate-os</code>,
+              <code>/index-projects</code>.
+            </p>
+
+            <p>
+              <strong>How Claude actually remembers you.</strong> At the start
+              of a session, Claude searches your vault for two things before
+              answering anything substantive: your Identity and your Current
+              Focus. Both are small files, so it reads them whole. That's the
+              entire trick — a new session "knows the room" because two short
+              files told it your role and this week's priorities.
+            </p>
+            <p>
+              Everything else is read on demand, not up front. Ask about a
+              person and <code>/thinkos-who</code> looks them up in your People
+              file. Ask about a project and <code>/thinkos-project</code> pulls
+              that one project's entry — the Project Index keeps a one-line row
+              per project precisely so that lookup is cheap. Ask "what did we
+              decide about X" and <code>/thinkos-decisions</code> searches your
+              decisions. Big files like the work log are never read end to end;
+              Claude pulls only the date range or section it needs.
+            </p>
+            <p>
+              One consequence worth internalizing: <strong>if it's not in a
+              file, Claude doesn't remember it.</strong> The commands below
+              exist to get the right things into files with the least effort
+              from you.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- § II — YOUR FIRST WEEK -->
+  <section class="border-t border-rule bg-soft/40">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-3 reveal">
+          <p class="section-numeral" aria-hidden="true">II</p>
+          <p class="kicker mt-5">§ II — Your first week</p>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
+          <h2 class="display text-3xl md:text-5xl">Day 1 to day 7</h2>
+          <div class="prose mt-8">
+            <p>
+              <strong>Right after install, your vault is mostly empty. That's
+              normal.</strong>
+            </p>
+            <p>
+              The install gives you the folder structure and stub files —
+              templates with headings and placeholders, not content. Claude can
+              see which files are still stubs (they carry an invisible marker),
+              and it fills them in one of two ways. You pick by doing nothing,
+              or by typing one command.
+            </p>
+
+            <h3>The default: it fills in as you talk.</h3>
+            <p>
+              Just use Claude normally. When you mention something that belongs
+              in a stub file — "I'm a design lead at Think Company", "the Acme
+              redesign is my main thing right now", "Jordan runs platform" —
+              Claude quietly drafts it. At the end of the turn, it offers,
+              once:
+            </p>
+            <blockquote>
+              <p>
+                Noticed you mentioned <strong>role: Design Lead at Think
+                Company</strong>. Want me to save it to your Identity file?
+                (y / n / later)
+              </p>
+            </blockquote>
+            <p>
+              Say <code>y</code> and it writes the file and shows you what it
+              wrote. Say <code>n</code> and the draft is discarded. Say
+              <code>later</code> and it holds the thought — and after you've
+              deferred three times on the same file, it stops asking until you
+              check vault health with <code>/thinkos-vitals</code>. It never
+              writes without your yes, never invents facts you didn't say, and
+              never touches a file once you've filled it in. This is called
+              emergent seeding; you don't need the name, just the y/n habit.
+            </p>
+
+            <h3>The fast path: bulk import.</h3>
+            <p>
+              If you'd rather front-load — you have an existing Obsidian vault,
+              or rich data in connected tools like Calendar, Slack, or Granola
+              — open a fresh session and type <code>/thinkos-continue</code>.
+              It imports your existing notes, pulls from the tools you've
+              authorized, and drafts your Identity, Project Index, Current
+              Focus, and People files in one sitting, all for your review
+              before anything is saved. Plan 15–30 minutes. You can do this any
+              time — even after a week of the default path, to fill remaining
+              gaps.
+            </p>
+
+            <h3>What to expect:</h3>
+            <ul>
+              <li>
+                <strong>Day 1.</strong> Sessions work immediately, but Claude
+                knows little about you. Answer one or two save offers. If you
+                set up tracked work folders during install, automatic session
+                logging is already running in the background.
+              </li>
+              <li>
+                <strong>Day 2–4.</strong> Identity and Current Focus fill in.
+                Mornings start to be worth a <code>/thinkos-morning</code>.
+                Your work log accumulates entries you didn't write.
+              </li>
+              <li>
+                <strong>Day 7.</strong> Run your first
+                <code>/weekly-review</code> on Sunday. It reads the week's log,
+                proposes next week's Current Focus, and you approve it. From
+                here the rhythm carries itself.
+              </li>
+            </ul>
+            <p>
+              One honest caveat: the vault is only as good as what reaches it.
+              If you skipped the "which folders hold your projects?" question
+              at install, automatic capture is watching only the vault itself.
+              Add your real work folders with
+              <code>scripts/thinkos-vault.sh track &lt;path&gt;</code> — it's
+              the single highest-leverage minute of setup.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- § III — THE DAILY RHYTHM -->
+  <section class="border-t border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-3 reveal">
+          <p class="section-numeral" aria-hidden="true">III</p>
+          <p class="kicker mt-5">§ III — The daily rhythm</p>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
+          <h2 class="display text-3xl md:text-5xl">A normal day</h2>
+          <div class="prose mt-8">
+            <h3>Morning: one command.</h3>
+            <p>
+              Type <code>/thinkos-morning</code>. You get a brief — under 250
+              words — covering today, your top three priorities this week, the
+              top items on your plate, anyone you're waiting on, and your
+              calendar if it's reachable. If you only want the task view,
+              <code>/thinkos-plate</code> shows today's tasks against your
+              stated priorities and flags anything overdue. You don't need the
+              slash command: "what's on my plate today?" and "good morning,
+              what am I doing today?" route to the same playbooks.
+            </p>
+            <p>
+              If the task inbox is more than a day old, the plate view says so
+              and offers to refresh it — see the weekly section for
+              <code>/thinkos-refresh</code>.
+            </p>
+
+            <h3>During the day: mostly, just work.</h3>
+            <p>
+              Here is the honest split between what's automatic and what's on
+              you.
+            </p>
+            <p>
+              <em>Automatic (if enabled):</em> every two hours during waking
+              hours, a small local job notes which project folders you had
+              Claude Code sessions in, how many files you touched, and the
+              current git commit — and appends a one-line entry to your work
+              log. That's the whole capture: directory names, file counts, a
+              commit hash. Never file contents, never your conversation, never
+              anything typed. It makes no network calls. By evening you have a
+              timestamped picture of where the day went without writing a
+              word. Toggle it with <code>/thinkos-autosave on|off|status</code>.
+            </p>
+            <p>
+              <em>On you (with help):</em> the automatic layer captures
+              <em>that</em> you worked, not <em>what you concluded</em>.
+              Conclusions need a sentence from you:
+            </p>
+            <ul>
+              <li>
+                Made a call you'll want to stand by?
+                <code>/thinkos-decide we'll always version the API from day
+                one</code> — it lands in your Decisions file with the date, the
+                reasoning, and what it applies to.
+              </li>
+              <li>
+                Noticed a pattern worth reusing? <code>/thinkos-log</code> or
+                just say "log this: the client reviews go better with a written
+                agenda" — Claude infers whether it's a decision, a learning, or
+                a log entry and files it accordingly.
+                <code>/thinkos-capture</code> is the canonical command behind
+                all of these; the aliases just save you remembering flags.
+              </li>
+              <li>
+                Ending a meaty session? <code>/thinkos-save</code> captures a
+                recap of the session's substantive items.
+              </li>
+            </ul>
+            <p>
+              Claude also offers unprompted: when you state a reusable decision
+              or learning mid-conversation, it asks once whether to log it.
+              Confirm or wave it off — it won't capture silently.
+            </p>
+            <p>
+              <em>Looking things up:</em> <code>/thinkos-who jordan</code>
+              before you message someone. <code>/thinkos-decisions auth</code>
+              before you relitigate a settled question.
+              <code>/recent-log</code> when you've lost Tuesday. "Who is
+              Jordan?" and "what did we decide about auth?" work as plain
+              English too.
+            </p>
+            <p>
+              <strong>Every capture is auditable and reversible.</strong>
+              Anything written to your vault — by you, by Claude, or by the
+              background job — adds one line to a ledger file in the vault.
+              <code>/thinkos-recent</code> shows what landed in the last 24
+              hours and from where. <code>/thinkos-undo-capture</code> shows
+              you the content, asks which one, and removes it from both the
+              file and the ledger. Nothing about capture is one-way.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- § IV — THE WEEKLY RHYTHM -->
+  <section class="border-t border-rule bg-soft/40">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-3 reveal">
+          <p class="section-numeral" aria-hidden="true">IV</p>
+          <p class="kicker mt-5">§ IV — The weekly rhythm</p>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
+          <h2 class="display text-3xl md:text-5xl">Sunday, twenty minutes</h2>
+          <div class="prose mt-8">
+            <p>
+              <strong><code>/weekly-review</code> is the one ritual that
+              matters.</strong> It reads the past seven days of your work log,
+              surfaces patterns — where the time went, what got blocked, what's
+              emerging — and proposes a fresh Current Focus for the coming
+              week. You review, adjust, confirm. The old week's focus is
+              archived into your work log before the new one replaces it, so
+              nothing is lost and the file never bloats to two weeks of stale
+              priorities.
+            </p>
+            <p>
+              Why this matters mechanically, not just hygienically: your
+              Current Focus file carries a <code>covers_week</code> date range,
+              and Think OS enforces it. The moment that range is in the past,
+              <strong>every new session opens with a one-line staleness
+              warning</strong> telling you to run the review. Skip enough
+              Sundays and you'll be nagged out of skipping. This is deliberate
+              — a focus file from three weeks ago makes every morning brief and
+              every "what should I prioritize?" answer quietly wrong.
+            </p>
+            <p>
+              If you set up the scheduled version (offered at the end of
+              <code>/thinkos-continue</code>, or via
+              <code>/thinkos-automate</code>), a local job runs the review
+              Sunday at 8pm: it writes the proposed focus as a <em>draft
+              file</em> next to the real one, logs that it ran, and leaves the
+              approval for you on Monday morning. The unattended job never
+              replaces your live Current Focus on its own.
+            </p>
+            <p>
+              <strong>Also weekly-ish: <code>/thinkos-refresh</code>.</strong>
+              Your Tasks file is an inbox synthesized from your connected tools
+              — Gmail, Slack, Calendar, ClickUp, Atlassian, Notion, Granola.
+              <code>/thinkos-refresh</code> sweeps whichever of those you've
+              connected and rewrites the inbox with a fresh timestamp,
+              preserving anything you added by hand. Use <code>--quick</code>
+              for the fast four-source pass, <code>--dry-run</code> to preview
+              without writing. Run it whenever the plate view tells you the
+              inbox is over a day old.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- § V — MAINTENANCE AND HEALTH -->
+  <section class="border-t border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-3 reveal">
+          <p class="section-numeral" aria-hidden="true">V</p>
+          <p class="kicker mt-5">§ V — Maintenance and health</p>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
+          <h2 class="display text-3xl md:text-5xl">When something feels off</h2>
+          <div class="prose mt-8">
+            <p>
+              Three commands cover essentially every "is this working?"
+              question.
+            </p>
+            <p>
+              <strong><code>/thinkos-doctor</code> — is the install
+              healthy?</strong> Runs a script that checks the machinery: the
+              manifest, Basic Memory, the background jobs, and whether the
+              search index has drifted from your files. Output is PASS / WARN /
+              FAIL lines; Claude explains the warnings and proposes fixes but
+              never applies them without asking. Run it when capture seems
+              quiet or a command errors.
+            </p>
+            <p>
+              <strong><code>/thinkos-vitals</code> — is the vault
+              healthy?</strong> A one-screen snapshot of the content: which
+              files are past their freshness window, line budgets, unreviewed
+              automatic captures, broken links, ledger volume. It ends with a
+              picker — address the stalest file, mark captures reviewed, fix
+              links, or just close. Run it when you suspect rot, or monthly on
+              instinct.
+            </p>
+            <p>
+              <strong><code>/quarterly-review</code> — the seasonal
+              cleanup.</strong> Rotates the quarter's work log into the
+              archive, proposes retiring finished projects, audits the core
+              files for staleness, and refreshes Current Focus. It applies
+              changes in stages — one section at a time, each waiting for your
+              confirmation. Twenty minutes, four times a year.
+            </p>
+            <p>
+              <strong>Reading the staleness warnings.</strong> They are age
+              checks, nothing more. "Current Focus stale" means its week range
+              has ended — run <code>/weekly-review</code>. "Tasks not synced in
+              N days" means the inbox hasn't seen your tools lately — run
+              <code>/thinkos-refresh</code>. "Index drift" from doctor means
+              the search index disagrees with the files on disk — run
+              <code>/thinkos-reindex</code>, which rebuilds it from the files
+              in one shot. None of these warnings mean data loss; your files
+              are always the truth the system repairs itself from.
+              <code>/thinkos-stale</code> lists everything past its window if
+              you want the overview.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- § VI — DOS AND DON'TS -->
+  <section class="border-t border-rule bg-soft/40">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
+      <header class="grid grid-cols-12 gap-6 mb-12 reveal">
+        <div class="col-span-12 md:col-span-3">
+          <p class="section-numeral" aria-hidden="true">VI</p>
+          <p class="kicker mt-5">§ VI — Dos and don'ts</p>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5">
+          <h2 class="display text-3xl md:text-5xl">Dos and don'ts</h2>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12">
+        <div class="reveal">
+          <p class="kicker border-b border-rule pb-3 mb-6">Do</p>
+          <ul class="space-y-6">
+            {dos.map(([lead, body]) => (
+              <li class="border-l border-accent/40 pl-5">
+                <p class="text-[16px] leading-relaxed">
+                  <strong class="text-ink">{lead}</strong>
+                  <span class="text-muted"> {body}</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div class="reveal" style="--reveal-delay: 90ms">
+          <p class="kicker border-b border-rule pb-3 mb-6">Don't</p>
+          <ul class="space-y-6">
+            {donts.map(([lead, body]) => (
+              <li class="border-l border-rule pl-5">
+                <p class="text-[16px] leading-relaxed">
+                  <strong class="text-ink">{lead}</strong>
+                  <span class="text-muted"> {body}</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- § VII — WHAT DO I ACTUALLY TYPE? -->
+  <section class="border-t border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
+      <header class="grid grid-cols-12 gap-6 mb-12 reveal">
+        <div class="col-span-12 md:col-span-3">
+          <p class="section-numeral" aria-hidden="true">VII</p>
+          <p class="kicker mt-5">§ VII — What do I actually type?</p>
+        </div>
+        <div class="col-span-12 md:col-span-8 md:col-start-5">
+          <h2 class="display text-3xl md:text-5xl">The ten commands you'll actually use</h2>
+          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
+            Thirty-six commands ship. These ten are a complete daily practice;
+            the rest are there when you need them —
+            <code class="font-mono text-[14px] bg-soft px-1.5 py-0.5 rounded">/thinkos-help</code>
+            lists everything, and the other 26 are on the
+            <a href="/commands" class="underline underline-offset-2 hover:text-accent">commands page</a>.
+          </p>
+        </div>
+      </header>
+
+      <div class="reveal">
+        <div class="hidden md:grid grid-cols-12 gap-6 border-b border-rule pb-3" aria-hidden="true">
+          <p class="kicker col-span-4 pl-5">You type</p>
+          <p class="kicker col-span-3">Or just say</p>
+          <p class="kicker col-span-5">What happens</p>
+        </div>
+        {tenCommands.map(([cmd, say, what]) => (
+          <div class="hover-row grid grid-cols-12 gap-2 md:gap-6 items-baseline border-b border-rule py-4 hover:bg-soft/50">
+            <div class="col-span-12 md:col-span-4 pl-4 md:pl-5">
+              <code class="font-mono text-[14px] md:text-[15px] text-ink">{cmd}</code>
+            </div>
+            <div class="col-span-12 md:col-span-3 pl-4 md:pl-0">
+              <p class="text-[14px] text-muted italic">{say}</p>
+            </div>
+            <div class="col-span-12 md:col-span-5 pl-4 md:pl-0">
+              <p class="text-[15px] text-muted">{what}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p class="mt-10 text-[15px] leading-relaxed text-muted max-w-[66ch] reveal">
+        Worried something was captured wrong?
+        <code class="font-mono text-[13px] bg-soft px-1.5 py-0.5 rounded">/thinkos-recent</code>
+        to see it,
+        <code class="font-mono text-[13px] bg-soft px-1.5 py-0.5 rounded">/thinkos-undo-capture</code>
+        to remove it.
+      </p>
+    </div>
+  </section>
+
+  <!-- FOOTER LINK ROW -->
+  <section class="border-t border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-12 md:py-16">
+      <div class="grid grid-cols-12 gap-6 reveal">
+        <div class="col-span-12 md:col-span-8 md:col-start-5">
+          <p class="font-mono text-[12px] tracking-[0.18em] uppercase">
+            <a href="/commands" class="link-anim text-muted">All 36 commands →</a>
+            <span class="mx-4 text-muted opacity-50">·</span>
+            <a href="/docs" class="link-anim text-muted">More docs →</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING ORNAMENT -->
+  <div class="ornament py-16">❦ &nbsp; · &nbsp; ❦ &nbsp; · &nbsp; ❦</div>
+
+</BaseLayout>

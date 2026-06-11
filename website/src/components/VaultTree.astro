@@ -3,35 +3,19 @@
 // Left: real folder structure shipped by setup. Right: two files "opened"
 // showing realistic frontmatter + a few content lines (anchored to the
 // Identity template's actual fields — Name, Role, Working style, Guardrails).
+//
+// Embeddable block (no outer page section) — lives on /docs/multi-vault.
 ---
-<section class="border-t border-rule bg-soft/40">
-  <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+<div>
+  <div class="grid grid-cols-12 gap-px bg-rule border border-rule">
 
-    <header class="grid grid-cols-12 gap-6 mb-16 reveal">
-      <div class="col-span-12 md:col-span-3">
-        <p class="section-numeral" aria-hidden="true">VI·b</p>
-        <p class="kicker mt-5">§ VI·b</p>
+    <!-- TREE -->
+    <div class="col-span-12 md:col-span-5 bg-paper p-6 md:p-7">
+      <div class="flex items-baseline justify-between border-b border-rule pb-3 mb-4">
+        <p class="kicker">~/ThinkOS/vault/</p>
+        <p class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">tree</p>
       </div>
-      <div class="col-span-12 md:col-span-8 md:col-start-5">
-        <h2 class="display text-3xl md:text-5xl">On disk</h2>
-        <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-          A populated personal hub after a few weeks of real use. Plain
-          markdown, plain folders. Nothing the agent reads is opaque to you —
-          open any file in your editor of choice and the canonical truth is
-          right there.
-        </p>
-      </div>
-    </header>
-
-    <div class="grid grid-cols-12 gap-px bg-rule border border-rule reveal">
-
-      <!-- TREE -->
-      <div class="col-span-12 md:col-span-5 bg-paper p-6 md:p-7">
-        <div class="flex items-baseline justify-between border-b border-rule pb-3 mb-4">
-          <p class="kicker">~/ThinkOS/vault/</p>
-          <p class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">tree</p>
-        </div>
-        <pre class="font-mono text-[12.5px] leading-[1.85] text-ink whitespace-pre m-0">
+      <pre class="font-mono text-[12.5px] leading-[1.85] text-ink whitespace-pre m-0 overflow-x-auto">
 <span class="text-muted">00 Home/</span>
 <span class="text-muted">│  └</span> Welcome.md
 <span class="text-muted">01 Now/</span>
@@ -54,18 +38,18 @@
 <span class="text-muted">90 System/</span>
 <span class="text-muted">│  ├</span> Capture Log.md
 <span class="text-muted">│  └</span> OS Instructions.md</pre>
-        <p class="mt-5 text-[13px] leading-relaxed text-muted">
-          Highlighted files are open at right →
-        </p>
-      </div>
+      <p class="mt-5 text-[13px] leading-relaxed text-muted">
+        Highlighted files are open at right →
+      </p>
+    </div>
 
-      <!-- OPEN FILE 1 — Identity.md -->
-      <div class="col-span-12 md:col-span-7 bg-paper p-6 md:p-7">
-        <div class="flex items-baseline justify-between border-b border-rule pb-3 mb-4">
-          <p class="kicker">05 Profile / Identity.md</p>
-          <p class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">HOT · 78 lines</p>
-        </div>
-        <pre class="font-mono text-[12px] md:text-[12.5px] leading-[1.7] text-ink whitespace-pre-wrap break-words m-0">
+    <!-- OPEN FILE 1 — Identity.md -->
+    <div class="col-span-12 md:col-span-7 bg-paper p-6 md:p-7">
+      <div class="flex items-baseline justify-between border-b border-rule pb-3 mb-4">
+        <p class="kicker">05 Profile / Identity.md</p>
+        <p class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">HOT · 78 lines</p>
+      </div>
+      <pre class="font-mono text-[12px] md:text-[12.5px] leading-[1.7] text-ink whitespace-pre-wrap break-words m-0">
 <span class="text-muted">---</span>
 <span class="text-muted">title:</span> Identity
 <span class="text-muted">type:</span> note
@@ -94,15 +78,15 @@
 1. Don't overstate AI capabilities.
 2. Stay inside my tool stack.
 3. Draft, never send.</pre>
-      </div>
+    </div>
 
-      <!-- OPEN FILE 2 — Current Focus.md -->
-      <div class="col-span-12 md:col-span-12 bg-paper p-6 md:p-7 border-t border-rule">
-        <div class="flex items-baseline justify-between border-b border-rule pb-3 mb-4">
-          <p class="kicker">01 Now / Current Focus.md</p>
-          <p class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">HOT · covers_week 2026-W20</p>
-        </div>
-        <pre class="font-mono text-[12px] md:text-[12.5px] leading-[1.7] text-ink whitespace-pre-wrap break-words m-0">
+    <!-- OPEN FILE 2 — Current Focus.md -->
+    <div class="col-span-12 bg-paper p-6 md:p-7 border-t border-rule">
+      <div class="flex items-baseline justify-between border-b border-rule pb-3 mb-4">
+        <p class="kicker">01 Now / Current Focus.md</p>
+        <p class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">HOT · covers_week 2026-W20</p>
+      </div>
+      <pre class="font-mono text-[12px] md:text-[12.5px] leading-[1.7] text-ink whitespace-pre-wrap break-words m-0">
 <span class="text-muted">---</span>
 <span class="text-muted">title:</span> Current Focus
 <span class="text-muted">covers_week:</span> 2026-W20
@@ -119,8 +103,10 @@
 
 - Granola's plugin-format direction — affects whether our integration ever ships.
 - New Anthropic skill marketplace docs (came out Monday).</pre>
-      </div>
-
     </div>
+
   </div>
-</section>
+  <p class="mt-4 font-mono text-[11px] tracking-[0.18em] uppercase text-muted">
+    Sample vault content. Sam Reyes and Cardinal Studio are fictional.
+  </p>
+</div>

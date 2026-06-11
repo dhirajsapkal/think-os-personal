@@ -3,6 +3,21 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
 const sections = [
   {
+    title: 'How to use it',
+    href: '/guide',
+    body: 'The user guide. What to do daily, weekly, and quarterly — the mental model, your first week, and the dos and don\'ts.',
+  },
+  {
+    title: 'Commands',
+    href: '/commands',
+    body: 'Every Think OS slash command, grouped by when you\'d reach for it.',
+  },
+  {
+    title: "What's installed",
+    href: '/docs/whats-installed',
+    body: 'What the install actually drops into your environment: instruction stack, thirty-six playbooks, role-based bundles, skill routing.',
+  },
+  {
     title: 'Install',
     href: '/docs/install',
     body: 'The one-line install prompt, what it actually does, and the five-question setup flow.',
@@ -31,6 +46,11 @@ const sections = [
     title: 'Multi-vault architecture',
     href: '/docs/multi-vault',
     body: 'Personal hub, project vaults, reference vaults. Privacy boundary enforced by schema.',
+  },
+  {
+    title: 'Files, not a database',
+    href: '/docs/architecture',
+    body: 'Why your notes stay as plain markdown and everything else is a rebuildable index.',
   },
   {
     title: 'Uninstall',

@@ -10,6 +10,11 @@ interface Props {
 const { title, description, current } = Astro.props;
 
 const nav = [
+  { group: 'Using Think OS', items: [
+    { href: '/guide',                label: 'How to use it',    id: 'guide' },
+    { href: '/commands',             label: 'Commands',         id: 'commands' },
+    { href: '/docs/whats-installed', label: "What's installed", id: 'whats-installed' },
+  ]},
   { group: 'Getting started', items: [
     { href: '/docs',         label: 'Overview',   id: 'overview' },
     { href: '/docs/install', label: 'Install',    id: 'install' },
@@ -19,6 +24,7 @@ const nav = [
     { href: '/docs/phase-3-automations',  label: 'Phase 3 · Automations',    id: 'phase-3' },
   ]},
   { group: 'Architecture', items: [
+    { href: '/docs/architecture',       label: 'Files, not a database', id: 'architecture' },
     { href: '/docs/multi-vault',        label: 'Multi-vault',        id: 'multi-vault' },
     { href: '/docs/continuous-capture', label: 'Continuous capture', id: 'continuous-capture' },
   ]},

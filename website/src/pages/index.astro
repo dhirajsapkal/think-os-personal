@@ -1,70 +1,32 @@
 ---
+// Homepage — five sections + FAQ, kept deliberately short.
+// What moved where:
+//   "Built in" cards        → /docs/whats-installed
+//   "Files, not a database" → /docs/architecture
+//   Vaults + VaultTree      → /docs/multi-vault
+//   36-command table        → /commands
+//   Continuous capture      → /docs/continuous-capture
+//   Staying current         → /docs/update-protocol
+// The user-facing playbook (daily/weekly rhythm, dos & don'ts) is /guide.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InstallPrompt from '../components/InstallPrompt.astro';
 import ConversationStrip from '../components/ConversationStrip.astro';
-import VaultTree from '../components/VaultTree.astro';
 import TrustBar from '../components/TrustBar.astro';
 import WorksWith from '../components/WorksWith.astro';
 import ChangelogPreview from '../components/ChangelogPreview.astro';
 
-const benefits = [
+const orientation = [
   {
-    n: '01',
-    title: 'Continuity',
-    body: 'Every agent session loads who you are, what you\'re on, and how you work — without you re-typing context. The first message in a new chat already knows the room.',
+    kicker: 'What',
+    body: 'A folder of markdown files Claude reads at the start of every session — so it knows your role, your week, your people, your decisions, without you re-typing them.',
   },
   {
-    n: '02',
-    title: 'Cross-project recall',
-    body: '"What did I learn about X that applies to Y" actually works. Decisions and learnings live next to the projects they came from but surface across all of them.',
+    kicker: 'Who',
+    body: 'Anyone who uses Claude Code for real work and is tired of being a stranger every session. No agent-architecture knowledge required — install it, then follow the guide.',
   },
   {
-    n: '03',
-    title: 'A capture habit',
-    body: 'When you make a reusable decision or share a learning, the agent offers to log it — you confirm, it writes. Six months later, search finds it.',
-  },
-  {
-    n: '04',
-    title: 'Self-maintenance',
-    body: 'Local launchd jobs keep the vault fresh: daily reindex, weekly Current Focus refresh, quarterly archive rotation — and a session-start check that flags an expired Current Focus before you ask. Runs when your Mac is awake; no cloud dependency.',
-  },
-  {
-    n: '05',
-    title: 'Light on tokens',
-    body: 'Sessions run 50–70% lighter as of v0.9.3. The instruction stack stays lean, large files are read in scoped spans instead of end-to-end, and search snippets locate — they never substitute for reading the source.',
-  },
-];
-
-const installed = [
-  {
-    n: '01',
-    title: 'Curated agent guidance',
-    body: 'A curated instruction stack drops into the agent\'s always-loaded context — kept deliberately lean, with heavyweight playbooks loading on demand instead of riding along in every session. Consult the vault first. Draft, never send. Cite path:line. Never commit secrets. Refreshable in place with /thinkos-update.',
-  },
-  {
-    n: '02',
-    title: 'Thirty-six slash commands',
-    body: 'Pre-built playbooks for daily flows: /thinkos-morning, /thinkos-plate, /thinkos-capture, /thinkos-who, /thinkos-vitals, /thinkos-sync, /thinkos-update. Each is a plain markdown file at ~/.claude/commands/ — auditable, editable, yours. Full list in § VII.',
-  },
-  {
-    n: '03',
-    title: 'Role-based bundles',
-    body: 'Pick one preset and the right MCPs install for you: PM (Slack + Gmail + Google Calendar + Google Drive + Notion + Granola + Figma), Engineering (Slack + Gmail + Google Calendar + Google Drive + Atlassian), Design (Slack + Gmail + Google Calendar + Google Drive + Notion + Figma + Granola), Operations (Slack + Gmail + Google Calendar + Notion + QuickBooks). Each pulls matching Anthropic skill packs too.',
-  },
-  {
-    n: '04',
-    title: 'Skill routing baked in',
-    body: 'The instructions teach the agent which Anthropic skill to invoke for which task. UI work routes to frontend-design. PR review to review. Security audits to security-review. SDK code to claude-api. You ask in plain English; the agent picks the right tool.',
-  },
-  {
-    n: '05',
-    title: 'Three-vault privacy model',
-    body: 'Personal hub (local-only, never shared). Project vaults (shared via git, schema-enforced). Reference vaults (read-only imports). Personal content stays out of team repos by structural design — project vault schemas physically don\'t accept it. Privacy as architecture, not policy.',
-  },
-  {
-    n: '06',
-    title: 'Self-healing onboarding',
-    body: 'If anything in setup feels off — wrong command, missing step, confusing prompt — tell the agent. It opens a PR upstream so the next person doesn\'t hit it. The install gets better every time someone runs it. (Gated on gh CLI being authenticated.)',
+    kicker: 'Trust',
+    body: 'Local-first; nothing leaves your machine unless you sync it. Conversational writes are confirmed with you; automatic captures are metadata-only, ledger-logged, and undoable.',
   },
 ];
 
@@ -86,26 +48,12 @@ const rules = [
   },
 ];
 
-// § V — the architecture argument, grounded in the v0.9.3 research pass.
-const architecture = [
-  {
-    n: '01',
-    title: 'Against context-stuffing',
-    body: 'Whole-file injection of large files is the documented accuracy killer — irrelevant tokens crowd out the question. So large files are never read end-to-end: the work log is extracted by date window, tasks by section, the capture ledger by tail. Search locates; the agent reads only the span it needs.',
-  },
-  {
-    n: '02',
-    title: 'Against DB-native memory',
-    body: 'Memory systems that extract "facts" into a store pay an LLM toll on every write and inherit its mistakes forever. Here, writes are deterministic — nothing is paraphrased on the way in. The index is a disposable cache: corrupt it, delete it, rebuild it from the files. Your notes stay git-diffable and readable in any editor.',
-  },
-  {
-    n: '03',
-    title: 'Freshness is mechanical',
-    body: 'A session-start check flags a stale Current Focus the moment a session opens — one line, enforced by the harness rather than by hoping the model remembers. The doctor compares index row counts against the files on disk and points you at the one-command rebuild when they drift.',
-  },
-];
-
 const faqs = [
+  {
+    q: 'What do I actually do day to day?',
+    a: 'One command in the morning (/thinkos-morning), a one-line capture when you make a decision worth keeping, and a twenty-minute /weekly-review on Sunday — the rest happens on its own. The full rhythm, dos and don\'ts included, is in',
+    link: { href: '/guide', label: 'How to use it' },
+  },
   {
     q: 'Does my vault data leave my machine?',
     a: 'No. Think OS is local-first. Basic Memory runs as a stdio MCP server — your markdown files stay on disk, indexed by SQLite on your machine. They only leave if you explicitly choose to sync (git, iCloud, Syncthing).',
@@ -179,48 +127,37 @@ const faqs = [
     </div>
   </section>
 
-  <!-- CONVERSATION STRIP -->
-  <ConversationStrip />
-
-  <!-- BENEFITS / WHAT YOU GET -->
+  <!-- § I — WHAT IT IS, WHO IT'S FOR -->
   <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-16 reveal">
+      <header class="grid grid-cols-12 gap-6 mb-14 reveal">
         <div class="col-span-12 md:col-span-3">
           <p class="section-numeral" aria-hidden="true">I</p>
           <p class="kicker mt-5">§ I</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">What you get</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            Not another note-taking app. Five concrete behaviors that change how
-            you work with an agent.
-          </p>
+          <h2 class="display text-3xl md:text-5xl">What it is, who it's for</h2>
         </div>
       </header>
 
-      <div class="grid grid-cols-12 gap-x-6 gap-y-14">
-        {benefits.map((b, i) => (
-          <div
-            class="col-span-12 md:col-span-6 grid grid-cols-12 gap-4 md:gap-6 reveal"
-            style={`--reveal-delay: ${(i % 2) * 90}ms`}
-          >
-            <div class="col-span-3 md:col-span-2">
-              <p class="numeral text-4xl md:text-5xl leading-none">{b.n}</p>
-            </div>
-            <div class="col-span-9 md:col-span-10">
-              <h3 class="font-display text-xl md:text-2xl tracking-tight">{b.title}</h3>
-              <p class="mt-3 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-                {b.body}
-              </p>
-            </div>
-          </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-rule border border-rule reveal">
+        {orientation.map((o) => (
+          <article class="bg-paper p-7 md:p-9 hover-card">
+            <p class="kicker">{o.kicker}</p>
+            <p class="mt-5 text-[16px] leading-relaxed text-muted max-w-[44ch]">{o.body}</p>
+          </article>
         ))}
       </div>
+
+      <p class="mt-8 text-[15px] leading-relaxed text-muted max-w-[66ch] reveal">
+        Everything the install actually drops in — the instruction stack, the
+        thirty-six commands, the role-based bundles — is itemized on
+        <a href="/docs/whats-installed" class="underline underline-offset-2 hover:text-accent">What's installed</a>.
+      </p>
     </div>
   </section>
 
-  <!-- BUILT IN — what actually installs -->
+  <!-- § II — GET STARTED IN THREE STEPS -->
   <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-16 reveal">
@@ -229,47 +166,7 @@ const faqs = [
           <p class="kicker mt-5">§ II</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Built in</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            Think OS isn't just a folder of markdown. Installing it drops a curated
-            agent instruction stack, thirty-six pre-built playbooks, a role-based MCP
-            bundle, and skill routing into your environment. Every agent that touches
-            the vault knows what to do without you teaching it.
-          </p>
-        </div>
-      </header>
-
-      <div class="grid grid-cols-12 gap-x-6 gap-y-14">
-        {installed.map((b, i) => (
-          <div
-            class="col-span-12 md:col-span-6 grid grid-cols-12 gap-4 md:gap-6 reveal"
-            style={`--reveal-delay: ${(i % 2) * 90}ms`}
-          >
-            <div class="col-span-3 md:col-span-2">
-              <p class="numeral text-4xl md:text-5xl leading-none">{b.n}</p>
-            </div>
-            <div class="col-span-9 md:col-span-10">
-              <h3 class="font-display text-xl md:text-2xl tracking-tight">{b.title}</h3>
-              <p class="mt-3 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-                {b.body}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- SETUP IS THREE STEPS -->
-  <section class="border-t border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-16 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">III</p>
-          <p class="kicker mt-5">§ III</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Setup</h2>
+          <h2 class="display text-3xl md:text-5xl">Get started in three steps</h2>
           <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
             About fifteen to thirty minutes once. Zero overhead after — the
             vault fills in from your real conversations, not a long Q&A. Bulk
@@ -287,9 +184,11 @@ const faqs = [
           <h3 class="font-display text-2xl md:text-3xl tracking-tight mt-5">Install</h3>
           <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
             Paste the install prompt into a fresh Claude Code session. The agent
-            clones the repo, asks four questions (vault location, Basic Memory,
-            plugin bundle, vault name), optionally offers capability add-ons
-            (Playwright browser capture, GitHub CLI auth), and runs the install.
+            clones the repo, asks five questions (vault location, Basic Memory,
+            plugin bundle, vault name, and which folders hold your real work —
+            automatic capture watches only those), optionally offers capability
+            add-ons (Playwright browser capture, GitHub CLI auth), and runs the
+            install.
           </p>
         </article>
 
@@ -321,19 +220,25 @@ const faqs = [
             your real conversations and proposes entries you confirm. Or run
             <code class="font-mono text-[14px] bg-soft px-1.5 py-0.5 rounded">/thinkos-continue</code>
             to bulk-seed: import an existing markdown vault, pull from your
-            connected tools (Granola, Calendar, Slack, Gmail, Linear), and
-            draft Identity, Project Index, Current Focus, and People in one
-            sitting.
+            connected tools, and draft Identity, Project Index, Current Focus,
+            and People in one sitting.
           </p>
           <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-            At the end, three grouped questions wire up the capture layers: session capture, vault-maintenance triggers (daily reindex, weekly review, quarterly archive), and continuous-capture sources (Calendar by default; Granola, Slack, Gmail, Linear, ClickUp opt-in).
+            Then read
+            <a href="/guide" class="underline underline-offset-2 text-ink hover:text-accent"><strong>How to use it</strong></a> →
           </p>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- THREE RULES -->
+  <!-- WORKS WITH -->
+  <WorksWith />
+
+  <!-- § III — A DAY WITH IT -->
+  <ConversationStrip />
+
+  <!-- § IV — THREE RULES -->
   <section class="border-t border-rule bg-soft/40">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-16 reveal">
@@ -368,368 +273,28 @@ const faqs = [
           </div>
         ))}
       </div>
-    </div>
-  </section>
 
-  <!-- FILES, NOT A DATABASE -->
-  <section class="border-t border-rule wash-section">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-14 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">V</p>
-          <p class="kicker mt-5">§ V</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Your files are <em>already</em> the database.</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[62ch]">
-            Think OS doesn't read your whole vault into context, and it doesn't
-            move your notes into a store you can't open. The vault is plain
-            markdown on disk, fronted by Basic Memory's hybrid index — SQLite
-            full-text search, vector embeddings computed locally with zero API
-            calls, and a knowledge graph built from your notes' own links.
-            Search runs against the index; every answer terminates in a
-            verbatim read of the file itself.
-          </p>
-        </div>
-      </header>
-
-      <div class="grid grid-cols-12 gap-6 mb-16 reveal">
+      <div class="grid grid-cols-12 gap-6 mt-16 reveal">
         <div class="col-span-12 md:col-span-8 md:col-start-5">
           <p class="pullquote text-2xl md:text-[32px] max-w-[26ch]">
             Markdown is the source of truth. Everything else is a rebuildable index.
           </p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-12 gap-x-6 gap-y-12">
-        {architecture.map((a, i) => (
-          <article
-            class="col-span-12 md:col-span-4 border-t border-rule pt-6 reveal"
-            style={`--reveal-delay: ${i * 90}ms`}
-          >
-            <p class="numeral text-3xl md:text-4xl leading-none">{a.n}</p>
-            <h3 class="font-display text-xl md:text-2xl tracking-tight mt-4">{a.title}</h3>
-            <p class="mt-3 text-[15px] leading-relaxed text-muted max-w-[46ch]">{a.body}</p>
-          </article>
-        ))}
-      </div>
-
-      <div class="grid grid-cols-12 gap-6 mt-14 reveal">
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <p class="text-[15px] leading-relaxed text-muted max-w-[62ch]">
-            The full argument — including what dedicated vector and graph
-            databases genuinely do better, and why none of it pays off at
-            personal-vault scale — lives in
-            <a
-              href="https://github.com/dhirajsapkal/think-os/blob/main/docs/why-files-not-a-database.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="underline underline-offset-2 hover:text-accent"
-            >docs/why-files-not-a-database.md</a>.
+          <p class="mt-5 text-[15px] leading-relaxed text-muted max-w-[60ch]">
+            The why — and what dedicated databases genuinely do better — is in
+            <a href="/docs/architecture" class="underline underline-offset-2 hover:text-accent">the architecture page</a>.
           </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- VAULT TYPES -->
-  <section class="border-t border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-16 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">VI</p>
-          <p class="kicker mt-5">§ VI</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Vaults</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            Three types, each with its own privacy model. Personal stays personal
-            by construction — there's nowhere for it to leak into a shared repo.
-          </p>
-        </div>
-      </header>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-rule border border-rule reveal">
-        {[
-          {
-            name: 'Personal hub',
-            kicker: 'Always local',
-            body: 'Identity, current focus, decisions, learnings, people, private notes. Lives on your disk, never shared.',
-          },
-          {
-            name: 'Project vault',
-            kicker: 'Shared via git',
-            body: 'Team activity, project decisions, specs. Privacy enforced structurally — the schema has no slot for personal content, so it can\'t leak.',
-          },
-          {
-            name: 'Reference vault',
-            kicker: 'Read-only import',
-            body: 'A folder of someone else\'s markdown you want indexed for search. Marked [reference] in agent output. Never written to.',
-          },
-        ].map((v) => (
-          <article class="bg-paper p-7 md:p-9 hover-card">
-            <p class="kicker">{v.kicker}</p>
-            <h3 class="font-display text-2xl md:text-[28px] mt-5 tracking-tight">{v.name}</h3>
-            <p class="mt-5 text-[15px] leading-relaxed text-muted">{v.body}</p>
-          </article>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- VAULT TREE -->
-  <VaultTree />
-
-  <!-- COMMANDS -->
+  <!-- § V — QUESTIONS -->
   <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="grid grid-cols-12 gap-6 mb-12 reveal">
         <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">VII</p>
-          <p class="kicker mt-5">§ VII</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Commands</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            Every Think OS slash command. Most are prefixed so they autocomplete
-            as a group — type <code class="font-mono bg-soft px-1.5 py-0.5 rounded text-[13px]">/thinkos</code> in
-            Claude Code and tab through the list.
-          </p>
-        </div>
-      </header>
-
-      <div class="space-y-14">
-        {[
-          {
-            name: 'Morning ritual',
-            intro: 'Start the day with one command. Calendar, focus, plate, recent log — in under fifteen seconds.',
-            items: [
-              ['/thinkos-morning',  'Daily brief — focus, plate, recent log, calendar'],
-              ['/thinkos-plate',    'What\'s on your plate today (tasks + current focus)'],
-              ['/thinkos-whoami',   'Quick identity + role + current focus'],
-              ['/thinkos-recent',   'Recent captures by source — what landed and where'],
-            ],
-          },
-          {
-            name: 'Capture & recall',
-            intro: 'One canonical capture command with three soft aliases that keep working forever. The agent infers type from your phrasing.',
-            items: [
-              ['/thinkos-capture',      'Canonical capture — infers decision, learning, log, or session-recap'],
-              ['/thinkos-save',         'Alias → /thinkos-capture --mode session-recap'],
-              ['/thinkos-log',          'Alias → /thinkos-capture --mode log'],
-              ['/thinkos-decide',       'Alias → /thinkos-capture --mode decision'],
-              ['/thinkos-decisions',    'Search your standing decisions'],
-              ['/thinkos-learnings',    'Search reusable learnings by topic'],
-              ['/thinkos-undo-capture', 'Remove a capture from both vault and ledger'],
-              ['/recent-log',           'Summarize the last N days of work-log entries'],
-            ],
-          },
-          {
-            name: 'People & projects',
-            intro: 'Warm-tier drill-downs into the people and projects you work with.',
-            items: [
-              ['/thinkos-who',     'What you know about a specific person'],
-              ['/thinkos-project', 'Load deep context for a project by slug'],
-              ['/draft-reply',     'Draft a reply to an email or Slack message — never sends'],
-              ['/index-projects',  'Walk project folders and reconcile against the index'],
-            ],
-          },
-          {
-            name: 'Vault health & maintenance',
-            intro: 'Surface staleness, broken links, and ledger volume — and keep multi-machine setups in sync.',
-            items: [
-              ['/thinkos-vitals',  'Vault-health snapshot — staleness, broken links, ledger volume'],
-              ['/thinkos-stale',   'List notes past their freshness window'],
-              ['/thinkos-refresh', 'Refresh Tasks.md from your connected tools'],
-              ['/thinkos-sync',    'Cross-machine vault sync — pauses to you on conflict'],
-              ['/thinkos-shared',  'Toggle shared-mode — hides tier: sensitive notes for screen sharing'],
-              ['/thinkos-reindex', 'Refresh Basic Memory\'s index after external vault edits'],
-              ['/thinkos-voice',   'Rewrite a draft in your voice profile'],
-              ['/validate-os',     'Sanity-check the OS for stale entries and contradictions'],
-              ['/weekly-review',   'Weekly digest — refresh Current Focus, surface drift'],
-              ['/quarterly-review', 'Quarterly maintenance — archive rotation, prune stale projects'],
-            ],
-          },
-          {
-            name: 'Setup, lifecycle, automations',
-            intro: 'Install, resume onboarding, manage vaults, wire up the launchd jobs, and stay current.',
-            items: [
-              ['/thinkos-setup',         'Run the first-time setup from a fresh session'],
-              ['/thinkos-continue',      'Resume Phase 2 — bulk-seed from connected tools (opt-in)'],
-              ['/thinkos-vault',         'Manage vaults — switch, create, clone, add reference'],
-              ['/thinkos-autosave',      'Toggle periodic background session capture'],
-              ['/thinkos-capture-setup', 'Enable continuous-capture sources one at a time'],
-              ['/thinkos-automate',      'Set up scheduled triggers (daily, weekly, quarterly)'],
-              ['/thinkos-update',        'Pull latest instructions and commands, with drift detection'],
-              ['/thinkos-doctor',        'Check install health — manifest, MCP, launchd jobs'],
-            ],
-          },
-          {
-            name: 'Discovery',
-            intro: 'When you forget what something is called.',
-            items: [
-              ['/thinkos-help',     'Show every Think OS command'],
-              ['/thinkos-mcp-help', 'How to query and update your context MCP'],
-            ],
-          },
-        ].map((group) => (
-          <div class="reveal">
-            <div class="grid grid-cols-12 gap-6 mb-4">
-              <div class="col-span-12 md:col-span-4">
-                <p class="kicker">{group.name}</p>
-              </div>
-              <div class="col-span-12 md:col-span-8">
-                <p class="text-[15px] leading-relaxed text-muted max-w-[60ch]">{group.intro}</p>
-              </div>
-            </div>
-            <div class="border-t border-rule">
-              {group.items.map(([cmd, desc]) => (
-                <div class="hover-row grid grid-cols-12 gap-6 items-baseline border-b border-rule py-3.5 hover:bg-soft/50">
-                  <div class="col-span-12 md:col-span-4 pl-4 md:pl-5">
-                    <code class="font-mono text-[14px] md:text-[15px] text-ink">{cmd}</code>
-                  </div>
-                  <div class="col-span-12 md:col-span-8">
-                    <p class="text-[15px] text-muted">{desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <p class="mt-10 text-[14px] leading-relaxed text-muted max-w-[66ch]">
-        All commands are plain <code class="font-mono text-[13px] bg-soft px-1.5 py-0.5 rounded">.md</code>
-        files at <code class="font-mono text-[13px] bg-soft px-1.5 py-0.5 rounded">~/.claude/commands/</code> —
-        auditable, editable, yours.
-      </p>
-    </div>
-  </section>
-
-  <!-- CONTINUOUS CAPTURE -->
-  <section class="border-t border-rule bg-soft/40">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-16 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">VIII</p>
-          <p class="kicker mt-5">§ VIII</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Continuous capture</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            Three layers. Each is independent and opt-in beyond Layer A.
-          </p>
-        </div>
-      </header>
-
-      <div class="space-y-10">
-        <div class="grid grid-cols-12 gap-4 md:gap-6 items-baseline border-t border-rule pt-8 reveal">
-          <div class="col-span-2 md:col-span-1">
-            <span class="numeral text-3xl md:text-4xl">A</span>
-          </div>
-          <div class="col-span-10 md:col-span-6">
-            <p class="font-display text-2xl md:text-3xl tracking-tight">Session capture.</p>
-          </div>
-          <div class="col-span-12 md:col-span-5">
-            <p class="text-[16px] leading-relaxed text-muted max-w-[50ch]">
-              A launchd job runs every 2 hours and appends a one-line stub of what
-              you worked on (cwd, file count, last commit) to your private vault.
-              No LLM call. No file contents leave your machine. Toggle with
-              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">/thinkos-autosave</code>.
-            </p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-12 gap-4 md:gap-6 items-baseline border-t border-rule pt-8 reveal" style="--reveal-delay: 80ms">
-          <div class="col-span-2 md:col-span-1">
-            <span class="numeral text-3xl md:text-4xl">B</span>
-          </div>
-          <div class="col-span-10 md:col-span-6">
-            <p class="font-display text-2xl md:text-3xl tracking-tight">External ingestion.</p>
-          </div>
-          <div class="col-span-12 md:col-span-5">
-            <p class="text-[16px] leading-relaxed text-muted max-w-[50ch]">
-              Opt-in per source. Hourly Granola, daily Calendar/Linear/ClickUp/Gmail,
-              hourly Slack. Privacy-routing by keyword (comp, salary, HR, health,
-              family) — those always land in your personal hub only. Configure with
-              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">/thinkos-capture-setup</code>.
-            </p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-12 gap-4 md:gap-6 items-baseline border-t border-rule pt-8 reveal" style="--reveal-delay: 160ms">
-          <div class="col-span-2 md:col-span-1">
-            <span class="numeral text-3xl md:text-4xl">C</span>
-          </div>
-          <div class="col-span-10 md:col-span-6">
-            <p class="font-display text-2xl md:text-3xl tracking-tight">Audit and undo.</p>
-          </div>
-          <div class="col-span-12 md:col-span-5">
-            <p class="text-[16px] leading-relaxed text-muted max-w-[50ch]">
-              Every capture writes one line to
-              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">90 System/Capture Log.md</code> in the vault.
-              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">/thinkos-recent</code> shows
-              what landed and from which source.
-              <code class="font-mono text-[13px] bg-paper px-1.5 py-0.5 rounded">/thinkos-undo-capture</code> removes
-              any entry from both the vault and the ledger. Full design:
-              <a href="/docs/continuous-capture" class="underline underline-offset-2">docs/continuous-capture</a>.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- STAYING CURRENT -->
-  <section class="border-t border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-12 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">IX</p>
-          <p class="kicker mt-5">§ IX</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Staying current</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            Think OS ships updates to its curated instructions and slash commands.
-            Your vault is never touched by an update.
-          </p>
-        </div>
-      </header>
-
-      <div class="grid grid-cols-12 gap-6 reveal">
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <p class="text-[16px] leading-relaxed text-muted">
-            From any Claude Code session, run:
-          </p>
-          <pre class="mt-4 bg-soft border border-rule rounded px-5 py-4 font-mono text-[14px] overflow-x-auto">/thinkos-update</pre>
-          <p class="mt-6 text-[16px] leading-relaxed text-muted max-w-[66ch]">
-            The agent fetches the latest commits, summarizes what changed, checks
-            for drift on any managed file you edited locally (sha256 comparison),
-            asks before overwriting, and atomically re-applies. See
-            <a href="/docs/update-protocol" class="underline underline-offset-2">docs/update-protocol</a>
-            for the full flow, file categories, and backup behavior.
-          </p>
-          <p class="mt-6 text-[16px] leading-relaxed text-muted max-w-[66ch]">
-            For a non-interactive terminal refresh:
-          </p>
-          <pre class="mt-4 bg-soft border border-rule rounded px-5 py-4 font-mono text-[14px] overflow-x-auto">cd ~/code/think-os
-bash scripts/thinkos-update.sh --pull</pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- WORKS WITH -->
-  <WorksWith />
-
-  <!-- FAQ -->
-  <section class="border-t border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-12 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">X</p>
-          <p class="kicker mt-5">§ X</p>
+          <p class="section-numeral" aria-hidden="true">V</p>
+          <p class="kicker mt-5">§ V</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
           <h2 class="display text-3xl md:text-5xl">Questions</h2>
@@ -744,7 +309,15 @@ bash scripts/thinkos-update.sh --pull</pre>
           {faqs.map((f) => (
             <details class="faq">
               <summary>{f.q}</summary>
-              <p class="faq-body">{f.a}</p>
+              <p class="faq-body">
+                {f.a}
+                {f.link && (
+                  <>
+                    {' '}
+                    <a href={f.link.href} class="underline underline-offset-2 hover:text-accent">{f.link.label}</a>.
+                  </>
+                )}
+              </p>
             </details>
           ))}
         </div>

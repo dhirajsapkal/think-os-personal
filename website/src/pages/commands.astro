@@ -1,0 +1,152 @@
+---
+// /commands — every Think OS slash command, moved off the homepage.
+// Same groupings and per-group "when you'd reach for this" intros the
+// homepage table shipped with; rendered in the editorial layout.
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const groups = [
+  {
+    name: 'Morning ritual',
+    intro: 'Start the day with one command. Calendar, focus, plate, recent log — in under fifteen seconds.',
+    items: [
+      ['/thinkos-morning',  'Daily brief — focus, plate, recent log, calendar'],
+      ['/thinkos-plate',    'What\'s on your plate today (tasks + current focus)'],
+      ['/thinkos-whoami',   'Quick identity + role + current focus'],
+      ['/thinkos-recent',   'Recent captures by source — what landed and where'],
+    ],
+  },
+  {
+    name: 'Capture & recall',
+    intro: 'One canonical capture command with three soft aliases that keep working forever. The agent infers type from your phrasing.',
+    items: [
+      ['/thinkos-capture',      'Canonical capture — infers decision, learning, log, or session-recap'],
+      ['/thinkos-save',         'Alias → /thinkos-capture --mode session-recap'],
+      ['/thinkos-log',          'Alias → /thinkos-capture --mode log'],
+      ['/thinkos-decide',       'Alias → /thinkos-capture --mode decision'],
+      ['/thinkos-decisions',    'Search your standing decisions'],
+      ['/thinkos-learnings',    'Search reusable learnings by topic'],
+      ['/thinkos-undo-capture', 'Remove a capture from both vault and ledger'],
+      ['/recent-log',           'Summarize the last N days of work-log entries'],
+    ],
+  },
+  {
+    name: 'People & projects',
+    intro: 'Warm-tier drill-downs into the people and projects you work with.',
+    items: [
+      ['/thinkos-who',     'What you know about a specific person'],
+      ['/thinkos-project', 'Load deep context for a project by slug'],
+      ['/draft-reply',     'Draft a reply to an email or Slack message — never sends'],
+      ['/index-projects',  'Walk project folders and reconcile against the index'],
+    ],
+  },
+  {
+    name: 'Vault health & maintenance',
+    intro: 'Surface staleness, broken links, and ledger volume — and keep multi-machine setups in sync.',
+    items: [
+      ['/thinkos-vitals',  'Vault-health snapshot — staleness, broken links, ledger volume'],
+      ['/thinkos-stale',   'List notes past their freshness window'],
+      ['/thinkos-refresh', 'Refresh Tasks.md from your connected tools'],
+      ['/thinkos-sync',    'Cross-machine vault sync — pauses to you on conflict'],
+      ['/thinkos-shared',  'Toggle shared-mode — hides tier: sensitive notes for screen sharing'],
+      ['/thinkos-reindex', 'Refresh Basic Memory\'s index after external vault edits'],
+      ['/thinkos-voice',   'Rewrite a draft in your voice profile'],
+      ['/validate-os',     'Sanity-check the OS for stale entries and contradictions'],
+      ['/weekly-review',   'Weekly digest — refresh Current Focus, surface drift'],
+      ['/quarterly-review', 'Quarterly maintenance — archive rotation, prune stale projects'],
+    ],
+  },
+  {
+    name: 'Setup, lifecycle, automations',
+    intro: 'Install, resume onboarding, manage vaults, wire up the launchd jobs, and stay current.',
+    items: [
+      ['/thinkos-setup',         'Run the first-time setup from a fresh session'],
+      ['/thinkos-continue',      'Resume Phase 2 — bulk-seed from connected tools (opt-in)'],
+      ['/thinkos-vault',         'Manage vaults — switch, create, clone, add reference'],
+      ['/thinkos-autosave',      'Toggle periodic background session capture'],
+      ['/thinkos-capture-setup', 'Enable continuous-capture sources one at a time'],
+      ['/thinkos-automate',      'Set up scheduled triggers (daily, weekly, quarterly)'],
+      ['/thinkos-update',        'Pull latest instructions and commands, with drift detection'],
+      ['/thinkos-doctor',        'Check install health — manifest, MCP, launchd jobs'],
+    ],
+  },
+  {
+    name: 'Discovery',
+    intro: 'When you forget what something is called.',
+    items: [
+      ['/thinkos-help',     'Show every Think OS command'],
+      ['/thinkos-mcp-help', 'How to query and update your context MCP'],
+    ],
+  },
+];
+---
+<BaseLayout
+  title="Commands · Think OS"
+  description="Every Think OS slash command — grouped by when you'd reach for it."
+>
+
+  <!-- PAGE HEADER -->
+  <section class="wash-hero">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-12 md:pb-16">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-9 md:col-start-2">
+          <p class="kicker lift lift-1">§ Commands</p>
+          <h1 class="display lift lift-2 mt-6 text-[40px] md:text-[72px] lg:text-[84px] tracking-tightest">
+            Commands
+          </h1>
+          <p class="lift lift-3 mt-8 max-w-[60ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
+            Every Think OS slash command. Most are prefixed so they autocomplete
+            as a group — type
+            <code class="font-mono bg-soft px-1.5 py-0.5 rounded text-[15px]">/thinkos</code>
+            in Claude Code and tab through the list.
+          </p>
+          <p class="lift lift-4 mt-5 max-w-[60ch] text-[15px] leading-relaxed text-muted">
+            New here? The ten you'll actually use day to day are in
+            <a href="/guide" class="underline underline-offset-2 hover:text-accent">How to use it</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMAND GROUPS -->
+  <section class="border-t border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-20">
+      <div class="space-y-14">
+        {groups.map((group) => (
+          <div class="reveal">
+            <div class="grid grid-cols-12 gap-6 mb-4">
+              <div class="col-span-12 md:col-span-4">
+                <p class="kicker">{group.name}</p>
+              </div>
+              <div class="col-span-12 md:col-span-8">
+                <p class="text-[15px] leading-relaxed text-muted max-w-[60ch]">{group.intro}</p>
+              </div>
+            </div>
+            <div class="border-t border-rule">
+              {group.items.map(([cmd, desc]) => (
+                <div class="hover-row grid grid-cols-12 gap-6 items-baseline border-b border-rule py-3.5 hover:bg-soft/50">
+                  <div class="col-span-12 md:col-span-4 pl-4 md:pl-5">
+                    <code class="font-mono text-[14px] md:text-[15px] text-ink">{cmd}</code>
+                  </div>
+                  <div class="col-span-12 md:col-span-8">
+                    <p class="text-[15px] text-muted">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p class="mt-10 text-[14px] leading-relaxed text-muted max-w-[66ch]">
+        All commands are plain <code class="font-mono text-[13px] bg-soft px-1.5 py-0.5 rounded">.md</code>
+        files at <code class="font-mono text-[13px] bg-soft px-1.5 py-0.5 rounded">~/.claude/commands/</code> —
+        auditable, editable, yours.
+      </p>
+    </div>
+  </section>
+
+  <!-- CLOSING ORNAMENT -->
+  <div class="ornament py-16">❦ &nbsp; · &nbsp; ❦ &nbsp; · &nbsp; ❦</div>
+
+</BaseLayout>

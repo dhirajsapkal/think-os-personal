@@ -1,5 +1,6 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
+import VaultTree from '../../components/VaultTree.astro';
 ---
 <DocsLayout
   title="Multi-vault architecture"
@@ -43,6 +44,16 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
     no cloud-sync of the vault folder); the reference-vault feature itself doesn't
     expose anything outward.
   </p>
+
+  <h2>On disk</h2>
+  <p>
+    A populated personal hub after a few weeks of real use. Plain markdown,
+    plain folders. Nothing the agent reads is opaque to you — open any file
+    in your editor of choice and the canonical truth is right there.
+  </p>
+  <div class="not-prose mt-8 mb-12">
+    <VaultTree />
+  </div>
 
   <h2>Vault registry</h2>
   <p>
