@@ -36,6 +36,7 @@ Run `bash scripts/thinkos-vault.sh list` silently to know what's currently regis
   | "Add reference vault" | "Register a folder of markdown as read-only context." |
   | "Switch active vault" | "Change which vault the agent treats as 'current'." |
   | "Rename a vault" | "Change a vault's id and/or label (path and files untouched)." |
+  | "Track a work folder" | "Capture Claude sessions from a project folder into your work log." |
   | "Remove a vault" | "Deregister a vault (files stay on disk)." |
 
 Branch on the answer. The flows below all use `AskUserQuestion` for sub-choices.
@@ -266,6 +267,22 @@ bash scripts/thinkos-vault.sh rename <old-id> [--id <new-id>] [--label "<new lab
 ```
 
 Pass `--id` and/or `--label` only for the values the user changed. Show output. End: "Renamed `<old-id>` → `<new-id>` (`<new label>`)."
+
+---
+
+## Branch 7 — Track a work folder
+
+Session capture only records Claude sessions whose cwd is inside a registered vault or a tracked folder (`tracked_projects` in `~/.thinkos/vaults.json`).
+
+Ask (free text, or chips if you can infer likely candidates from `~/.claude/projects/` directory names): "Which folder should I track? Sessions under it will be captured into your work log."
+
+Expand `~`, then:
+
+```bash
+bash scripts/thinkos-vault.sh track "<path>"
+```
+
+To stop tracking, same flow with `untrack`. Show the script output verbatim — it confirms the path or explains why it was rejected. End by noting: "Capture runs every ~2h; the next run picks this up automatically."
 
 ---
 

@@ -40,11 +40,11 @@ Before asking anything, show this welcome message verbatim:
 >
 > Think OS gives me durable memory across every session — who you are, what you're working on, who you work with, and how you like to work. I'll have you set up in about five minutes.
 >
-> The repo is cloned to `~/code/think-os/`. I'll ask you four quick questions — each has a recommended default you can pick with a click, so you barely need to type.
+> The repo is cloned to `~/code/think-os/`. I'll ask you five quick questions — each has a recommended default you can pick with a click, so you barely need to type.
 
 ---
 
-## Step 2 — Ask 4 questions using AskUserQuestion
+## Step 2 — Ask 5 questions using AskUserQuestion
 
 **Use the `AskUserQuestion` tool for every question.** Claude Code renders it as a chip-picker the user can click — no typing required to accept defaults. If `AskUserQuestion` isn't loaded yet, load it first via:
 
@@ -56,7 +56,7 @@ Ask one question at a time. Wait for each answer before moving to the next.
 
 **Important formatting rule for all questions below.** Each chip option has a `label` (one short phrase, shown ON the chip) and a `description` (one sentence, shown under or alongside the chip). Don't combine them into one string. Don't put dashes between preset keys and human names in the label — that causes duplicate-looking chips ("design-Design"). The user's pick is mapped to a preset key by you, internally.
 
-### Question 1 of 4 — Vault location
+### Question 1 of 5 — Vault location
 
 `AskUserQuestion`:
 
@@ -72,7 +72,7 @@ Ask one question at a time. Wait for each answer before moving to the next.
 
 If the user picks "Custom path", follow up with a plain text prompt asking for the full path. Expand `~` to `$HOME`. Warn if the path is under `~/Documents`, `~/Desktop`, or `~/Downloads`.
 
-### Question 2 of 4 — Basic Memory
+### Question 2 of 5 — Basic Memory
 
 First, check the local environment:
 
@@ -93,7 +93,7 @@ If basic-memory is missing, use `AskUserQuestion`:
   | "Yes, install it" | "Takes about 30 seconds via uv." |
   | "Skip for now" | "I'll install it myself later." |
 
-### Question 3 of 4 — Plugin bundle
+### Question 3 of 5 — Plugin bundle
 
 `AskUserQuestion`:
 
@@ -103,13 +103,13 @@ If basic-memory is missing, use `AskUserQuestion`:
 - Options (chip `label` is human-readable; map to the preset key in your bundle install command):
   | label | description | maps to preset |
   |---|---|---|
-  | "Product Management" | "Slack, Gmail, Notion, Linear, Granola, Figma + PM and Productivity skills." | `pm` |
-  | "Engineering" | "Slack, Gmail, Atlassian Rovo, Linear + Engineering and Productivity skills." | `eng` |
-  | "Design" | "Slack, Gmail, Notion, Figma, Granola + Design and Productivity skills." | `design` |
-  | "Operations" | "Slack, Gmail, Microsoft 365, Notion, QuickBooks + Productivity skills." | `ops` |
+  | "Product Management" | "Slack, Gmail, Google Calendar, Google Drive, Notion, Granola, Figma + PM and Productivity skills." | `pm` |
+  | "Engineering" | "Slack, Gmail, Google Calendar, Google Drive, Atlassian Rovo + Engineering and Productivity skills." | `eng` |
+  | "Design" | "Slack, Gmail, Google Calendar, Google Drive, Notion, Figma, Granola + Design and Productivity skills." | `design` |
+  | "Operations" | "Slack, Gmail, Google Calendar, Notion, QuickBooks + Productivity skills." | `ops` |
   | "Skip" | "Add tools individually later." | (omit `--bundle` flag) |
 
-### Question 4 of 4 — Vault name
+### Question 4 of 5 — Vault name
 
 `AskUserQuestion`:
 
@@ -121,6 +121,25 @@ If basic-memory is missing, use `AskUserQuestion`:
   |---|---|---|
   | "personal (work)" | "Your own vault, not shared with a team." | `personal` |
   | "Custom" | "Pick your own id." | (follow-up free-text prompt, validate `[a-z0-9-]+`) |
+
+### Question 5 of 5 — Where does your project work live?
+
+Session capture only records Claude sessions whose working directory is inside your vault or a tracked project folder. This question sets that list, so capture works from day one instead of silently matching nothing.
+
+`AskUserQuestion`:
+
+- Header: "Work folders"
+- Question: "Which folders hold the projects you work in? Claude sessions inside them get captured into your work log."
+- multiSelect: true
+- Options:
+  | label | description | maps to |
+  |---|---|---|
+  | "~/code" | "A conventional code workspace." | `~/code` |
+  | "~/Documents" | "Project work under Documents." | `~/Documents` |
+  | "Custom path(s)" | "Name one or more folders." | (follow-up free-text prompt; accept several, comma- or space-separated) |
+  | "Skip" | "Capture only sessions inside the vault itself." | (omit `--tracked-projects`) |
+
+The selections (plus any custom paths) become the comma-separated value of `--tracked-projects` in Step 3. Tell the user they can change this later with `scripts/thinkos-vault.sh track <path>` / `untrack <path>`.
 
 ---
 
@@ -145,10 +164,13 @@ bash scripts/thinkos-setup.sh \
   --os-home "<vault-path>" \
   --install-basic-memory \
   --yes \
-  [--bundle <preset>]
+  [--bundle <preset>] \
+  [--tracked-projects "<path1,path2>"]
 ```
 
 Include `--bundle <preset>` only if the user picked pm/eng/design/ops. Omit if they picked skip.
+
+Include `--tracked-projects` with the comma-separated folders from Question 5. Omit it if the user picked Skip there.
 
 If basic-memory turned out to be already installed (Step 2 detected it), drop `--install-basic-memory`.
 
@@ -262,7 +284,7 @@ Don't say it if `gh` isn't authenticated; the line is a promise you can't keep w
 - **Don't read every doc in this repo.** The user is waiting. This playbook plus `data/plugin-catalog.yaml` (only if they ask what's in a bundle) is enough.
 - **Use bracketed defaults visibly.** Users skim. Showing `[~/ThinkOS/vault]` lets them just press ENTER.
 - **One question at a time.** Batching feels like a form; one-at-a-time feels like a conversation.
-- **Wait for the user's answer** before running anything. Don't pre-emptively run setup.sh until all 4 questions are answered (the optional-capabilities multi-select comes after, in Step 4.5).
+- **Wait for the user's answer** before running anything. Don't pre-emptively run setup.sh until all 5 questions are answered (the optional-capabilities multi-select comes after, in Step 4.5).
 - **Surface failures verbatim.** Don't paraphrase script errors — the user might recognize them.
 - **The setup script is idempotent.** Re-running with the same args is safe; existing files aren't overwritten. If the user's machine has partial Think OS state from a prior attempt, just re-run.
 - **OAuth steps are the user's responsibility.** The script can't authorize browser flows.

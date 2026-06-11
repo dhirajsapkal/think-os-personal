@@ -15,6 +15,7 @@ YES=0
 DRY_RUN=0
 BUNDLE=""
 BUNDLE_ITEMS=""
+TRACKED_PROJECTS=""
 
 usage() {
   cat <<'EOF'
@@ -36,6 +37,9 @@ Options:
   --dry-run                   Show what would happen without changing files
   --bundle PRESET             Install a curated bundle after product setup (pm|eng|design|ops|all)
   --bundle-items LIST         Comma-separated catalog ids to install (advanced)
+  --tracked-projects LIST     Comma-separated project directories whose Claude
+                              sessions get captured into the work log (written
+                              to tracked_projects in ~/.thinkos/vaults.json)
   -h, --help                  Show this help
 
 Examples:
@@ -77,6 +81,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --bundle-items)
       BUNDLE_ITEMS="$2"
+      shift 2
+      ;;
+    --tracked-projects)
+      TRACKED_PROJECTS="$2"
       shift 2
       ;;
     -h|--help)
@@ -611,6 +619,27 @@ if has_product "claude-code" && [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
   "$REPO_ROOT/scripts/thinkos-install-bundle.sh" --target claude-code "${bundle_args[@]}"
 elif [[ -n "$BUNDLE" || -n "$BUNDLE_ITEMS" ]]; then
   log "Warning: --bundle/--bundle-items given but claude-code not in --products; bundle install skipped."
+fi
+
+if [[ -n "$TRACKED_PROJECTS" ]]; then
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "[dry-run] Would track project directories: $TRACKED_PROJECTS"
+  else
+    # The registry must exist before tracking; migrate is idempotent.
+    if [[ ! -f "$HOME/.thinkos/vaults.json" ]]; then
+      "$REPO_ROOT/scripts/thinkos-vault.sh" migrate --path "$OS_HOME" || \
+        log "Warning: could not create the vault registry; skipping tracked projects."
+    fi
+    if [[ -f "$HOME/.thinkos/vaults.json" ]]; then
+      IFS=',' read -r -a _tracked <<<"$TRACKED_PROJECTS"
+      for _tp in "${_tracked[@]}"; do
+        _tp="$(echo "$_tp" | sed -e 's/^ *//' -e 's/ *$//')"
+        [[ -z "$_tp" ]] && continue
+        "$REPO_ROOT/scripts/thinkos-vault.sh" track "$_tp" || \
+          log "Warning: could not track '$_tp' (does the directory exist?)"
+      done
+    fi
+  fi
 fi
 
 _write_install_manifest

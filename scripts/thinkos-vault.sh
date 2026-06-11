@@ -67,6 +67,10 @@ Subcommands:
                                   --yes               Skip confirmation.
                                 Updates ~/.thinkos/active-vault if needed.
                                 Does NOT touch path or bm_project.
+  track <path>                  Track a project directory for session
+                                capture: Claude sessions whose cwd is
+                                under it get captured into the work log.
+  untrack <path>                Stop tracking a project directory.
   migrate [options]             One-time migration: auto-register an
                                 existing v0 single-vault setup. Idempotent.
                                 Options:
@@ -1199,6 +1203,79 @@ if len(candidates) > 1:
 PYEOF
 }
 
+cmd_track() {
+  local raw="$1"
+  if [ -z "$raw" ]; then
+    err "track: missing <path>"
+    err "Usage: scripts/thinkos-vault.sh track <path>"
+    return 2
+  fi
+  case "$raw" in
+    "~"|"~/"*) raw="$HOME${raw#~}" ;;
+  esac
+  if [ ! -d "$raw" ]; then
+    err "track: '$raw' does not exist or is not a directory."
+    return 1
+  fi
+  local abs
+  abs="$(cd "$raw" && pwd)"
+  if [ ! -f "$REGISTRY" ]; then
+    err "track: no registry at $REGISTRY. Run scripts/thinkos-vault.sh migrate first."
+    return 1
+  fi
+  python3 - "$REGISTRY" "$abs" <<'PYEOF'
+import datetime, json, os, sys, tempfile
+reg, path = sys.argv[1], sys.argv[2]
+d = json.load(open(reg))
+tps = d.setdefault("tracked_projects", [])
+if any(isinstance(t, dict) and t.get("path") == path for t in tps):
+    print("track: already tracking " + path)
+    sys.exit(0)
+now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+tps.append({"path": path, "added_at": now})
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(reg))
+with os.fdopen(fd, "w") as f:
+    json.dump(d, f, indent=2)
+    f.write("\n")
+os.replace(tmp, reg)
+print("track: now tracking " + path + " — Claude sessions under it will be captured")
+PYEOF
+}
+
+cmd_untrack() {
+  local raw="$1"
+  if [ -z "$raw" ]; then
+    err "untrack: missing <path>"
+    err "Usage: scripts/thinkos-vault.sh untrack <path>"
+    return 2
+  fi
+  case "$raw" in
+    "~"|"~/"*) raw="$HOME${raw#~}" ;;
+  esac
+  if [ ! -f "$REGISTRY" ]; then
+    err "untrack: no registry at $REGISTRY."
+    return 1
+  fi
+  python3 - "$REGISTRY" "$raw" <<'PYEOF'
+import json, os, sys, tempfile
+reg, path = sys.argv[1], sys.argv[2]
+path = os.path.realpath(os.path.expanduser(path))
+d = json.load(open(reg))
+tps = d.get("tracked_projects", [])
+kept = [t for t in tps if not (isinstance(t, dict) and os.path.realpath(os.path.expanduser(t.get("path", ""))) == path)]
+if len(kept) == len(tps):
+    print("untrack: " + path + " was not tracked")
+    sys.exit(0)
+d["tracked_projects"] = kept
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(reg))
+with os.fdopen(fd, "w") as f:
+    json.dump(d, f, indent=2)
+    f.write("\n")
+os.replace(tmp, reg)
+print("untrack: stopped tracking " + path)
+PYEOF
+}
+
 cmd_migrate() {
   mkdir -p "$THINKOS_DIR"
 
@@ -1436,6 +1513,8 @@ case "$SUB" in
   add-reference)   cmd_add_reference "$P1" ;;
   remove)          cmd_remove "$P1" ;;
   rename)          cmd_rename "$P1" ;;
+  track)           cmd_track "$P1" ;;
+  untrack)         cmd_untrack "$P1" ;;
   migrate)         cmd_migrate ;;
   *)
     err "Unknown subcommand: $SUB"

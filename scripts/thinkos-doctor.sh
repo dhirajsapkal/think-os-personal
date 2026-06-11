@@ -648,14 +648,17 @@ if ! command -v sqlite3 >/dev/null 2>&1; then
 elif [[ ! -f "$BM_DB" ]]; then
   add_check "index:drift" ok "no memory.db yet at $BM_DB"
 else
-  DRIFT_ROW="$(sqlite3 -readonly "$BM_DB" "
+  DRIFT_QUERY="
     SELECT
       (SELECT COUNT(*) FROM search_index WHERE type='entity'),
       (SELECT COUNT(*) FROM entity),
       (SELECT COUNT(*) FROM search_index WHERE type='observation'),
       (SELECT COUNT(*) FROM observation),
       (SELECT COUNT(*) FROM search_index WHERE type='relation'),
-      (SELECT COUNT(*) FROM relation);" 2>/dev/null || true)"
+      (SELECT COUNT(*) FROM relation);"
+  # -readonly fails on WAL-mode databases (readers need write access to the
+  # -wal sidecar); fall back to a plain open, which is still SELECT-only.
+  DRIFT_ROW="$(sqlite3 -readonly "$BM_DB" "$DRIFT_QUERY" 2>/dev/null || sqlite3 "$BM_DB" "$DRIFT_QUERY" 2>/dev/null || true)"
   if [[ -z "$DRIFT_ROW" ]]; then
     add_check "index:drift" ok "memory.db not queryable (locked or schema mismatch); skipped"
   else

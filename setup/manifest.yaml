@@ -57,6 +57,15 @@ phases:
         options:
           - { label: "personal (work)", value: "personal", description: "Your own vault, not shared with a team." }
           - { label: "Custom",          value: "__custom__", description: "Pick your own id." }
+      - id: tracked_projects
+        prompt: "Which folders hold the projects you work in? Claude sessions inside them get captured into your work log."
+        kind: multi
+        maps_to: "--tracked-projects (comma-separated); stored as tracked_projects in ~/.thinkos/vaults.json"
+        options:
+          - { label: "~/code",         value: "~/code",      description: "A conventional code workspace." }
+          - { label: "~/Documents",    value: "~/Documents", description: "Project work under Documents." }
+          - { label: "Custom path(s)", value: "__custom__",  description: "Name one or more folders." }
+          - { label: "Skip",           value: null,          description: "Capture only sessions inside the vault itself." }
 
   optional_capabilities:
     title: Optional capabilities

@@ -23,6 +23,18 @@ What is explicitly NOT captured:
 
 The capture script reads `.jsonl` session logs from `~/.claude/projects/` but only extracts tool-use metadata — specifically `Edit`, `Write`, and `MultiEdit` tool call inputs to find file paths. It does not read or transmit any other session data.
 
+## Which sessions get captured (tracked_projects)
+
+Only sessions whose working directory is inside an **allowed path** are captured. The allowed list is the union of every registered vault path and the `tracked_projects` entries in `~/.thinkos/vaults.json` (prefix match — tracking `~/Documents/Think` covers everything under it). Sessions anywhere else are skipped, by design: you choose what flows into your vault.
+
+Three ways to manage the list:
+
+- **At onboarding** — the install wizard asks "Which folders hold the projects you work in?" and passes the answer to `scripts/thinkos-setup.sh --tracked-projects "<p1,p2>"`.
+- **Any time after** — `scripts/thinkos-vault.sh track <path>` / `untrack <path>`.
+- **Bypass for one run** — `scripts/thinkos-session-capture.sh --all-projects` ignores the filter.
+
+If the filter matches zero sessions, the capture run logs a pointer to this mechanism instead of silently writing nothing — and `thinkos-doctor.sh` will flag the stale `capture:last_session` either way.
+
 ## Where it goes
 
 Entries are appended to `01 Now/Work Log.md` in your vault under a date header:
