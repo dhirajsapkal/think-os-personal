@@ -89,7 +89,7 @@ const groups = [
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-12 md:pb-16">
       <div class="grid grid-cols-12 gap-6">
         <div class="col-span-12 md:col-span-9 md:col-start-2">
-          <p class="kicker lift lift-1">§ Commands</p>
+          <p class="kicker lift lift-1"># Commands</p>
           <h1 class="display lift lift-2 mt-6 text-[40px] md:text-[72px] lg:text-[84px] tracking-tightest">
             Commands
           </h1>
@@ -111,9 +111,26 @@ const groups = [
   <!-- COMMAND GROUPS -->
   <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-20">
-      <div class="space-y-14">
+
+      <!-- Filter — vanilla JS, zero deps. Hides non-matching rows + empty groups. -->
+      <div class="mb-12 max-w-[420px]">
+        <label class="flex items-baseline gap-3 border-b border-rule pb-2">
+          <span class="font-mono text-[12px] text-muted select-none" aria-hidden="true">&gt;</span>
+          <input
+            type="text"
+            id="cmd-filter"
+            placeholder="filter commands…"
+            autocomplete="off"
+            aria-label="Filter commands"
+            class="w-full bg-transparent font-mono text-[14px] text-ink placeholder:text-muted/60 focus:outline-none"
+          />
+        </label>
+        <p id="cmd-filter-empty" class="mt-4 text-[14px] text-muted hidden">No commands match that.</p>
+      </div>
+
+      <div class="space-y-14" id="cmd-groups">
         {groups.map((group) => (
-          <div class="reveal">
+          <div class="reveal" data-cmd-group>
             <div class="grid grid-cols-12 gap-6 mb-4">
               <div class="col-span-12 md:col-span-4">
                 <p class="kicker">{group.name}</p>
@@ -124,9 +141,9 @@ const groups = [
             </div>
             <div class="border-t border-rule">
               {group.items.map(([cmd, desc]) => (
-                <div class="hover-row grid grid-cols-12 gap-6 items-baseline border-b border-rule py-3.5 hover:bg-soft/50">
+                <div class="hover-row grid grid-cols-12 gap-6 items-baseline border-b border-rule py-3.5 hover:bg-soft/50" data-cmd-row data-cmd-text={`${cmd} ${desc}`.toLowerCase()}>
                   <div class="col-span-12 md:col-span-4 pl-4 md:pl-5">
-                    <code class="font-mono text-[14px] md:text-[15px] text-ink">{cmd}</code>
+                    <code class="font-mono text-[14px] md:text-[15px]"><span class="text-muted">&gt; </span><span class="text-accent">{cmd}</span></code>
                   </div>
                   <div class="col-span-12 md:col-span-8">
                     <p class="text-[15px] text-muted">{desc}</p>
@@ -146,7 +163,30 @@ const groups = [
     </div>
   </section>
 
-  <!-- CLOSING ORNAMENT -->
-  <div class="ornament py-16">❦ &nbsp; · &nbsp; ❦ &nbsp; · &nbsp; ❦</div>
-
 </BaseLayout>
+
+<script is:inline>
+  (function () {
+    const input = document.getElementById('cmd-filter');
+    if (!input) return;
+    const rows = Array.from(document.querySelectorAll('[data-cmd-row]'));
+    const groups = Array.from(document.querySelectorAll('[data-cmd-group]'));
+    const empty = document.getElementById('cmd-filter-empty');
+
+    input.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase();
+      let anyVisible = false;
+      rows.forEach((row) => {
+        const match = !q || row.getAttribute('data-cmd-text').includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) anyVisible = true;
+      });
+      // Hide a group whose every row is filtered out.
+      groups.forEach((group) => {
+        const visible = group.querySelectorAll('[data-cmd-row]:not([style*="display: none"])').length;
+        group.style.display = visible ? '' : 'none';
+      });
+      if (empty) empty.classList.toggle('hidden', anyVisible);
+    });
+  })();
+</script>

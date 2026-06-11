@@ -1,0 +1,73 @@
+---
+// Pair — the signature device. LEFT pane (what you typed) + RIGHT pane (the
+// file that changed), joined by a hairline connector with a "→" glyph at the
+// midpoint. Stacks vertically on mobile (terminal first, arrow rotates down).
+//
+// Slots: "left" and "right". Optional `tag` (a time/label) sits above the pair.
+interface Props {
+  tag?: string;
+}
+const { tag } = Astro.props;
+---
+<div class="pair">
+  {tag && <p class="kicker mb-3">{tag}</p>}
+  <div class="pair-grid">
+    <div class="pair-cell"><slot name="left" /></div>
+    <div class="pair-link" aria-hidden="true"><span class="pair-arrow">→</span></div>
+    <div class="pair-cell"><slot name="right" /></div>
+  </div>
+</div>
+
+<style>
+  .pair-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 0;
+  }
+  .pair-cell { min-width: 0; }
+
+  /* Mobile connector — vertical hairline + downward arrow between stacked panes. */
+  .pair-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    height: 2.75rem;
+  }
+  .pair-link::before {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 100%;
+    background: var(--rule);
+  }
+  .pair-arrow {
+    position: relative;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--accent);
+    background: var(--paper);
+    padding: 0.25rem;
+    transform: rotate(90deg);
+    line-height: 1;
+  }
+
+  @media (min-width: 900px) {
+    .pair-grid {
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+    }
+    .pair-link {
+      height: auto;
+      width: 3rem;
+    }
+    .pair-link::before {
+      width: 100%;
+      height: 1px;
+    }
+    .pair-arrow {
+      transform: none;
+    }
+  }
+</style>

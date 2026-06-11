@@ -36,7 +36,7 @@ const architecture = [
   </p>
 
   <div class="not-prose my-10">
-    <p class="pullquote text-2xl md:text-[30px] max-w-[26ch]">
+    <p class="md-quote max-w-[34ch]">
       Markdown is the source of truth. Everything else is a rebuildable index.
     </p>
   </div>
@@ -45,7 +45,7 @@ const architecture = [
     {architecture.map((a) => (
       <div class="grid grid-cols-12 gap-4 border-t border-rule pt-6">
         <div class="col-span-2 md:col-span-1">
-          <p class="numeral text-3xl md:text-4xl leading-none">{a.n}</p>
+          <p class="font-mono text-2xl md:text-3xl leading-none text-muted">{a.n}</p>
         </div>
         <div class="col-span-10 md:col-span-11">
           <h2 class="font-display text-xl md:text-2xl tracking-tight">{a.title}</h2>

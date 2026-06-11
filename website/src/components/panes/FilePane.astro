@@ -1,0 +1,17 @@
+---
+// FilePane — the RIGHT pane of a Pair when the product READ a file. Same
+// chrome as TerminalPane; supports `read`-highlight rows via <span class="read-row">
+// in the slotted body. Tag defaults to READ and renders in accent.
+interface Props {
+  path: string;
+  tag?: string;
+}
+const { path, tag = 'read' } = Astro.props;
+---
+<div class="pane">
+  <div class="pane-bar">
+    <span class="pane-path">{path}</span>
+    <span class="pane-tag" data-kind="read">{tag}</span>
+  </div>
+  <pre class="pane-body whitespace-pre-wrap break-words"><slot /></pre>
+</div>

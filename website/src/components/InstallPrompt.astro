@@ -1,13 +1,13 @@
 ---
 const command = 'Install Think OS for me from https://github.com/dhirajsapkal/think-os';
 ---
-<div class="install-card">
+<div class="install-card" data-install-prompt>
   <div class="flex items-baseline justify-between px-5 md:px-7 pt-4 pb-3 border-b border-rule/70">
     <div class="flex items-baseline gap-3">
       <span class="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">
         Setup prompt
       </span>
-      <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted/70">
+      <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">
         — paste into Claude Code
       </span>
     </div>
@@ -24,25 +24,30 @@ const command = 'Install Think OS for me from https://github.com/dhirajsapkal/th
 </div>
 
 <script is:inline>
+  // Scoped per instance, so multiple InstallPrompts on one page all work.
   (function () {
-    const trigger = document.querySelector('[data-copy-trigger]');
-    const source  = document.querySelector('[data-copy-source]');
-    const label   = trigger?.querySelector('[data-copy-label]');
-    if (!trigger || !source || !label) return;
+    document.querySelectorAll('[data-install-prompt]').forEach((card) => {
+      const trigger = card.querySelector('[data-copy-trigger]');
+      const source  = card.querySelector('[data-copy-source]');
+      const label   = trigger?.querySelector('[data-copy-label]');
+      if (!trigger || !source || !label) return;
+      if (trigger.dataset.wired) return;
+      trigger.dataset.wired = '1';
 
-    trigger.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(source.textContent.trim());
-        trigger.setAttribute('data-copied', 'true');
-        label.textContent = 'Copied';
-        setTimeout(() => {
-          trigger.removeAttribute('data-copied');
-          label.textContent = 'Copy';
-        }, 1800);
-      } catch (e) {
-        label.textContent = 'Failed';
-        setTimeout(() => (label.textContent = 'Copy'), 1800);
-      }
+      trigger.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(source.textContent.trim());
+          trigger.setAttribute('data-copied', 'true');
+          label.textContent = 'Copied';
+          setTimeout(() => {
+            trigger.removeAttribute('data-copied');
+            label.textContent = 'Copy';
+          }, 1800);
+        } catch (e) {
+          label.textContent = 'Failed';
+          setTimeout(() => (label.textContent = 'Copy'), 1800);
+        }
+      });
     });
   })();
 </script>

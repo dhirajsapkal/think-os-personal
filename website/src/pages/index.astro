@@ -1,50 +1,51 @@
 ---
-// Homepage — five sections + FAQ, kept deliberately short.
-// What moved where:
-//   "Built in" cards        → /docs/whats-installed
-//   "Files, not a database" → /docs/architecture
-//   Vaults + VaultTree      → /docs/multi-vault
-//   36-command table        → /commands
-//   Continuous capture      → /docs/continuous-capture
-//   Staying current         → /docs/update-protocol
-// The user-facing playbook (daily/weekly rhythm, dos & don'ts) is /guide.
+// Homepage 2.0 — "Cause / Effect". The product is two surfaces: a terminal
+// where you talk, and a folder of plain files that change because you talked.
+// Every beat is a two-pane vignette (Pair): LEFT what you typed, RIGHT the
+// file that was read or written. Copy is captions; the panes carry the story.
+//
+// All strings verified against the v0.9.4 inventory (index/guide/commands/docs)
+// or the shipped playbooks; the only net-new artifact is the Decisions.md
+// appended entry in S3 beat 3, whose field format is verified against
+// adapters/claude-code/commands/thinkos-capture.md (decision mode).
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InstallPrompt from '../components/InstallPrompt.astro';
-import ConversationStrip from '../components/ConversationStrip.astro';
 import TrustBar from '../components/TrustBar.astro';
 import WorksWith from '../components/WorksWith.astro';
 import ChangelogPreview from '../components/ChangelogPreview.astro';
+import DayPairs from '../components/DayPairs.astro';
+import FlowDiagram from '../components/FlowDiagram.astro';
+import Pair from '../components/Pair.astro';
+import TerminalPane from '../components/panes/TerminalPane.astro';
+import FilePane from '../components/panes/FilePane.astro';
 
-const orientation = [
+const flowNodes = [
   {
-    kicker: 'What',
-    body: 'A folder of markdown files Claude reads at the start of every session — so it knows your role, your week, your people, your decisions, without you re-typing them.',
+    label: 'your files',
+    body: 'A plain folder on your disk — <code>~/ThinkOS/vault</code>. Who you are, what you\'re doing this week, your projects, people, decisions, and a running work log. Open any of them in Obsidian, VS Code, or TextEdit. Nothing is hidden, encoded, or locked in.',
   },
   {
-    kicker: 'Who',
-    body: 'Anyone who uses Claude Code for real work and is tired of being a stranger every session. No agent-architecture knowledge required — install it, then follow the guide.',
+    label: 'a local index',
+    body: 'Basic Memory derives a hybrid index from your files — SQLite full-text search, local vector embeddings, and a knowledge graph built from your notes\' own links. The index is a copy of your files, not the other way around. If it breaks, one command rebuilds it.',
   },
   {
-    kicker: 'Trust',
-    body: 'Local-first; nothing leaves your machine unless you sync it. Conversational writes are confirmed with you; automatic captures are metadata-only, ledger-logged, and undoable.',
+    label: 'every session',
+    body: 'Search locates; the agent reads only the span it needs. Large files are never read end to end.',
   },
 ];
 
-const rules = [
+const trust = [
   {
-    n: 'I',
-    title: 'Files are the source of truth.',
-    body: 'Tool memory, the Basic Memory index, and any tool-specific cache are derivatives. The markdown on disk is canonical.',
+    label: 'doesn\'t phone home',
+    body: 'Think OS is local-first. Basic Memory runs as a stdio MCP server — your markdown files stay on disk, indexed by SQLite on your machine. They only leave if you explicitly choose to sync (git, iCloud, Syncthing).',
   },
   {
-    n: 'II',
-    title: 'Always-loaded context stays small.',
-    body: 'Identity and this week\'s focus load verbatim — they\'re small, and verbatim reads are the grounding. Everything bigger is searched first, then read in scoped spans. Nothing rides along in every session unless it earns the tokens.',
+    label: 'doesn\'t capture content',
+    body: 'The background job records session metadata: directories, file counts, a commit hash. Not file contents, not transcripts, not anything you typed. It runs locally, makes no network calls, and every entry is listed in the ledger and removable with /thinkos-undo-capture.',
   },
   {
-    n: 'III',
-    title: 'Personal stays personal. Team stays team.',
-    body: 'Your private notes live in a vault only you can see. Project work lives in a separate vault shared with your team. The structure makes accidental crossover impossible.',
+    label: 'doesn\'t write silently',
+    body: 'Conversational writes are confirmed with you; automatic captures are metadata-only, ledger-logged, and undoable. When you state a reusable decision mid-conversation, Claude asks once whether to log it — it won\'t capture silently.',
   },
 ];
 
@@ -82,122 +83,143 @@ const faqs = [
 ---
 <BaseLayout>
 
-  <!-- HERO -->
-  <section class="wash-hero">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-20 md:pt-28 pb-24 md:pb-36">
-      <div class="grid grid-cols-12 gap-6">
-        <div class="col-span-12 md:col-span-9 md:col-start-2">
-          <div class="lift lift-1">
-            <a
-              href="https://thinkcompany.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted hover:text-accent transition-colors"
-            >
-              A project from Think Company
-            </a>
-          </div>
+  <!-- ============================================================
+       S1 · HERO — the morning, demonstrated
+       ============================================================ -->
+  <section class="wash-hero border-b border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-16 md:pb-24">
 
-          <h1 class="display lift lift-2 mt-8 text-[44px] md:text-[88px] lg:text-[104px] tracking-tightest">
-            Personal context<br />
-            that follows you<br />
-            into <em>every agent session.</em>
-          </h1>
+      <div class="lift lift-1">
+        <a
+          href="https://thinkcompany.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted hover:text-accent transition-colors"
+        >A project from Think Company</a>
+      </div>
 
-          <p class="lift lift-3 mt-10 md:mt-12 max-w-[58ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
-            Your agent knows who you are before you say a word — your role, what
-            you're on this week, how you like to be written to. A markdown vault
-            on your disk, surfaced through a context MCP server, loaded into
-            every Claude Code session.
-          </p>
+      <h1 class="display lift lift-2 mt-7 text-[42px] md:text-[80px] lg:text-[92px] tracking-tightest max-w-[16ch]">
+        Stop being a stranger <em>every session.</em>
+      </h1>
 
-          <div class="lift lift-4 mt-12 max-w-[820px]">
-            <InstallPrompt />
-          </div>
+      <p class="lift lift-3 mt-8 max-w-[62ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
+        Think OS is a folder of markdown files Claude reads at the start of
+        every session — so it knows your role, your week, your people, your
+        decisions, without you re-typing them.
+      </p>
 
-          <div class="lift lift-5 mt-6 max-w-[820px]">
-            <ChangelogPreview />
-          </div>
+      <!-- THE PAIR — the whole product in one glance -->
+      <div class="lift lift-4 mt-12">
+        <Pair>
+          <TerminalPane slot="left" label="claude code" tag="08:40">
+<span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:13ch; --type-steps:13">good morning</span><span class="after-type">
 
-          <div class="lift lift-6 mt-10 max-w-[820px]">
-            <TrustBar />
-          </div>
-        </div>
+This week (top 3):
+  1. v2 ingestion pipeline — cut release
+  2. Q3 hiring plan, first draft Friday
+  3. clear PR queue (T. + R.)
+
+Calendar: 2 meetings, both afternoon.</span></TerminalPane>
+          <FilePane slot="right" path="~/ThinkOS/vault/" tag="read">
+<span class="after-type"><span class="dim">00 Home/</span>
+<span class="dim">01 Now/</span>
+<span class="read-row">  <span class="text-accent">Current Focus.md</span>  <span class="dim">← read</span></span>
+<span class="dim">  Tasks.md</span>
+<span class="dim">  Work Log.md</span>
+<span class="dim">02 Projects/</span>
+<span class="dim">03 People/</span>
+<span class="dim">04 Knowledge/</span>
+<span class="dim">05 Profile/</span>
+<span class="read-row">  <span class="text-accent">Identity.md</span>  <span class="dim">← read</span></span>
+<span class="dim">90 System/</span></span></FilePane>
+        </Pair>
+      </div>
+
+      <p class="lift lift-4 mt-6 text-[15px] leading-relaxed text-muted max-w-[64ch]">
+        At the start of a session, Claude reads two small files — your Identity
+        and this week's Current Focus. Both are small, so it reads them whole.
+        That's the entire trick.
+      </p>
+      <p class="lift lift-4 mt-3 font-mono text-[10px] tracking-[0.18em] uppercase text-muted">
+        Sample vault content — your real vault has your real notes.
+      </p>
+
+      <div class="lift lift-5 mt-10 max-w-[820px]">
+        <InstallPrompt />
+      </div>
+
+      <div class="lift lift-5 mt-6 max-w-[820px]">
+        <ChangelogPreview />
+      </div>
+
+      <div class="lift lift-6 mt-10 max-w-[820px]">
+        <TrustBar />
       </div>
     </div>
   </section>
 
-  <!-- § I — WHAT IT IS, WHO IT'S FOR -->
+  <!-- ============================================================
+       S2 · HOW IT WORKS — three nodes, one artifact
+       ============================================================ -->
   <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-14 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">I</p>
-          <p class="kicker mt-5">§ I</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">What it is, who it's for</h2>
-        </div>
+      <header class="mb-12 reveal">
+        <h2 class="md-heading">How it works</h2>
       </header>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-rule border border-rule reveal">
-        {orientation.map((o) => (
-          <article class="bg-paper p-7 md:p-9 hover-card">
-            <p class="kicker">{o.kicker}</p>
-            <p class="mt-5 text-[16px] leading-relaxed text-muted max-w-[44ch]">{o.body}</p>
-          </article>
-        ))}
+      <div class="reveal">
+        <FlowDiagram nodes={flowNodes} />
       </div>
 
-      <p class="mt-8 text-[15px] leading-relaxed text-muted max-w-[66ch] reveal">
-        Everything the install actually drops in — the instruction stack, the
-        thirty-six commands, the role-based bundles — is itemized on
-        <a href="/docs/whats-installed" class="underline underline-offset-2 hover:text-accent">What's installed</a>.
-      </p>
+      <div class="mt-12 reveal">
+        <p class="md-quote max-w-[34ch]">
+          Markdown is the source of truth. Everything else is a rebuildable index.
+        </p>
+        <p class="mt-5 text-[15px] leading-relaxed text-muted max-w-[60ch]">
+          The why, tradeoffs included →
+          <a href="/docs/architecture" class="underline underline-offset-2 hover:text-accent">/docs/architecture</a>
+        </p>
+      </div>
     </div>
   </section>
 
-  <!-- § II — GET STARTED IN THREE STEPS -->
-  <section class="border-t border-rule">
+  <!-- ============================================================
+       S3 · A DAY WITH IT — four cause/effect pairs
+       ============================================================ -->
+  <DayPairs />
+
+  <!-- ============================================================
+       S4 · GET STARTED
+       ============================================================ -->
+  <section class="border-t border-rule bg-soft/40">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-16 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">II</p>
-          <p class="kicker mt-5">§ II</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Get started in three steps</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            About fifteen to thirty minutes once. Zero overhead after — the
-            vault fills in from your real conversations, not a long Q&A. Bulk
-            seeding from your connected tools is opt-in, not required.
-          </p>
-        </div>
+      <header class="mb-14 reveal">
+        <h2 class="md-heading">Get started</h2>
+        <p class="mt-5 text-[16px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
+          About fifteen to thirty minutes once. Zero overhead after — the vault
+          fills in from your real conversations, not a long Q&A.
+        </p>
       </header>
 
       <div class="grid grid-cols-12 gap-x-6 gap-y-12">
         <article class="col-span-12 md:col-span-4 md:border-r md:border-rule md:pr-8 reveal">
           <div class="flex items-baseline justify-between border-b border-rule pb-3">
-            <p class="kicker">Step 1</p>
+            <p class="font-mono text-[12px] tracking-[0.08em] text-accent">&gt; step 1</p>
             <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">~5 min</p>
           </div>
-          <h3 class="font-display text-2xl md:text-3xl tracking-tight mt-5">Install</h3>
+          <h3 class="font-mono text-[20px] md:text-[22px] mt-5">Install</h3>
           <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
             Paste the install prompt into a fresh Claude Code session. The agent
-            clones the repo, asks five questions (vault location, Basic Memory,
-            plugin bundle, vault name, and which folders hold your real work —
-            automatic capture watches only those), optionally offers capability
-            add-ons (Playwright browser capture, GitHub CLI auth), and runs the
-            install.
+            clones the repo, asks five questions, and runs the install.
           </p>
         </article>
 
         <article class="col-span-12 md:col-span-4 md:border-r md:border-rule md:px-8 reveal" style="--reveal-delay: 90ms">
           <div class="flex items-baseline justify-between border-b border-rule pb-3">
-            <p class="kicker">Step 2</p>
+            <p class="font-mono text-[12px] tracking-[0.08em] text-accent">&gt; step 2</p>
             <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">~2 min</p>
           </div>
-          <h3 class="font-display text-2xl md:text-3xl tracking-tight mt-5">Restart + authenticate</h3>
+          <h3 class="font-mono text-[20px] md:text-[22px] mt-5">Restart + authenticate</h3>
           <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
             Quit Claude Code and reopen it. MCPs and new slash commands only
             load on startup.
@@ -211,10 +233,10 @@ const faqs = [
 
         <article class="col-span-12 md:col-span-4 md:pl-8 reveal" style="--reveal-delay: 180ms">
           <div class="flex items-baseline justify-between border-b border-rule pb-3">
-            <p class="kicker">Step 3 — opt-in</p>
+            <p class="font-mono text-[12px] tracking-[0.08em] text-accent">&gt; step 3 — opt-in</p>
             <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">~15–30 min</p>
           </div>
-          <h3 class="font-display text-2xl md:text-3xl tracking-tight mt-5">Continue, when you want</h3>
+          <h3 class="font-mono text-[20px] md:text-[22px] mt-5">Continue, when you want</h3>
           <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
             Skip this and the vault still fills in — emergent seeding watches
             your real conversations and proposes entries you confirm. Or run
@@ -229,83 +251,49 @@ const faqs = [
           </p>
         </article>
       </div>
+
+      <div class="mt-14 max-w-[820px] reveal">
+        <InstallPrompt />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       S5 · TRUST, FLATLY — lead with the negatives
+       ============================================================ -->
+  <section class="border-t border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+      <header class="mb-14 reveal">
+        <h2 class="md-heading">What it doesn't do</h2>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-rule border border-rule reveal">
+        {trust.map((t) => (
+          <article class="bg-paper p-7 md:p-8 hover-card">
+            <p class="font-mono text-[14px] text-ink">
+              <span class="text-muted">&gt; </span>{t.label}
+            </p>
+            <p class="mt-4 text-[15px] leading-relaxed text-muted max-w-[44ch]">{t.body}</p>
+          </article>
+        ))}
+      </div>
     </div>
   </section>
 
   <!-- WORKS WITH -->
   <WorksWith />
 
-  <!-- § III — A DAY WITH IT -->
-  <ConversationStrip />
-
-  <!-- § IV — THREE RULES -->
-  <section class="border-t border-rule bg-soft/40">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-16 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">IV</p>
-          <p class="kicker mt-5">§ IV</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Three rules</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            The architecture in one screen. If anything goes wrong, it'll be because
-            one of these got violated.
-          </p>
-        </div>
-      </header>
-
-      <div class="space-y-10">
-        {rules.map((r, i) => (
-          <div
-            class="grid grid-cols-12 gap-4 md:gap-6 items-baseline border-t border-rule pt-8 reveal"
-            style={`--reveal-delay: ${i * 80}ms`}
-          >
-            <div class="col-span-2 md:col-span-1">
-              <span class="numeral text-3xl md:text-4xl">{r.n}</span>
-            </div>
-            <div class="col-span-10 md:col-span-6">
-              <p class="font-display text-2xl md:text-3xl tracking-tight">{r.title}</p>
-            </div>
-            <div class="col-span-12 md:col-span-5">
-              <p class="text-[16px] leading-relaxed text-muted max-w-[50ch]">{r.body}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div class="grid grid-cols-12 gap-6 mt-16 reveal">
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <p class="pullquote text-2xl md:text-[32px] max-w-[26ch]">
-            Markdown is the source of truth. Everything else is a rebuildable index.
-          </p>
-          <p class="mt-5 text-[15px] leading-relaxed text-muted max-w-[60ch]">
-            The why — and what dedicated databases genuinely do better — is in
-            <a href="/docs/architecture" class="underline underline-offset-2 hover:text-accent">the architecture page</a>.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- § V — QUESTIONS -->
+  <!-- ============================================================
+       S6 · QUESTIONS + CLOSE
+       ============================================================ -->
   <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="grid grid-cols-12 gap-6 mb-12 reveal">
-        <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">V</p>
-          <p class="kicker mt-5">§ V</p>
-        </div>
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Questions</h2>
-          <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-            What testers usually ask first.
-          </p>
-        </div>
+      <header class="mb-12 reveal">
+        <h2 class="md-heading">Questions</h2>
       </header>
 
       <div class="grid grid-cols-12 gap-6 reveal">
-        <div class="col-span-12 md:col-span-8 md:col-start-5">
+        <div class="col-span-12 md:col-span-9 lg:col-span-8">
           {faqs.map((f) => (
             <details class="faq">
               <summary>{f.q}</summary>
@@ -322,10 +310,20 @@ const faqs = [
           ))}
         </div>
       </div>
+
+      <div class="mt-16 reveal">
+        <p class="font-display italic text-2xl md:text-[32px] leading-tight max-w-[24ch]">
+          A markdown vault that travels with you, between agents.
+        </p>
+        <p class="mt-7 font-mono text-[12px] tracking-[0.18em] uppercase">
+          <a href="#main" class="link-anim text-muted">Install ↑</a>
+          <span class="mx-3 text-muted opacity-50">·</span>
+          <a href="/guide" class="link-anim text-muted">How to use it →</a>
+          <span class="mx-3 text-muted opacity-50">·</span>
+          <a href="/commands" class="link-anim text-muted">All 36 commands →</a>
+        </p>
+      </div>
     </div>
   </section>
-
-  <!-- CLOSING ORNAMENT -->
-  <div class="ornament py-16">❦ &nbsp; · &nbsp; ❦ &nbsp; · &nbsp; ❦</div>
 
 </BaseLayout>

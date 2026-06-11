@@ -1,0 +1,27 @@
+---
+// TerminalPane — the LEFT pane of a Pair: a quiet terminal showing what you
+// typed (or didn't). Title bar carries a label + a tag (a time, or a status).
+// `typed` (hero only) wires the CSS typing keyframes onto the slotted prompt.
+//
+// Slots:
+//   default — the terminal body (lines). Use <span class="prompt"> for the
+//             accent ">" prompt, <span class="cmd"> for the accent command.
+interface Props {
+  label?: string;
+  tag?: string;
+}
+const { label = 'claude code', tag } = Astro.props;
+---
+<div class="pane">
+  <div class="pane-bar">
+    <span class="pane-path">{label}</span>
+    {tag && <span class="pane-tag">{tag}</span>}
+  </div>
+  <pre class="pane-body whitespace-pre-wrap break-words"><slot /></pre>
+</div>
+
+<style is:global>
+  .pane .prompt { color: var(--muted); }
+  .pane .cmd    { color: var(--accent); }
+  .pane .dim    { color: var(--muted); }
+</style>

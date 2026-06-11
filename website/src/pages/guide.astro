@@ -48,7 +48,7 @@ const tenCommands = [
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-16 md:pb-24">
       <div class="grid grid-cols-12 gap-6">
         <div class="col-span-12 md:col-span-9 md:col-start-2">
-          <p class="kicker lift lift-1">§ Guide</p>
+          <p class="kicker lift lift-1"># Guide</p>
           <h1 class="display lift lift-2 mt-6 text-[40px] md:text-[72px] lg:text-[84px] tracking-tightest">
             How to use Think OS
           </h1>
@@ -59,21 +59,31 @@ const tenCommands = [
             Fifteen minutes of reading, then it should disappear into your
             routine.
           </p>
+
+          <!-- STATIC ANCHOR TOC — no JS, mono links to each section -->
+          <nav class="lift lift-4 mt-10 flex flex-wrap gap-x-6 gap-y-2" aria-label="On this page">
+            <a href="#mental-model" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">The mental model</a>
+            <a href="#first-week" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">Your first week</a>
+            <a href="#daily" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">The daily rhythm</a>
+            <a href="#weekly" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">The weekly rhythm</a>
+            <a href="#maintenance" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">Maintenance</a>
+            <a href="#dos-donts" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">Dos and don'ts</a>
+            <a href="#commands" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">What to type</a>
+          </nav>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- § I — THE MENTAL MODEL -->
-  <section class="border-t border-rule">
+  <!-- ## The mental model -->
+  <section id="mental-model" class="border-t border-rule scroll-mt-24">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
       <div class="grid grid-cols-12 gap-6">
         <div class="col-span-12 md:col-span-3 reveal">
-          <p class="section-numeral" aria-hidden="true">I</p>
-          <p class="kicker mt-5">§ I — The mental model</p>
+          <p class="kicker">The mental model</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
-          <h2 class="display text-3xl md:text-5xl">Three things, plainly</h2>
+          <h2 class="md-heading">Three things, plainly</h2>
           <div class="prose mt-8">
             <p>
               Think OS is three things. Get these and everything else on this
@@ -144,16 +154,15 @@ const tenCommands = [
     </div>
   </section>
 
-  <!-- § II — YOUR FIRST WEEK -->
-  <section class="border-t border-rule bg-soft/40">
+  <!-- ## Your first week -->
+  <section id="first-week" class="border-t border-rule bg-soft/40 scroll-mt-24">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
       <div class="grid grid-cols-12 gap-6">
         <div class="col-span-12 md:col-span-3 reveal">
-          <p class="section-numeral" aria-hidden="true">II</p>
-          <p class="kicker mt-5">§ II — Your first week</p>
+          <p class="kicker">Your first week</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
-          <h2 class="display text-3xl md:text-5xl">Day 1 to day 7</h2>
+          <h2 class="md-heading">Day 1 to day 7</h2>
           <div class="prose mt-8">
             <p>
               <strong>Right after install, your vault is mostly empty. That's
@@ -240,16 +249,15 @@ const tenCommands = [
     </div>
   </section>
 
-  <!-- § III — THE DAILY RHYTHM -->
-  <section class="border-t border-rule">
+  <!-- ## The daily rhythm -->
+  <section id="daily" class="border-t border-rule scroll-mt-24">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
       <div class="grid grid-cols-12 gap-6">
         <div class="col-span-12 md:col-span-3 reveal">
-          <p class="section-numeral" aria-hidden="true">III</p>
-          <p class="kicker mt-5">§ III — The daily rhythm</p>
+          <p class="kicker">The daily rhythm</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
-          <h2 class="display text-3xl md:text-5xl">A normal day</h2>
+          <h2 class="md-heading">A normal day</h2>
           <div class="prose mt-8">
             <h3>Morning: one command.</h3>
             <p>
@@ -337,16 +345,15 @@ const tenCommands = [
     </div>
   </section>
 
-  <!-- § IV — THE WEEKLY RHYTHM -->
-  <section class="border-t border-rule bg-soft/40">
+  <!-- ## The weekly rhythm -->
+  <section id="weekly" class="border-t border-rule bg-soft/40 scroll-mt-24">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
       <div class="grid grid-cols-12 gap-6">
         <div class="col-span-12 md:col-span-3 reveal">
-          <p class="section-numeral" aria-hidden="true">IV</p>
-          <p class="kicker mt-5">§ IV — The weekly rhythm</p>
+          <p class="kicker">The weekly rhythm</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
-          <h2 class="display text-3xl md:text-5xl">Sunday, twenty minutes</h2>
+          <h2 class="md-heading">Sunday, twenty minutes</h2>
           <div class="prose mt-8">
             <p>
               <strong><code>/weekly-review</code> is the one ritual that
@@ -394,16 +401,15 @@ const tenCommands = [
     </div>
   </section>
 
-  <!-- § V — MAINTENANCE AND HEALTH -->
-  <section class="border-t border-rule">
+  <!-- ## Maintenance and health -->
+  <section id="maintenance" class="border-t border-rule scroll-mt-24">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
       <div class="grid grid-cols-12 gap-6">
         <div class="col-span-12 md:col-span-3 reveal">
-          <p class="section-numeral" aria-hidden="true">V</p>
-          <p class="kicker mt-5">§ V — Maintenance and health</p>
+          <p class="kicker">Maintenance and health</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5 reveal">
-          <h2 class="display text-3xl md:text-5xl">When something feels off</h2>
+          <h2 class="md-heading">When something feels off</h2>
           <div class="prose mt-8">
             <p>
               Three commands cover essentially every "is this working?"
@@ -454,16 +460,15 @@ const tenCommands = [
     </div>
   </section>
 
-  <!-- § VI — DOS AND DON'TS -->
-  <section class="border-t border-rule bg-soft/40">
+  <!-- ## Dos and don'ts -->
+  <section id="dos-donts" class="border-t border-rule bg-soft/40 scroll-mt-24">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
       <header class="grid grid-cols-12 gap-6 mb-12 reveal">
         <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">VI</p>
-          <p class="kicker mt-5">§ VI — Dos and don'ts</p>
+          <p class="kicker">Dos and don'ts</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">Dos and don'ts</h2>
+          <h2 class="md-heading">Dos and don'ts</h2>
         </div>
       </header>
 
@@ -472,7 +477,7 @@ const tenCommands = [
           <p class="kicker border-b border-rule pb-3 mb-6">Do</p>
           <ul class="space-y-6">
             {dos.map(([lead, body]) => (
-              <li class="border-l border-accent/40 pl-5">
+              <li class="pl-5" style="border-left: 2px solid var(--add)">
                 <p class="text-[16px] leading-relaxed">
                   <strong class="text-ink">{lead}</strong>
                   <span class="text-muted"> {body}</span>
@@ -498,16 +503,15 @@ const tenCommands = [
     </div>
   </section>
 
-  <!-- § VII — WHAT DO I ACTUALLY TYPE? -->
-  <section class="border-t border-rule">
+  <!-- ## What do I actually type? -->
+  <section id="commands" class="border-t border-rule scroll-mt-24">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-16 md:py-24">
       <header class="grid grid-cols-12 gap-6 mb-12 reveal">
         <div class="col-span-12 md:col-span-3">
-          <p class="section-numeral" aria-hidden="true">VII</p>
-          <p class="kicker mt-5">§ VII — What do I actually type?</p>
+          <p class="kicker">What do I actually type?</p>
         </div>
         <div class="col-span-12 md:col-span-8 md:col-start-5">
-          <h2 class="display text-3xl md:text-5xl">The ten commands you'll actually use</h2>
+          <h2 class="md-heading">The ten commands you'll actually use</h2>
           <p class="mt-5 text-[17px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
             Thirty-six commands ship. These ten are a complete daily practice;
             the rest are there when you need them —
@@ -527,10 +531,10 @@ const tenCommands = [
         {tenCommands.map(([cmd, say, what]) => (
           <div class="hover-row grid grid-cols-12 gap-2 md:gap-6 items-baseline border-b border-rule py-4 hover:bg-soft/50">
             <div class="col-span-12 md:col-span-4 pl-4 md:pl-5">
-              <code class="font-mono text-[14px] md:text-[15px] text-ink">{cmd}</code>
+              <code class="font-mono text-[14px] md:text-[15px]"><span class="text-muted">&gt; </span><span class="text-accent">{cmd}</span></code>
             </div>
             <div class="col-span-12 md:col-span-3 pl-4 md:pl-0">
-              <p class="text-[14px] text-muted italic">{say}</p>
+              <p class="font-mono text-[13px] text-muted italic">{say}</p>
             </div>
             <div class="col-span-12 md:col-span-5 pl-4 md:pl-0">
               <p class="text-[15px] text-muted">{what}</p>
@@ -563,8 +567,5 @@ const tenCommands = [
       </div>
     </div>
   </section>
-
-  <!-- CLOSING ORNAMENT -->
-  <div class="ornament py-16">❦ &nbsp; · &nbsp; ❦ &nbsp; · &nbsp; ❦</div>
 
 </BaseLayout>

@@ -1,0 +1,22 @@
+---
+// DiffPane — the RIGHT pane of a Pair when the product WROTE to a file. The
+// appended lines are "+" green on --add-bg; replaced lines render as muted "-"
+// strikethrough. Tag (e.g. "+3 LINES", "+1 ENTRY", "REPLACED") renders in green.
+//
+// `stagger` opts the "+" lines into the scroll-triggered reveal (collapses to
+// static under reduced-motion). Use <span class="diff-add"> and
+// <span class="diff-del"> in the slotted body; set --d for stagger delay.
+interface Props {
+  path: string;
+  tag: string;
+  stagger?: boolean;
+}
+const { path, tag, stagger = true } = Astro.props;
+---
+<div class="pane">
+  <div class="pane-bar">
+    <span class="pane-path">{path}</span>
+    <span class="pane-tag" data-kind="add">{tag}</span>
+  </div>
+  <pre class={`pane-body whitespace-pre-wrap break-words${stagger ? ' diff-stagger reveal' : ''}`}><slot /></pre>
+</div>
