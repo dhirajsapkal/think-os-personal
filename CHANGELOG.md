@@ -2,6 +2,15 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.9.9] — 2026-06-12 — Website V4: dense editorial + demo theaters, art-directed against renders
+
+Fourth take, process-corrected: previous rounds were specified blind; this one was art-directed against actual screenshots. The model the client chose: a dense editorial shell (light, layered collages, oversized type, mono annotations) punctuated by full-bleed dark demo theaters where Think blue is the light source. All homepage content rewritten from scratch around a new spine — "Every new chat, Claude meets you for the first time" → watch it answer from your files (each response line traces to a glowing file chip) → the memory is a folder (annotated anatomy) → a day writes itself (four replayable chapters) → type something → "Stop being a stranger." Static-state resilience became a rule: both theaters server-render their complete final state and replay it as choreography only when motion is allowed — screenshots, reduced-motion, and no-JS all see the full result.
+
+### Changed
+- Homepage rebuilt to the editorial/theater alternation; hero gains a layered parallax collage; folder anatomy with positioned annotations; trust cards; FAQ widened with a gutter annotation; closer is now the brand line.
+- Editorial content is never opacity-gated — reveal animations removed from structural blocks (they presented as voids before observers fired).
+- Theater replays use the cancellable-typing pattern; response lines in Theater 1 are hoverable buttons that re-glow their source file chip.
+
 ## [v0.9.8] — 2026-06-12 — Website V3: the brand world, and an argument instead of theater
 
 Third take on the site, redirected by two client notes: the Live Session conceit produced unmotivated theater (a "$ claude" boot type-on that argued nothing), and the palette should be Think Company's. V3 is a light, brand-true world — white paper, Think navy #173145 ink, Think blue #0058CC accents — with terminal panes sitting on it as always-dark navy artifacts. The opening scene is now the product's whole argument in one beat: the same prompt typed into two panes simultaneously, and the responses diverge — without Think OS, Claude asks who you are; with it, it answers. Every remaining animation exists to make a point: an interactive vault folder whose file chips swap a live preview, a self-drawing day timeline, and the typeable demo terminal carried over.

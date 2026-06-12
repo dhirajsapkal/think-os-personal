@@ -1,11 +1,23 @@
 ---
-// Homepage v3. The Live Session day-clock world is retired. The page is white
-// paper; dark-navy panes are the artifacts. Every animation makes an argument:
-//   §2 same prompt, two mornings — the thesis, side by side.
-//   §3 the folder — interactive: click a vault file, preview swaps.
-//   §4 it keeps itself current — a timeline that draws itself.
-//   §5 type something — the existing TryTerminal, untouched.
-// Reduced-motion collapses to static-final-complete; no-JS server-renders all.
+// Homepage v4. Two registers alternate down the page:
+//   A · EDITORIAL (light) — dense, oversized display type, layered overlapping
+//       cards with soft shadows, mono micro-annotations (.annot with a tick),
+//       occasional rotated cards, soft blue washes. White space is earned.
+//   B · THEATER (dark takeover) — full-bleed #06101B with a radial Think-blue
+//       glow, generous padding, light ink, panes lit with an outer blue glow.
+//       Entering a theater feels like the lights going down.
+//
+// S2 (read-trace) and S4 (day chapters) render their COMPLETE final state
+// server-side, visible by default. When motion is permitted (reveal-ready)
+// and the scene enters, a per-section IntersectionObserver clears and REPLAYS
+// the sequence using the cancellable-typing pattern (the same approach
+// TryTerminal uses). The resident step engine is no longer used here — it
+// hides [data-step] content until played, which is the opposite of the
+// static-final-complete invariant below.
+//
+// Invariants preserved: reduced-motion collapses to static-final-complete;
+// no-JS server-renders all content visible; reveal CSS gated on
+// .reveal-ready; brand tokens unchanged.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InstallPrompt from '../components/InstallPrompt.astro';
 import WorksWith from '../components/WorksWith.astro';
@@ -13,86 +25,57 @@ import ChangelogPreview from '../components/ChangelogPreview.astro';
 import TryTerminal from '../components/TryTerminal.astro';
 import TerminalPane from '../components/panes/TerminalPane.astro';
 
-// §3 — the vault files and their (sample) preview contents.
-const vaultFiles = [
+// S3 — the eight files of the folder anatomy.
+const anatomy = [
+  { name: 'Identity.md',      excerpt: 'Design lead. Plans first, plain language.', tier: 'HOT' },
+  { name: 'Current Focus.md', excerpt: "This week's top 3, refreshed Sundays.",     tier: 'HOT' },
+  { name: 'Tasks.md',         excerpt: "Today's plate, synced from your tools.",     tier: '' },
+  { name: 'Work Log.md',      excerpt: 'Appends itself while you work.',             tier: '' },
+  { name: 'People.md',        excerpt: 'Priya — eng lead, prefers async.',           tier: '' },
+  { name: 'Decisions.md',     excerpt: 'API versioned from day one — and why.',      tier: '' },
+  { name: 'Learnings.md',     excerpt: 'Demos beat decks.',                          tier: '' },
+  { name: 'Projects/',        excerpt: 'One folder per active project.',             tier: '' },
+];
+
+// S5 — what it won't do.
+const honest = [
   {
-    name: 'Identity.md',
-    path: '~/ThinkOS/vault/05 Profile/Identity.md',
-    lines: ['# Identity', '', 'Design lead at a product studio.', 'Plans first, plain language, no fluff.', 'Stack: Figma, Claude Code, GitHub.'],
+    title: '> stays local',
+    body: 'Files on your disk, indexed locally — they leave only if you sync them.',
+    rot: '-0.6deg',
   },
   {
-    name: 'Current Focus.md',
-    path: '~/ThinkOS/vault/01 Now/Current Focus.md',
-    lines: ['# Current Focus — this week', '', '1. v2 ingestion pipeline — cut release', '2. Q3 hiring plan, draft Friday', '3. clear PR queue (T. + R.)'],
+    title: '> captures metadata, not content',
+    body: 'The background log records folders, counts, a commit hash. Never what you typed.',
+    rot: '0.6deg',
   },
   {
-    name: 'Tasks.md',
-    path: '~/ThinkOS/vault/01 Now/Tasks.md',
-    lines: ['## Today', '', '- v2 release notes', '- 1:1 with Priya, 2pm'],
-  },
-  {
-    name: 'Work Log.md',
-    path: '~/ThinkOS/vault/01 Now/Work Log.md',
-    lines: ['### 14:00 — acme-redesign', '- Edited 12 files', '- HEAD: a1b2c3d'],
-  },
-  {
-    name: 'People.md',
-    path: '~/ThinkOS/vault/03 People/People.md',
-    lines: ['### Priya — eng lead, v2', '- prefers async, briefs by Thu'],
-  },
-  {
-    name: 'Decisions.md',
-    path: '~/ThinkOS/vault/04 Knowledge/Decisions.md',
-    lines: ['## 2026-06-11 — API versioning', 'Version the API from day one.'],
-  },
-  {
-    name: 'Learnings.md',
-    path: '~/ThinkOS/vault/04 Knowledge/Learnings.md',
-    lines: ['## Demos beat decks', 'Clients decide on the prototype.'],
-  },
-  {
-    name: 'Projects/',
-    path: '~/ThinkOS/vault/02 Projects/',
-    lines: ['v2-ingestion/  acme-redesign/', 'q3-hiring/'],
+    title: '> asks before it writes',
+    body: 'Decisions get logged when you say yes, not silently.',
+    rot: '-0.6deg',
   },
 ];
 
-const trust = [
-  {
-    label: 'doesn\'t phone home',
-    body: 'Local-first. Your files stay on disk, indexed locally. They leave only if you choose to sync — git, iCloud, Syncthing.',
-  },
-  {
-    label: 'doesn\'t capture content',
-    body: 'Capture records metadata — directories, file counts, a commit hash. Never file contents, never transcripts. Every entry is ledgered and undoable.',
-  },
-  {
-    label: 'doesn\'t write silently',
-    body: 'Conversational writes are confirmed with you. Claude asks once before logging a decision — it never captures silently.',
-  },
-];
-
+// S7 — fifteen minutes, once.
 const steps = [
   {
-    marker: '[1/3]',
+    n: '01',
     title: 'Install',
-    time: '~5 min',
-    body: 'Paste the install prompt into a fresh Claude Code session. It clones the repo, asks five questions, runs the install.',
+    body: 'Paste the prompt into Claude Code; it clones, asks five questions, runs setup.',
   },
   {
-    marker: '[2/3]',
-    title: 'Restart + authenticate',
-    time: '~2 min',
-    body: 'Quit and reopen Claude Code — commands and MCPs load on startup. Installed a bundle? Type /mcp and authorize each connector.',
+    n: '02',
+    title: 'Restart',
+    body: 'Commands and MCPs load on startup; authorize connectors if you added a bundle.',
   },
   {
-    marker: '[3/3]',
-    title: 'Continue, when you want',
-    time: 'opt-in · ~15–30 min',
-    body: 'Skip it and the vault still fills in from your real conversations — Claude proposes, you confirm. Or run /thinkos-continue to bulk-import in one sitting.',
+    n: '03',
+    title: 'Let it fill in',
+    body: 'The vault seeds itself from real conversations, or run /thinkos-continue to bulk-import.',
   },
 ];
 
+// S8 — FAQ. Same six as before, minus the retired "Which agent surfaces" entry.
 const faqs = [
   {
     q: 'What do I actually do day to day?',
@@ -116,10 +99,6 @@ const faqs = [
     a: 'Basic Memory is free and local. The scheduled jobs run on your machine; only the weekly review, quarterly archive, and morning brief spawn a Claude session, which uses your existing Claude plan or API billing.',
   },
   {
-    q: 'Which agent surfaces does Think OS support?',
-    a: 'Claude Code is the first surface — full feature set: slash commands, autonomous launchd capture, drift-aware updates, vault health, cross-machine sync. Cowork and Codex live on the roadmap/cowork-codex branch and will be cherry-picked back in when their plugin formats stabilize. The vault itself is plain markdown plus a Basic Memory MCP — it works with any MCP-capable agent today (Claude Desktop, mobile, anywhere the MCP runs), you just lose the slash commands.',
-  },
-  {
     q: 'How do I uninstall?',
     a: 'bash scripts/thinkos-uninstall.sh --dry-run shows you the plan; run it without --dry-run to apply. By default your vault folder is preserved — pass --remove-vault to delete it too. Backups of any modified global files (~/.claude/CLAUDE.md, ~/.claude/commands/) are left in place with a .pre-thinkos-backup-<date> suffix.',
   },
@@ -128,241 +107,376 @@ const faqs = [
 <BaseLayout>
 
   <!-- ============================================================
-       §1 · HERO — gentle fade-in stagger, no choreography
+       S1 · HERO — EDITORIAL. Dense two-column. Left: copy.
+       Right: a layered collage (terminal over vault card, two
+       file cards fanned behind, mono annotations with ticks).
+       Parallax via JS (transform only, reduced-motion disabled).
        ============================================================ -->
-  <section class="play-on-load border-b border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-16 md:pb-24" style="min-height:78vh; display:flex; flex-direction:column; justify-content:center">
-      <h1 class="display po-1 text-[clamp(44px,9vw,104px)] max-w-[15ch]">
-        Stop being a stranger <em>every session.</em>
-      </h1>
+  <section class="play-on-load editorial border-b border-rule">
+    <div class="wash-blue" aria-hidden="true"></div>
+    <div class="mx-auto max-w-[1240px] px-6 md:px-10 pt-16 md:pt-24 pb-20 md:pb-28">
+      <div class="hero-grid">
+        <!-- LEFT — copy -->
+        <div class="hero-copy">
+          <p class="annot po-1">A personal context OS for Claude</p>
+          <h1 class="display po-2 mt-5 text-[clamp(40px,8.4vw,120px)] max-w-[16ch]">
+            Every new chat, Claude meets you for the first time.
+          </h1>
+          <p class="po-3 mt-7 max-w-[52ch] text-[18px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
+            Think OS fixes that with a folder of markdown files Claude reads
+            before it answers — your work, your people, your decisions. Set it
+            up once; it keeps itself current.
+          </p>
+          <div class="po-4 mt-10 max-w-[640px] hero-install">
+            <InstallPrompt />
+          </div>
+          <p class="po-4 mt-6 font-mono text-[12px] tracking-[0.06em]">
+            <a href="#theater-read" class="link-anim text-accent">↓ watch it use what it knows</a>
+          </p>
+        </div>
 
-      <p class="po-2 mt-7 max-w-[58ch] text-[18px] md:text-[19px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
-        Think OS is a folder of files Claude reads before it answers — your role,
-        your projects, your people. Set it up once; it keeps itself current.
-      </p>
+        <!-- RIGHT — the collage (density). -->
+        <div class="hero-collage po-3" aria-hidden="false">
+          <!-- fanned file cards behind -->
+          <div class="collage-file file-a" data-parallax="0.04">
+            <p class="cf-name">Identity.md</p>
+            <p class="cf-line">Design lead. Plans first,</p>
+            <p class="cf-line">plain language, no fluff.</p>
+          </div>
+          <div class="collage-file file-b" data-parallax="0.07">
+            <p class="cf-name">Decisions.md</p>
+            <p class="cf-line">2026-06-11 — API versioning.</p>
+            <p class="cf-line">Versioned from day one.</p>
+          </div>
 
-      <div class="po-3 mt-10 max-w-[820px]">
-        <InstallPrompt />
+          <!-- the vault card (light) -->
+          <div class="collage-vault" data-parallax="0.12">
+            <p class="cv-title">~/ThinkOS/vault</p>
+            <ul class="cv-rows">
+              <li><span class="cv-i">05</span> Identity.md</li>
+              <li><span class="cv-i">01</span> Current Focus.md</li>
+              <li><span class="cv-i">01</span> Tasks.md</li>
+              <li><span class="cv-i">03</span> People.md</li>
+              <li><span class="cv-i">04</span> Decisions.md</li>
+              <li><span class="cv-i">04</span> Learnings.md</li>
+            </ul>
+            <span class="annot annot-vault">plain markdown — yours</span>
+          </div>
+
+          <!-- the terminal pane (dark), overlapping the vault -->
+          <div class="collage-term" data-parallax="0.18">
+            <TerminalPane label="claude code" tag="reads first"><span class="prompt">&gt;</span> <span class="cmd">good morning</span>
+<span class="dim">This week (top 3): v2 release…</span>
+<span class="dim">On your plate: 1:1 with Priya, 2pm</span></TerminalPane>
+            <span class="annot annot-term">reads before it answers</span>
+          </div>
+        </div>
       </div>
-      <p class="po-4 mt-6 font-mono text-[12px] tracking-[0.06em]">
-        <a href="#same-prompt" class="link-anim text-accent">↓ watch the same prompt, two mornings</a>
-      </p>
     </div>
   </section>
 
   <!-- ============================================================
-       §2 · SAME PROMPT, TWO MORNINGS — the argument
+       S2 · THEATER 1 — THE PRODUCT ARGUMENT, interactive.
+       Lights go down. Terminal on the left, a vault rail on the
+       right. Each printed response line traces to a file.
        ============================================================ -->
-  <section id="same-prompt" class="scene border-t border-rule" data-choreo>
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <div class="twin-grid">
-        <!-- LEFT: without Think OS -->
-        <div class="twin-cell">
-          <TerminalPane label="claude code" tag="without think os"><span data-step="1"><span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:38ch; --type-steps:38">draft a standup update for the v2 project</span></span><span data-step="2" data-step-ms="700"><span class="line-stagger ls-gap" style="--d:0ms">Happy to help — a few questions first:</span><span class="line-stagger" style="--d:180ms">  · which project is the v2 project?</span><span class="line-stagger" style="--d:270ms">  · who reads this update?</span><span class="line-stagger" style="--d:360ms">  · what happened since the last one?</span></span></TerminalPane>
+  <section id="theater-read" class="theater" data-read-root>
+    <div class="theater-glow" style="--gx:22%; --gy:38%" aria-hidden="true"></div>
+    <div class="mx-auto max-w-[1240px] px-6 md:px-10 py-28 md:py-32 relative">
+      <header class="mb-12">
+        <p class="t-kicker">Watch</p>
+        <h2 class="t-heading mt-3">It answers from your files.</h2>
+      </header>
+
+      <div class="stage-read" data-trace-root>
+        <!-- LEFT — terminal. Full conversation server-rendered + visible by
+             default. With motion, JS clears + replays (type prompt, then
+             glow-source-chip → print each line). -->
+        <div class="stage-term">
+          <div class="pane pane-lit">
+            <div class="pane-bar">
+              <span class="pane-path">claude code</span>
+              <span class="pane-tag" data-kind="read">live</span>
+            </div>
+            <pre class="pane-body whitespace-pre-wrap break-words"><span class="prompt">&gt;</span> <span class="cmd" data-read-cmd>draft a standup for the v2 project</span><span class="trace-out"><button type="button" class="trace-line" data-source="focus"><span class="line-stagger ls-gap">v2 ingestion — release cut today</span></button><button type="button" class="trace-line" data-source="people"><span class="line-stagger">pairing with Priya on rollout notes</span></button><button type="button" class="trace-line" data-source="decisions"><span class="line-stagger">holding the /v1 prefix per the API decision</span></button></span></pre>
+          </div>
         </div>
 
-        <!-- RIGHT: with Think OS -->
-        <div class="twin-cell">
-          <TerminalPane label="claude code" tag="with think os"><span data-step="1"><span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:38ch; --type-steps:38">draft a standup update for the v2 project</span></span><span data-step="3" data-step-ms="700"><span class="line-stagger ls-gap" style="--d:0ms">Standup — v2 ingestion pipeline:</span><span class="line-stagger" style="--d:180ms">  · release cut today; notes drafted</span><span class="line-stagger" style="--d:270ms">  · Q3 hiring plan: first draft Friday</span><span class="line-stagger" style="--d:360ms">  · PR queue clearing with T. + R.</span></span></TerminalPane>
+        <!-- RIGHT — vault rail. All five chips render statically; only the
+             glow class + connector lines are choreography. -->
+        <div class="stage-rail">
+          <span class="rail-chip" data-chip="identity">Identity.md</span>
+          <span class="rail-chip" data-chip="focus">Current Focus.md</span>
+          <span class="rail-chip" data-chip="people">People.md</span>
+          <span class="rail-chip" data-chip="decisions">Decisions.md</span>
+          <span class="rail-chip" data-chip="worklog">Work Log.md</span>
         </div>
+
+        <!-- connector overlay (desktop) — JS draws lines chip→line -->
+        <svg class="trace-svg" data-trace-svg aria-hidden="true" preserveAspectRatio="none"></svg>
       </div>
 
-      <p class="mt-10 text-[17px] md:text-[19px] leading-relaxed text-ink max-w-[58ch] step-fade" data-step="4" data-step-ms="500" style="font-variation-settings:'opsz' 17">
-        Same prompt. The only difference is a folder of notes Claude read first.
+      <p class="t-caption mt-10" data-read-caption>
+        Each line traces to a file. That's the whole product.
       </p>
-      <p class="mt-3 font-mono text-[10px] tracking-[0.16em] uppercase text-muted">
+      <p class="mt-4 font-mono text-[10px] tracking-[0.16em] uppercase t-fine">
         Sample vault content — your real vault has your real notes.
       </p>
     </div>
   </section>
 
   <!-- ============================================================
-       §3 · THE FOLDER — interactive moment 1
+       S3 · EDITORIAL — THE MEMORY IS A FOLDER. Oversized folder
+       anatomy: a big light card holding eight file cards, ringed
+       by mono annotations with ticks.
        ============================================================ -->
-  <section class="scene border-t border-rule" data-choreo>
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="mb-12 reveal">
-        <h2 class="md-heading">Where it comes from</h2>
+  <section class="editorial border-t border-rule">
+    <div class="wash-blue wash-soft" aria-hidden="true"></div>
+    <div class="mx-auto max-w-[1240px] px-6 md:px-10 py-24 md:py-32">
+      <header class="mb-12 max-w-[42ch]">
+        <p class="annot">No database to babysit</p>
+        <h2 class="display mt-5 text-[clamp(36px,6vw,84px)] max-w-[14ch]">The memory is a folder.</h2>
       </header>
 
-      <div class="folder-grid" data-folder>
-        <!-- LEFT: the vault panel (light card, NOT a pane) -->
-        <div class="vault-panel" data-step="1">
-          <p class="font-mono text-[11px] tracking-[0.08em] text-muted mb-4">~/ThinkOS/vault</p>
-          <div class="flex flex-wrap gap-2" role="group" aria-label="Preview a vault file">
-            {vaultFiles.map((f, i) => (
-              <>
-                <button
-                  type="button"
-                  class="keycap vault-chip"
-                  data-folder-chip={f.name}
-                  aria-pressed={i === 0 ? 'true' : 'false'}
-                >{f.name}</button>
-                <span class="vault-chip-static keycap" aria-hidden="true">{f.name}</span>
-              </>
+      <div class="anatomy-wrap">
+        <span class="annot annot-float af-1">Open in Obsidian, VS Code, anything</span>
+        <span class="annot annot-float af-2">Git-syncable</span>
+        <span class="annot annot-float af-3">Search + links derived from the files</span>
+
+        <div class="folder-card">
+          <p class="fc-title font-mono">~/ThinkOS/vault</p>
+          <div class="anatomy-grid">
+            {anatomy.map((f) => (
+              <article class="afile">
+                <div class="afile-head">
+                  <span class="afile-name font-mono">{f.name}</span>
+                  {f.tier && <span class="afile-tier font-mono">{f.tier}</span>}
+                </div>
+                <p class="afile-excerpt">{f.excerpt}</p>
+              </article>
             ))}
           </div>
         </div>
+      </div>
 
-        <!-- RIGHT: preview pane (dark artifact) -->
-        <div class="pane preview-pane" data-step="2">
-          <div class="pane-bar">
-            <span class="pane-path" data-folder-path>{vaultFiles[0].path}</span>
-            <span class="pane-tag" data-kind="read">preview</span>
+      <p class="mt-12 text-[16px] leading-relaxed text-muted max-w-[60ch]" style="font-variation-settings:'opsz' 16">
+        Claude doesn't browse this folder — a local index (full-text, embeddings,
+        links) makes it queryable, and the files stay the source of truth. Plain
+        markdown you can read, edit, and version like anything else you own.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       S4 · THEATER 2 — A DAY WRITES ITSELF. Chaptered interactive:
+       four ARIA tabs, each replays a terminal + effect-pane scene.
+       Chapter 1 auto-plays on enter via the step engine.
+       ============================================================ -->
+  <section class="theater" data-day-root>
+    <div class="theater-glow" style="--gx:78%; --gy:30%" aria-hidden="true"></div>
+    <div class="mx-auto max-w-[1240px] px-6 md:px-10 py-28 md:py-32 relative">
+      <header class="mb-10">
+        <p class="t-kicker">While you work</p>
+        <h2 class="t-heading mt-3">A day writes itself.</h2>
+      </header>
+
+      <div class="day-tabs" role="tablist" aria-label="A day with Think OS">
+        <button type="button" role="tab" class="day-tab" id="day-tab-0" aria-controls="day-panel-0" aria-selected="true" data-chapter="0">08:40 morning</button>
+        <button type="button" role="tab" class="day-tab" id="day-tab-1" aria-controls="day-panel-1" aria-selected="false" tabindex="-1" data-chapter="1">11:00 working</button>
+        <button type="button" role="tab" class="day-tab" id="day-tab-2" aria-controls="day-panel-2" aria-selected="false" tabindex="-1" data-chapter="2">14:12 a decision</button>
+        <button type="button" role="tab" class="day-tab" id="day-tab-3" aria-controls="day-panel-3" aria-selected="false" tabindex="-1" data-chapter="3">sun 20:00 review</button>
+      </div>
+
+      <!-- Four chapter panels, all server-rendered. No-JS tab pattern:
+           [hidden] on every panel except the active one; chapter 1 visible.
+           JS replay reads text from these panels (no innerHTML injection). -->
+      <div class="day-panels">
+        <!-- CH 0 — morning -->
+        <div class="day-stage" id="day-panel-0" role="tabpanel" aria-labelledby="day-tab-0" data-chapter-panel="0">
+          <div class="day-term">
+            <div class="pane pane-lit">
+              <div class="pane-bar">
+                <span class="pane-path">claude code</span>
+                <span class="pane-tag" data-kind="read" data-day-tag>morning</span>
+              </div>
+              <pre class="pane-body whitespace-pre-wrap break-words"><span class="prompt" data-day-prompt>&gt;</span> <span class="cmd" data-day-cmd>good morning</span>
+<span class="dim" data-day-out>This week (top 3)… Calendar: 2 meetings.</span></pre>
+            </div>
           </div>
-          <pre class="pane-body whitespace-pre-wrap break-words" data-folder-body>{vaultFiles[0].lines.join('\n')}</pre>
+          <div class="day-effect">
+            <div class="pane pane-lit">
+              <div class="pane-bar">
+                <span class="pane-path" data-day-fx-path>01 Now/Current Focus.md</span>
+                <span class="pane-tag" data-kind="read" data-day-fx-tag>read</span>
+              </div>
+              <pre class="pane-body whitespace-pre-wrap break-words" data-day-fx-body><span class="read-row">Current Focus.md — read</span></pre>
+              <p class="day-fx-note font-mono" data-day-fx-note hidden></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CH 1 — working -->
+        <div class="day-stage" id="day-panel-1" role="tabpanel" aria-labelledby="day-tab-1" data-chapter-panel="1" hidden>
+          <div class="day-term">
+            <div class="pane pane-lit">
+              <div class="pane-bar">
+                <span class="pane-path">claude code</span>
+                <span class="pane-tag" data-kind="read" data-day-tag>working</span>
+              </div>
+              <pre class="pane-body whitespace-pre-wrap break-words"><span class="prompt" data-day-prompt></span><span class="cmd" data-day-cmd>— you’re in your editor, not here —</span>
+<span class="dim" data-day-out></span></pre>
+            </div>
+          </div>
+          <div class="day-effect">
+            <div class="pane pane-lit">
+              <div class="pane-bar">
+                <span class="pane-path" data-day-fx-path>01 Now/Work Log.md</span>
+                <span class="pane-tag" data-kind="add" data-day-fx-tag>+2 lines</span>
+              </div>
+              <pre class="pane-body whitespace-pre-wrap break-words" data-day-fx-body><span class="diff-add">+ ### 11:00 — acme-redesign</span>
+<span class="diff-add">+ 12 files · HEAD a1b2c3d</span></pre>
+              <p class="day-fx-note font-mono" data-day-fx-note>metadata only — never content</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CH 2 — a decision -->
+        <div class="day-stage" id="day-panel-2" role="tabpanel" aria-labelledby="day-tab-2" data-chapter-panel="2" hidden>
+          <div class="day-term">
+            <div class="pane pane-lit">
+              <div class="pane-bar">
+                <span class="pane-path">claude code</span>
+                <span class="pane-tag" data-kind="read" data-day-tag>a decision</span>
+              </div>
+              <pre class="pane-body whitespace-pre-wrap break-words"><span class="prompt" data-day-prompt>&gt;</span> <span class="cmd" data-day-cmd>log it: we’re versioning the API from day one</span>
+<span class="dim" data-day-out>Noted. Want it in Decisions? (y/n) > y</span></pre>
+            </div>
+          </div>
+          <div class="day-effect">
+            <div class="pane pane-lit">
+              <div class="pane-bar">
+                <span class="pane-path" data-day-fx-path>04 Knowledge/Decisions.md</span>
+                <span class="pane-tag" data-kind="add" data-day-fx-tag>+1 entry</span>
+              </div>
+              <pre class="pane-body whitespace-pre-wrap break-words" data-day-fx-body><span class="diff-add">+ ## 2026-06-12 — API versioning…</span></pre>
+              <p class="day-fx-note font-mono" data-day-fx-note hidden></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CH 3 — review -->
+        <div class="day-stage" id="day-panel-3" role="tabpanel" aria-labelledby="day-tab-3" data-chapter-panel="3" hidden>
+          <div class="day-term">
+            <div class="pane pane-lit">
+              <div class="pane-bar">
+                <span class="pane-path">claude code</span>
+                <span class="pane-tag" data-kind="read" data-day-tag>review</span>
+              </div>
+              <pre class="pane-body whitespace-pre-wrap break-words"><span class="prompt" data-day-prompt>&gt;</span> <span class="cmd" data-day-cmd>/weekly-review</span>
+<span class="dim" data-day-out>Archiving this week… drafting next.</span></pre>
+            </div>
+          </div>
+          <div class="day-effect">
+            <div class="pane pane-lit">
+              <div class="pane-bar">
+                <span class="pane-path" data-day-fx-path>01 Now/Current Focus.md</span>
+                <span class="pane-tag" data-kind="add" data-day-fx-tag>replaced</span>
+              </div>
+              <pre class="pane-body whitespace-pre-wrap break-words" data-day-fx-body><span class="diff-del">- week of Jun 5 — v2 cut, hiring draft</span>
+<span class="diff-add">+ week of Jun 12 — rollout, Q3 plan</span></pre>
+              <p class="day-fx-note font-mono" data-day-fx-note hidden></p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <p class="mt-8 text-[15px] leading-relaxed text-muted max-w-[60ch]">
-        Plain markdown on your disk. Open any of it in Obsidian or TextEdit — it's yours.
+      <p class="t-caption mt-10">
+        One command in the morning. One on Sunday. The rest writes itself.
       </p>
     </div>
   </section>
 
   <!-- ============================================================
-       §4 · IT KEEPS ITSELF CURRENT — timeline that draws itself
+       S5 · EDITORIAL — WHAT IT WON'T DO. Three compact rule-border
+       cards in a row, slight alternating rotation.
        ============================================================ -->
-  <section class="scene border-t border-rule" data-choreo>
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="mb-12 reveal">
-        <h2 class="md-heading">It keeps itself current</h2>
+  <section class="editorial border-t border-rule">
+    <div class="mx-auto max-w-[1240px] px-6 md:px-10 py-24 md:py-32">
+      <header class="mb-14 max-w-[40ch]">
+        <p class="annot">Built honest</p>
+        <h2 class="display mt-5 text-[clamp(36px,6vw,84px)] max-w-[12ch]">What it won't do.</h2>
       </header>
 
-      <div class="rail">
-        <!-- Card 1 -->
-        <article class="rail-card" data-step="1">
-          <p class="rail-tag">08:40 · you type one command</p>
-          <div class="pane">
-            <pre class="pane-body whitespace-pre-wrap break-words"><span class="prompt">&gt;</span> good morning
-<span class="dim">→ this week's top 3, today's plate</span></pre>
-          </div>
-        </article>
-
-        <div class="rail-link" aria-hidden="true" data-step="2" data-step-ms="420"><span class="rail-line"></span></div>
-
-        <!-- Card 2 -->
-        <article class="rail-card" data-step="3">
-          <p class="rail-tag">during the day · you type nothing</p>
-          <div class="pane">
-            <pre class="pane-body whitespace-pre-wrap break-words"><span class="diff-add">Work Log.md  +3 lines</span>
-<span class="dim">folders · file counts · commit hash</span>
-<span class="dim">never content</span></pre>
-          </div>
-        </article>
-
-        <div class="rail-link" aria-hidden="true" data-step="4" data-step-ms="420"><span class="rail-line"></span></div>
-
-        <!-- Card 3 -->
-        <article class="rail-card" data-step="5">
-          <p class="rail-tag">sun 20:00 · twenty minutes</p>
-          <div class="pane">
-            <pre class="pane-body whitespace-pre-wrap break-words"><span class="prompt">&gt;</span> /weekly-review
-<span class="dim">→ Current Focus rewritten for next week</span></pre>
-          </div>
-        </article>
+      <div class="honest-row">
+        {honest.map((h) => (
+          <article class="honest-card" style={`--rot:${h.rot}`}>
+            <p class="honest-title font-mono">{h.title}</p>
+            <p class="honest-body">{h.body}</p>
+          </article>
+        ))}
       </div>
-
-      <p class="mt-10 text-[15px] leading-relaxed text-muted max-w-[60ch]">
-        One command in the morning, one on Sunday. Capture runs in the background — metadata only.
-      </p>
+      <p class="annot mt-10">The long answers live in the FAQ ↓</p>
     </div>
   </section>
 
   <!-- ============================================================
-       §5 · TYPE SOMETHING — existing TryTerminal, untouched
+       S6 · THEATER 3 — YOUR TURN. The existing TryTerminal,
+       centered, on the dark stage it was built for.
        ============================================================ -->
-  <section class="border-t border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="mb-10">
-        <h2 class="md-heading">Type something</h2>
+  <section class="theater">
+    <div class="theater-glow" style="--gx:50%; --gy:34%" aria-hidden="true"></div>
+    <div class="mx-auto max-w-[1240px] px-6 md:px-10 py-28 md:py-32 relative">
+      <header class="mb-12 text-center">
+        <p class="t-kicker">Your turn</p>
+        <h2 class="t-heading mt-3">Type something.</h2>
       </header>
-      <div class="max-w-[820px]">
+      <div class="mx-auto max-w-[860px]">
         <TryTerminal />
       </div>
     </div>
   </section>
 
-  <!-- ============================================================
-       §6 · WHAT IT DOESN'T DO — light trust cards
-       ============================================================ -->
-  <section class="scene border-t border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="mb-14 reveal">
-        <h2 class="md-heading">What it doesn't do</h2>
-      </header>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {trust.map((t) => (
-          <article class="trust-card p-7 md:p-8">
-            <p class="font-mono text-[14px] text-ink">
-              <span class="text-accent">&gt; </span>{t.label}
-            </p>
-            <p class="mt-4 text-[15px] leading-relaxed text-muted max-w-[44ch]" style="font-variation-settings:'opsz' 15">{t.body}</p>
-          </article>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- WORKS WITH -->
+  <!-- WORKS WITH — kept, between S6 and S7. -->
   <WorksWith />
 
   <!-- ============================================================
-       §7 · GET STARTED
+       S7 · EDITORIAL — FIFTEEN MINUTES, ONCE. Three numbered step
+       cards, then InstallPrompt + ChangelogPreview side by side.
        ============================================================ -->
-  <section class="scene border-t border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="mb-14 reveal">
-        <h2 class="md-heading">Get started</h2>
-        <p class="mt-5 text-[16px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-          Fifteen to thirty minutes, once. After that it fills itself in.
-        </p>
+  <section class="editorial border-t border-rule">
+    <div class="mx-auto max-w-[1240px] px-6 md:px-10 py-24 md:py-32">
+      <header class="mb-14 max-w-[40ch]">
+        <h2 class="display text-[clamp(36px,6vw,84px)] max-w-[16ch]">Fifteen minutes, once.</h2>
       </header>
 
-      <div class="setup-card max-w-[860px]">
-        <div class="setup-bar">
-          <span class="font-mono text-[10px] tracking-[0.12em] uppercase text-muted">setup — 3 steps</span>
-        </div>
-        <div class="p-6 md:p-8 space-y-8">
-          {steps.map((s, i) => (
-            <div class="reveal" style={`--reveal-delay: ${i * 150}ms`}>
-              <p class="font-mono text-[13px] mb-2">
-                <span class="text-accent">{s.marker}</span>
-                <span class="text-ink"> {s.title}</span>
-                <span class="text-muted"> — {s.time}</span>
-              </p>
-              <p class="text-[16px] leading-relaxed text-muted max-w-[60ch]" style="font-variation-settings:'opsz' 16">
-                {s.body}
-                {i === 2 && (<>
-                  {' '}Then read <a href="/guide" class="underline underline-offset-2 text-ink hover:text-accent"><strong>How to use it</strong></a> →
-                </>)}
-              </p>
-            </div>
-          ))}
-        </div>
+      <div class="steps-row">
+        {steps.map((s) => (
+          <article class="step-card">
+            <span class="step-n font-mono">{s.n}</span>
+            <p class="step-title font-mono">{s.title}</p>
+            <p class="step-body">{s.body}</p>
+          </article>
+        ))}
       </div>
 
-      <div class="mt-12 max-w-[820px] reveal">
-        <InstallPrompt />
-      </div>
-      <div class="mt-6 max-w-[820px] reveal">
-        <ChangelogPreview />
+      <div class="start-grid mt-14">
+        <div class="min-w-0"><InstallPrompt /></div>
+        <div class="min-w-0"><ChangelogPreview /></div>
       </div>
     </div>
   </section>
 
   <!-- ============================================================
-       §8 · QUESTIONS + CLOSE
+       S8 · EDITORIAL — QUESTIONS + CLOSE.
        ============================================================ -->
-  <section class="scene border-t border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="mb-12 reveal">
+  <section class="editorial border-t border-rule">
+    <div class="mx-auto max-w-[1240px] px-6 md:px-10 pt-24 md:pt-32 pb-16">
+      <header class="mb-12">
         <h2 class="md-heading">Questions</h2>
       </header>
 
-      <div class="grid grid-cols-12 gap-6 reveal">
-        <div class="col-span-12 md:col-span-9 lg:col-span-8">
+      <div class="grid grid-cols-12 gap-6">
+        <div class="col-span-12 md:col-span-10">
           {faqs.map((f) => (
             <details class="faq">
               <summary>{f.q}</summary>
@@ -378,18 +492,22 @@ const faqs = [
             </details>
           ))}
         </div>
+        <!-- right gutter — single vertical annotation, desktop only. -->
+        <div class="hidden md:flex md:col-span-2 faq-gutter" aria-hidden="true">
+          <span class="faq-gutter-annot font-mono">THE FULL RHYTHM LIVES IN /guide</span>
+        </div>
       </div>
 
-      <div class="mt-16 reveal">
-        <p class="display font-bold text-[28px] md:text-[36px] leading-tight max-w-[24ch]" style="font-variation-settings:'opsz' 36">
-          A markdown vault that travels with you, between agents.
+      <div class="mt-24">
+        <p class="display text-[clamp(40px,7vw,56px)] max-w-[20ch]">
+          Stop being a stranger.
         </p>
-        <p class="mt-7 font-mono text-[12px] tracking-[0.08em]">
+        <p class="mt-8 font-mono text-[12px] tracking-[0.08em]">
           <a href="#main" class="link-anim text-muted">Install ↑</a>
           <span class="mx-3 text-muted opacity-50">·</span>
-          <a href="/guide" class="link-anim text-muted">How to use it →</a>
+          <a href="/guide" class="link-anim text-muted">How to use it → /guide</a>
           <span class="mx-3 text-muted opacity-50">·</span>
-          <a href="/commands" class="link-anim text-muted">All 36 commands →</a>
+          <a href="/commands" class="link-anim text-muted">All 36 commands → /commands</a>
         </p>
       </div>
     </div>
@@ -398,192 +516,856 @@ const faqs = [
 </BaseLayout>
 
 <style>
-  /* §2 twin grid — two panes side by side, no connector. */
-  .twin-grid {
+  /* ===========================================================
+     REGISTER A · EDITORIAL — dense light sections.
+     =========================================================== */
+  .editorial { position: relative; overflow: hidden; }
+
+  /* Soft blue wash behind a composition. */
+  .wash-blue {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(60% 70% at 78% 30%, rgba(0, 88, 204, 0.04), transparent 70%);
+  }
+  .wash-soft {
+    background:
+      radial-gradient(55% 60% at 20% 40%, rgba(0, 88, 204, 0.035), transparent 72%);
+  }
+  .editorial > div:not(.wash-blue) { position: relative; z-index: 1; }
+
+  /* Mono micro-annotation with a 16px accent connector tick. */
+  .annot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .annot::before {
+    content: '';
+    flex: none;
+    width: 16px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  /* --- S1 hero --- */
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+  @media (min-width: 980px) {
+    .hero-grid { grid-template-columns: 1.05fr 0.95fr; gap: 4rem; }
+  }
+  .hero-copy { min-width: 0; }
+
+  /* Give the hero InstallPrompt visible weight on the page. */
+  .hero-install :global(.install-card) {
+    border: 1px solid var(--rule);
+    box-shadow: 0 8px 28px rgba(23, 49, 69, 0.08);
+  }
+
+  /* The collage — layered cards with soft shadows + rotations. Scaled up
+     ~12% so it holds its own next to the headline; biased vertically
+     centered against the left column (the hero-grid aligns center). */
+  .hero-collage {
+    position: relative;
+    min-height: 360px;
+    min-width: 0;
+  }
+  @media (min-width: 980px) {
+    .hero-collage {
+      transform: scale(1.12);
+      transform-origin: center center;
+    }
+  }
+  .collage-file,
+  .collage-vault {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(23, 49, 69, 0.10);
+  }
+  .collage-file {
+    position: absolute;
+    width: min(58%, 230px);
+    padding: 0.85rem 1rem;
+  }
+  .collage-file .cf-name {
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--ink);
+    margin-bottom: 0.35rem;
+  }
+  .collage-file .cf-line {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .file-a { top: 2%; right: 4%; transform: rotate(1.5deg); z-index: 1; }
+  .file-b { top: 20%; right: 0; transform: rotate(-1deg); z-index: 1; }
+
+  .collage-vault {
+    position: relative;
+    z-index: 2;
+    margin: 5.5rem 0 0 0;
+    width: min(72%, 280px);
+    padding: 1.1rem 1.2rem 1.4rem;
+    transform: rotate(-1deg);
+  }
+  .collage-vault .cv-title {
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .collage-vault .cv-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .collage-vault .cv-rows li {
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 12.5px;
+    color: var(--ink);
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+  }
+  .collage-vault .cv-i {
+    color: rgb(var(--accent-rgb) / 0.7);
+    font-size: 10px;
+  }
+
+  /* terminal overlaps the vault card from the lower-right. */
+  .collage-term {
+    position: absolute;
+    right: 2%;
+    bottom: 4%;
+    z-index: 3;
+    width: min(70%, 300px);
+    transform: rotate(1deg);
+  }
+  .collage-term .pane-body { font-size: 11.5px; line-height: 1.65; }
+
+  /* annotations pinned to the collage. */
+  .annot-vault {
+    position: absolute;
+    left: 2%;
+    bottom: -1.6rem;
+    z-index: 4;
+  }
+  .annot-term {
+    position: absolute;
+    right: 4%;
+    top: -1.5rem;
+    z-index: 4;
+  }
+
+  /* --- S3 folder anatomy --- */
+  .anatomy-wrap { position: relative; padding-bottom: 2.4rem; }
+  @media (max-width: 860px) { .anatomy-wrap { padding-bottom: 0; } }
+  .annot-float { position: absolute; z-index: 3; max-width: 22ch; }
+  /* "Open in Obsidian…" — sits above the card, clear of the folder title row. */
+  .af-1 { top: -2.4rem; left: 1rem; }
+  /* "Git-syncable" — inset ≥40px from the right edge so it never clips. */
+  .af-2 { top: 36%; right: 40px; }
+  /* "Search + links derived…" — capped ~30ch so it wraps to 2 tidy lines,
+     pushed below the card clear of its bottom edge. */
+  .af-3 { bottom: -3.6rem; left: 1.5rem; max-width: 30ch; }
+  @media (max-width: 860px) {
+    .annot-float { position: static; display: flex; max-width: none; margin-bottom: 0.5rem; }
+    .af-2, .af-3 { margin-top: 0; }
+  }
+
+  .folder-card {
+    position: relative;
+    z-index: 2;
+    background: var(--bg-soft);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(23, 49, 69, 0.10);
+    padding: 1.5rem 1.5rem 1.75rem;
+  }
+  .folder-card .fc-title {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 1.1rem;
+  }
+  .anatomy-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+  @media (min-width: 720px) {
+    .anatomy-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
+  }
+  .afile {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    transition: border-color 160ms ease, box-shadow 200ms ease;
+  }
+  .afile:hover {
+    border-color: rgb(var(--accent-rgb) / 0.45);
+    box-shadow: 0 6px 20px rgba(23, 49, 69, 0.07);
+  }
+  .afile-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .afile-name { font-size: 13px; color: var(--ink); }
+  .afile-tier {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    border: 1px solid rgb(var(--accent-rgb) / 0.4);
+    border-radius: 4px;
+    padding: 0.05rem 0.35rem;
+    flex: none;
+  }
+  .afile-excerpt {
+    margin-top: 0.4rem;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+
+  /* --- S5 honest cards --- */
+  .honest-row {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.25rem;
   }
-  .twin-cell { min-width: 0; }
-  @media (min-width: 900px) {
-    .twin-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media (min-width: 820px) {
+    .honest-row { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  }
+  .honest-card {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 1.5rem 1.5rem 1.75rem;
+    transform: rotate(var(--rot, 0deg));
+    box-shadow: 0 8px 28px rgba(23, 49, 69, 0.06);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .honest-card:hover {
+    transform: rotate(0deg);
+    box-shadow: 0 12px 40px rgba(23, 49, 69, 0.10);
+  }
+  .honest-title { font-size: 14px; color: var(--accent); }
+  .honest-body {
+    margin-top: 0.9rem;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 34ch;
   }
 
-  /* §3 folder grid — vault panel + preview pane. */
-  .folder-grid {
+  /* --- S7 step cards + start grid --- */
+  .steps-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  @media (min-width: 820px) {
+    .steps-row { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  }
+  .step-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 1.5rem;
+  }
+  .step-n {
+    font-size: 28px;
+    font-weight: 600;
+    color: rgb(var(--accent-rgb) / 0.85);
+    letter-spacing: -0.02em;
+  }
+  .step-title { margin-top: 0.5rem; font-size: 14px; color: var(--ink); }
+  .step-body {
+    margin-top: 0.6rem;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .start-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.5rem;
     align-items: start;
   }
-  @media (min-width: 900px) {
-    .folder-grid { grid-template-columns: 0.85fr 1.15fr; gap: 2rem; }
-  }
-  .vault-panel {
-    background: var(--bg-soft);
-    border: 1px solid var(--rule);
-    border-radius: 8px;
-    padding: 1.5rem;
-  }
-  .preview-pane { min-width: 0; }
-  .preview-pane .pane-body { min-height: 9.5rem; }
-
-  /* No-JS: chips become inert static spans; live buttons hidden. */
-  html:not(.js) .folder-grid [data-folder-chip] { display: none; }
-  html.js .folder-grid .vault-chip-static { display: none; }
-
-  /* Brief highlight sweep when a preview swaps (JS adds .preview-flash). */
-  .preview-pane.preview-flash .pane-body {
-    animation: preview-sweep 460ms cubic-bezier(0.2, 0.7, 0.2, 1) 1;
-  }
-  @keyframes preview-sweep {
-    0%   { background-color: rgb(var(--pane-accent-rgb) / 0.12); }
-    100% { background-color: transparent; }
+  @media (min-width: 860px) {
+    .start-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
   }
 
-  /* §4 timeline rail — horizontal on desktop, vertical on mobile. */
-  .rail {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
-    align-items: stretch;
+  /* --- S8 FAQ right-gutter vertical annotation --- */
+  .faq-gutter {
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 0.5rem;
   }
-  .rail-card { min-width: 0; }
-  .rail-tag {
+  .faq-gutter-annot {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .faq-gutter-annot::before {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 16px;
+    margin: 0 auto 0.55em;
+    background: var(--accent);
+  }
+
+  /* ===========================================================
+     REGISTER B · THEATER — dark full-bleed takeover sections.
+     =========================================================== */
+  .theater {
+    position: relative;
+    overflow: hidden;
+    background: #06101B;
+    color: #EDF2F7;
+  }
+  .theater-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(
+      42% 55% at var(--gx, 30%) var(--gy, 35%),
+      rgba(0, 88, 204, 0.16),
+      transparent 70%
+    );
+  }
+  .theater > div { position: relative; z-index: 1; }
+
+  .t-kicker {
     font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
     font-size: 11px;
-    letter-spacing: 0.04em;
-    color: var(--accent);
-    margin-bottom: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pane-accent);
   }
-  .rail-link {
+  .t-heading {
+    font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+    font-weight: 800;
+    font-optical-sizing: auto;
+    font-variation-settings: 'opsz' 64;
+    font-size: clamp(34px, 5.4vw, 68px);
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    color: #EDF2F7;
+    text-wrap: balance;
+  }
+  .t-caption {
+    font-size: clamp(16px, 2.2vw, 20px);
+    line-height: 1.5;
+    color: #C4D0DD;
+    max-width: 48ch;
+  }
+  .t-fine { color: var(--pane-muted); }
+
+  /* Panes inside a theater get a soft blue outer glow. */
+  .pane-lit {
+    box-shadow:
+      0 0 60px rgba(0, 88, 204, 0.12),
+      0 1px 2px rgb(0 0 0 / 0.4),
+      0 0 0 1px var(--pane-rule);
+  }
+
+  /* --- S2 read-trace stage --- */
+  .stage-read {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 2.25rem;
-  }
-  .rail-link::before {
-    content: '';
-    position: absolute;
-    width: 1px;
-    height: 100%;
-    background: var(--rule);
-  }
-  /* The drawing line — accent overlay grows when its step turns on. */
-  .rail-line {
-    position: absolute;
-    width: 1px;
-    height: 100%;
-    background-image: linear-gradient(var(--accent), var(--accent));
-    background-repeat: no-repeat;
-    background-position: 50% 0;
-    background-size: 1px 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+    align-items: start;
   }
   @media (min-width: 900px) {
-    .rail {
-      grid-template-columns: 1fr auto 1fr auto 1fr;
-      align-items: center;
-    }
-    .rail-link { height: auto; width: 2.5rem; }
-    .rail-link::before { width: 100%; height: 1px; }
-    .rail-line {
-      width: 100%;
-      height: 1px;
-      background-position: 0 50%;
-      background-size: 100% 1px;
-    }
+    /* 7/12 terminal + 5/12 rail. */
+    .stage-read { grid-template-columns: 7fr 5fr; gap: 3rem; }
   }
+  .stage-term { min-width: 0; }
+  /* Tightened so there's no dead navy field below the caption. */
+  .stage-term .pane-body { min-height: 7rem; font-size: 13px; }
 
-  /* Rail line draws when its step turns on (motion only). Base: not drawn. */
-  html.reveal-ready [data-choreo] .rail-line { background-size: 0% 1px; }
-  @media (max-width: 899px) {
-    html.reveal-ready [data-choreo] .rail-line { background-size: 1px 0%; }
-  }
-  html.reveal-ready [data-choreo] [data-step].step-on .rail-line {
-    background-size: 100% 1px;
-    transition: background-size 400ms ease;
-  }
-  @media (max-width: 899px) {
-    html.reveal-ready [data-choreo] [data-step].step-on .rail-line {
-      background-size: 1px 100%;
-    }
-  }
-
-  /* §6 trust cards + §7 setup card — light cards with rule borders. */
-  .trust-card,
-  .setup-card {
-    background: var(--bg-soft);
-    border: 1px solid var(--rule);
-    border-radius: 8px;
-  }
-  .setup-bar {
+  .stage-rail {
     display: flex;
-    align-items: center;
-    height: 36px;
-    padding: 0 1.25rem;
-    border-bottom: 1px solid var(--rule);
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .rail-chip {
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--pane-muted);
+    background: var(--pane-bar);
+    border: 1px solid var(--pane-rule);
+    border-radius: 7px;
+    padding: 0.6rem 0.85rem;
+    transition: color 220ms ease, border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+  }
+  /* Glowing chip — set by the replay + the hover/focus re-glow (.chip-lit). */
+  .rail-chip.chip-lit {
+    color: var(--pane-accent);
+    border-color: var(--pane-accent);
+    background: rgb(var(--pane-accent-rgb) / 0.12);
+    box-shadow: 0 0 24px rgb(var(--pane-accent-rgb) / 0.22);
   }
 
-  /* Reduced-motion: rail line is fully drawn, no preview sweep. */
+  /* The printed response lines double as buttons. */
+  .trace-line {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: var(--pane-ink);
+    font: inherit;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .trace-line:hover,
+  .trace-line:focus-visible { color: var(--pane-accent); }
+  /* first printed line carries the prompt→response gap. */
+  .trace-line:first-child .line-stagger { margin-top: 1.7em; }
+
+  /* connector overlay — only meaningful on desktop where chips sit beside. */
+  .trace-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+    display: none;
+  }
+  @media (min-width: 900px) {
+    html.js .trace-svg { display: block; }
+  }
+  .trace-svg line {
+    stroke: var(--pane-accent);
+    stroke-width: 1;
+    opacity: 0;
+    transition: opacity 280ms ease;
+  }
+  .trace-svg line.on { opacity: 0.7; }
+
+  /* --- S4 day chapters --- */
+  .day-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+  }
+  .day-tab {
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--pane-muted);
+    background: var(--pane-bar);
+    border: 1px solid var(--pane-rule);
+    border-radius: 7px;
+    padding: 0.45rem 0.8rem;
+    cursor: pointer;
+    transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  }
+  .day-tab:hover { color: var(--pane-accent); border-color: rgb(var(--pane-accent-rgb) / 0.6); }
+  .day-tab[aria-selected="true"] {
+    color: var(--pane-accent);
+    border-color: var(--pane-accent);
+    background: rgb(var(--pane-accent-rgb) / 0.12);
+  }
+  /* [hidden] panels collapse natively; only the active chapter shows. */
+  .day-stage[hidden] { display: none; }
+  .day-stage {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    /* terminal 7 / effect 5, side by side. */
+    .day-stage { grid-template-columns: 7fr 5fr; gap: 2.5rem; }
+  }
+  .day-term, .day-effect { min-width: 0; }
+  .day-term .pane-body { min-height: 6rem; }
+  .day-effect .pane-body { min-height: 6rem; }
+  .day-fx-note {
+    margin: 0 1rem 1rem;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--pane-muted);
+  }
+
+  /* ===========================================================
+     REDUCED MOTION — collage parallax is JS-driven (disabled in
+     JS), so nothing to do there. Rotations are static decoration,
+     kept. The trace SVG lines + chips collapse to "all lit".
+     =========================================================== */
   @media (prefers-reduced-motion: reduce) {
-    html.reveal-ready [data-choreo] .rail-line,
-    html.reveal-ready [data-choreo] [data-step].step-on .rail-line {
-      background-size: 100% 1px !important;
-      transition: none;
-    }
-    .preview-pane.preview-flash .pane-body { animation: none; }
+    .trace-svg line { opacity: 0.7; transition: none; }
+    .rail-chip,
+    .afile,
+    .honest-card,
+    .day-tab { transition: none; }
+    .honest-card:hover { transform: rotate(var(--rot, 0deg)); }
   }
 </style>
 
 <script is:inline>
-  // §3 — the folder. Clicking a chip swaps the preview pane content + path
-  // and runs a brief highlight sweep. Keyboard: chips are real buttons;
-  // selected chip aria-pressed="true". No-JS: chips are inert spans, preview
-  // stays on Identity.md (server-rendered). Reduced-motion: no sweep.
+  // ----------------------------------------------------------------
+  // S1 hero parallax — translate collage layers at different rates on
+  // scroll. Transform only (compositor-friendly). Disabled under
+  // reduced-motion and without IntersectionObserver/rAF support.
+  // ----------------------------------------------------------------
   (function () {
-    var root = document.querySelector('[data-folder]');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var layers = Array.prototype.slice.call(
+      document.querySelectorAll('.hero-collage [data-parallax]')
+    );
+    if (!layers.length) return;
+    // capture each layer's authored rotation so parallax composes with it.
+    var base = layers.map(function (el) {
+      var t = getComputedStyle(el).transform;
+      return t && t !== 'none' ? t : '';
+    });
+    var ticking = false;
+    function update() {
+      ticking = false;
+      var y = window.scrollY || window.pageYOffset || 0;
+      for (var i = 0; i < layers.length; i++) {
+        var rate = parseFloat(layers[i].getAttribute('data-parallax')) || 0;
+        var dy = Math.round(-y * rate);
+        layers[i].style.transform = 'translateY(' + dy + 'px) ' + base[i];
+      }
+    }
+    window.addEventListener('scroll', function () {
+      if (!ticking) { ticking = true; window.requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
+  })();
+
+  // ----------------------------------------------------------------
+  // S2 read-trace — the COMPLETE conversation (prompt + three traced
+  // lines + caption) is server-rendered and visible by default, so
+  // reduced-motion / no-JS see the finished result with zero work.
+  //
+  // When motion is permitted (reveal-ready) and the scene first enters,
+  // we clear and REPLAY the sequence using the cancellable-typing
+  // pattern: type the prompt, then per traced line glow its source chip
+  // and print the line, then reveal the caption last.
+  //
+  // Independently, hovering/focusing a printed line re-glows its source
+  // chip and draws an SVG connector (works regardless of replay).
+  // ----------------------------------------------------------------
+  (function () {
+    var root = document.querySelector('[data-read-root]');
     if (!root) return;
-    var dataEl = document.querySelector('[data-folder-data]');
-    var files;
-    try { files = JSON.parse(dataEl.textContent); } catch (e) { return; }
+    var svg = root.querySelector('[data-trace-svg]');
+    var lines = Array.prototype.slice.call(root.querySelectorAll('.trace-line'));
+    var chips = Array.prototype.slice.call(root.querySelectorAll('.rail-chip'));
+    var cmdEl = root.querySelector('[data-read-cmd]');
+    var caption = root.querySelector('[data-read-caption]');
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var motion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      && document.documentElement.classList.contains('reveal-ready');
 
-    var chips = Array.prototype.slice.call(root.querySelectorAll('[data-folder-chip]'));
-    var bodyEl = root.querySelector('[data-folder-body]');
-    var pathEl = root.querySelector('[data-folder-path]');
-    var pane = root.querySelector('.preview-pane');
-    var motion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    function byName(name) {
-      for (var i = 0; i < files.length; i++) if (files[i].name === name) return files[i];
-      return files[0];
+    function chipFor(name) {
+      for (var i = 0; i < chips.length; i++) {
+        if (chips[i].getAttribute('data-chip') === name) return chips[i];
+      }
+      return null;
+    }
+    function lineFor(name) {
+      // returns the SVG <line> created for this source, or makes one.
+      if (!svg) return null;
+      var existing = svg.querySelector('line[data-for="' + name + '"]');
+      if (existing) return existing;
+      var ln = document.createElementNS(svgNS, 'line');
+      ln.setAttribute('data-for', name);
+      svg.appendChild(ln);
+      return ln;
+    }
+    function position(name, btn) {
+      var chip = chipFor(name);
+      var ln = lineFor(name);
+      if (!chip || !ln || !svg) return;
+      var sb = svg.getBoundingClientRect();
+      var cb = chip.getBoundingClientRect();
+      var bb = btn.getBoundingClientRect();
+      // from chip's left edge midpoint → response line's right edge midpoint.
+      ln.setAttribute('x1', cb.left - sb.left);
+      ln.setAttribute('y1', cb.top + cb.height / 2 - sb.top);
+      ln.setAttribute('x2', bb.right - sb.left);
+      ln.setAttribute('y2', bb.top + bb.height / 2 - sb.top);
+    }
+    function glow(name, btn, on) {
+      var chip = chipFor(name);
+      if (chip) chip.classList.toggle('chip-lit', on);
+      var ln = svg ? svg.querySelector('line[data-for="' + name + '"]') : null;
+      if (on) { position(name, btn); if (ln) ln.classList.add('on'); }
+      else if (ln) ln.classList.remove('on');
     }
 
-    function select(name) {
-      var f = byName(name);
-      chips.forEach(function (c) {
-        c.setAttribute('aria-pressed', c.getAttribute('data-folder-chip') === name ? 'true' : 'false');
+    lines.forEach(function (btn) {
+      var name = btn.getAttribute('data-source');
+      btn.addEventListener('mouseenter', function () { glow(name, btn, true); });
+      btn.addEventListener('mouseleave', function () { glow(name, btn, false); });
+      btn.addEventListener('focus', function () { glow(name, btn, true); });
+      btn.addEventListener('blur', function () { glow(name, btn, false); });
+    });
+
+    // keep any active connector aligned on resize.
+    window.addEventListener('resize', function () {
+      lines.forEach(function (btn) {
+        var name = btn.getAttribute('data-source');
+        var chip = chipFor(name);
+        if (chip && chip.classList.contains('chip-lit')) position(name, btn);
       });
-      bodyEl.textContent = f.lines.join('\n');
-      pathEl.textContent = f.path;
-      if (motion && pane) {
-        pane.classList.remove('preview-flash');
-        // force reflow so the sweep restarts
-        void pane.offsetWidth;
-        pane.classList.add('preview-flash');
+    }, { passive: true });
+
+    // ---- Replay (cancellable) ----------------------------------------
+    // Capture the server-rendered final text so we can restore it after a
+    // replay and so reduced-motion never has to touch the DOM.
+    var promptText = cmdEl ? cmdEl.textContent : '';
+    var lineText = lines.map(function (btn) {
+      var span = btn.querySelector('.line-stagger');
+      return span ? span.textContent : btn.textContent;
+    });
+    var token = 0;
+
+    function setLineVisible(i, on) {
+      var span = lines[i] && lines[i].querySelector('.line-stagger');
+      if (span) span.style.visibility = on ? '' : 'hidden';
+    }
+    function clearGlows() {
+      chips.forEach(function (c) { c.classList.remove('chip-lit'); });
+      if (svg) {
+        var on = svg.querySelectorAll('line.on');
+        for (var i = 0; i < on.length; i++) on[i].classList.remove('on');
       }
     }
 
-    chips.forEach(function (chip) {
-      chip.addEventListener('click', function () {
-        select(chip.getAttribute('data-folder-chip'));
+    function replay() {
+      var my = ++token;
+      clearGlows();
+      // clear conversation to the empty state.
+      if (cmdEl) cmdEl.textContent = '';
+      for (var i = 0; i < lines.length; i++) setLineVisible(i, false);
+      if (caption) caption.style.visibility = 'hidden';
+
+      var chars = promptText.split('');
+      var ci = 0;
+      function typeChar() {
+        if (my !== token) return;
+        if (ci < chars.length) {
+          if (cmdEl) cmdEl.textContent += chars[ci++];
+          setTimeout(typeChar, 32);
+        } else {
+          setTimeout(function () { traceLine(0); }, 320);
+        }
+      }
+      function traceLine(i) {
+        if (my !== token) return;
+        if (i >= lines.length) {
+          if (caption) caption.style.visibility = '';
+          return;
+        }
+        var btn = lines[i];
+        var name = btn.getAttribute('data-source');
+        glow(name, btn, true);            // light source chip + connector
+        setTimeout(function () {
+          if (my !== token) return;
+          setLineVisible(i, true);        // print the traced line
+          setTimeout(function () {
+            if (my !== token) return;
+            glow(name, btn, false);       // release before the next line
+            traceLine(i + 1);
+          }, 620);
+        }, 360);
+      }
+      typeChar();
+    }
+
+    if (motion) {
+      // Hide the final state up front so the replay reads as a build, not a
+      // flash. (reveal-ready guarantees JS ran; reduced-motion keeps static.)
+      if (cmdEl) cmdEl.textContent = '';
+      for (var li = 0; li < lines.length; li++) setLineVisible(li, false);
+      if (caption) caption.style.visibility = 'hidden';
+
+      if ('IntersectionObserver' in window) {
+        var played = false;
+        var io = new IntersectionObserver(function (entries) {
+          for (var e = 0; e < entries.length; e++) {
+            if (entries[e].isIntersecting && !played) {
+              played = true;
+              replay();
+              io.disconnect();
+            }
+          }
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+        io.observe(root);
+      } else {
+        replay();
+      }
+    }
+  })();
+
+  // ----------------------------------------------------------------
+  // S4 day chapters — ARIA tablist over four server-rendered panels.
+  // Each panel holds the COMPLETE chapter (typed command, printed
+  // response, effect pane) as static markup; [hidden] keeps the
+  // inactive ones out. No-JS / reduced-motion therefore see a working
+  // tab pattern with full content — no innerHTML injection anywhere.
+  //
+  // When motion is permitted, the active chapter REPLAYS using the
+  // cancellable-typing pattern: read the text from the DOM, clear it,
+  // type the command, print the response, then reveal the effect pane.
+  // Chapter 0 auto-replays on scene enter; switching tabs replays that
+  // chapter. ARIA tablist + arrow-key roving focus preserved.
+  // ----------------------------------------------------------------
+  (function () {
+    var root = document.querySelector('[data-day-root]');
+    if (!root) return;
+    var tabs = Array.prototype.slice.call(root.querySelectorAll('.day-tab'));
+    var panels = Array.prototype.slice.call(root.querySelectorAll('[data-chapter-panel]'));
+    if (!tabs.length || !panels.length) return;
+
+    var motion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      && document.documentElement.classList.contains('reveal-ready');
+    var token = 0;
+    var current = 0;
+
+    // Snapshot each panel's server-rendered final state so a replay can
+    // clear then restore it. Effect-pane body/note keep their original HTML.
+    var snaps = panels.map(function (panel) {
+      var cmdEl = panel.querySelector('[data-day-cmd]');
+      var outEl = panel.querySelector('[data-day-out]');
+      var fxBody = panel.querySelector('[data-day-fx-body]');
+      var fxNote = panel.querySelector('[data-day-fx-note]');
+      return {
+        panel: panel,
+        cmdEl: cmdEl,
+        outEl: outEl,
+        fxBody: fxBody,
+        fxNote: fxNote,
+        cmd: cmdEl ? cmdEl.textContent : '',
+        out: outEl ? outEl.textContent : '',
+        fxHTML: fxBody ? fxBody.innerHTML : '',
+        noteHidden: fxNote ? fxNote.hidden : true,
+      };
+    });
+
+    function restore(s) {
+      if (s.cmdEl) s.cmdEl.textContent = s.cmd;
+      if (s.outEl) s.outEl.textContent = s.out;
+      if (s.fxBody) s.fxBody.innerHTML = s.fxHTML;
+      if (s.fxNote) s.fxNote.hidden = s.noteHidden;
+    }
+
+    function replay(idx) {
+      var my = ++token;
+      var s = snaps[idx];
+      if (!s) return;
+      // clear to empty.
+      if (s.cmdEl) s.cmdEl.textContent = '';
+      if (s.outEl) s.outEl.textContent = '';
+      if (s.fxBody) s.fxBody.innerHTML = '';
+      if (s.fxNote) s.fxNote.hidden = true;
+
+      var chars = s.cmd.split('');
+      var ci = 0;
+      function typeChar() {
+        if (my !== token) return;
+        if (ci < chars.length) {
+          if (s.cmdEl) s.cmdEl.textContent += chars[ci++];
+          setTimeout(typeChar, 35);
+        } else {
+          setTimeout(printOut, 260);
+        }
+      }
+      function printOut() {
+        if (my !== token) return;
+        if (s.outEl) s.outEl.textContent = s.out;
+        setTimeout(function () {
+          if (my !== token) return;
+          if (s.fxBody) s.fxBody.innerHTML = s.fxHTML;
+          if (s.fxNote) s.fxNote.hidden = s.noteHidden;
+        }, 220);
+      }
+      typeChar();
+    }
+
+    function showPanel(idx) {
+      panels.forEach(function (p, i) { p.hidden = i !== idx; });
+    }
+
+    function selectTab(idx, animate) {
+      tabs.forEach(function (t, i) {
+        var on = i === idx;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.setAttribute('tabindex', on ? '0' : '-1');
+      });
+      showPanel(idx);
+      current = idx;
+      // Always restore the target panel's final state first, so a non-animated
+      // path (or a cancelled replay) lands on the complete chapter.
+      restore(snaps[idx]);
+      if (animate) replay(idx);
+    }
+
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener('click', function () { selectTab(i, motion); });
+      tab.addEventListener('keydown', function (e) {
+        var dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!dir) return;
+        e.preventDefault();
+        var next = (i + dir + tabs.length) % tabs.length;
+        tabs[next].focus();
+        selectTab(next, motion);
       });
     });
+
+    // Auto-replay chapter 0 on scene enter (motion only). Without motion the
+    // panels already show the complete static result — nothing to do.
+    if (motion && 'IntersectionObserver' in window) {
+      var played = false;
+      var io = new IntersectionObserver(function (entries) {
+        for (var e = 0; e < entries.length; e++) {
+          if (entries[e].isIntersecting && !played) {
+            played = true;
+            replay(current);
+            io.disconnect();
+          }
+        }
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+      io.observe(root);
+    }
   })();
 </script>
-
-<script
-  type="application/json"
-  data-folder-data
-  set:html={JSON.stringify(vaultFiles)}
-></script>
