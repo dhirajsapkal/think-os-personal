@@ -21,8 +21,9 @@ const { label = 'claude code', tag } = Astro.props;
 </div>
 
 <style is:global>
-  .pane .prompt { color: var(--accent); }
-  .pane .cmd    { color: var(--ink); }
-  .pane .dim    { color: var(--muted); }
+  /* Panes are always dark navy — use pane tokens, not page tokens. */
+  .pane .prompt { color: var(--pane-accent); }
+  .pane .cmd    { color: var(--pane-ink); }
+  .pane .dim    { color: var(--pane-muted); }
   .pane .amber  { color: var(--amber); }
 </style>

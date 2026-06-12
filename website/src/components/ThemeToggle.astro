@@ -16,13 +16,13 @@
     const labelEl = btn.querySelector('[data-theme-label]');
     const html = document.documentElement;
     const setLabel = () => {
-      const t = html.getAttribute('data-theme') || 'dark';
+      const t = html.getAttribute('data-theme') || 'light';
       // Label names the theme you'd switch TO.
       labelEl.textContent = t === 'dark' ? 'light ⇄' : 'dark ⇄';
     };
     setLabel();
     btn.addEventListener('click', () => {
-      const current = html.getAttribute('data-theme') || 'dark';
+      const current = html.getAttribute('data-theme') || 'light';
       const next = current === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
       localStorage.setItem('thinkos-theme', next);

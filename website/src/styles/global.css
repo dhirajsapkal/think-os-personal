@@ -3,60 +3,80 @@
 @tailwind utilities;
 
 /* ===========================================================
-   THINK OS v2 — "LIVE SESSION"
-   The site is a running terminal session viewed at night.
-   Dark is the default identity; light is "the printout".
-   All contrast ratios verified (WCAG relative luminance).
+   THINK OS v3
+   Light is the DEFAULT page world — white paper, navy ink,
+   a single blue accent. Panes are dark-navy artifacts that sit
+   ON the light page (terminals, previews) in BOTH themes.
+   PANE tokens (--pane-*) are theme-independent; PAGE tokens
+   (--bg / --ink / --accent) flip with the theme.
+   All contrast pairs verified (WCAG relative luminance).
    =========================================================== */
 
-/* DARK — "Live Session" (default theme) */
-:root,
-[data-theme="dark"] {
-  --bg:         #0A0F0C;   /* the room */
-  --bg-raised:  #101614;   /* lit pane bodies */
-  --bg-bar:     #161D1A;   /* title bars, session bar */
-  --ink:        #E6EFE8;
-  --muted:      #9CB0A3;
-  --rule:       #243029;
-  --accent:     #56D99F;   /* phosphor green */
-  --accent-rgb: 86 217 159;
-  --amber:      #F0B429;
-
-  /* Endorsement mark color */
-  --tc-blue:    #56D99F;
-  --tc-blue-fg: #0A0F0C;
-
-  --bg-rgb:  10 15 12;
-  --ink-rgb: 230 239 232;
-
-  --add:     #56D99F;                  /* written lines glow — the thesis */
-  --add-bg:  rgb(86 217 159 / 0.08);
-  --del:     #F08C82;
-  --readhl:  rgb(86 217 159 / 0.10);
+/* PANE tokens — panes are ALWAYS dark navy in both themes. */
+:root {
+  --pane-bg:     #0A1622;
+  --pane-bar:    #122031;
+  --pane-ink:    #EDF2F7;
+  --pane-muted:  #8FA0B2;   /* 5.5:1 on #0A1622 */
+  --pane-rule:   #1E2B3A;
+  --pane-accent: #5B9CF0;
+  --pane-accent-rgb: 91 156 240;
+  --pane-add:    #7DD3A8;
+  --pane-add-bg: rgb(125 211 168 / 0.08);
+  --pane-del:    #E08B82;
+  --pane-readhl: rgb(91 156 240 / 0.14);
 }
 
-/* LIGHT — "The Printout" */
+/* LIGHT — the page (DEFAULT). */
+:root,
 [data-theme="light"] {
-  --bg:         #F4F1E6;   /* warm paper */
-  --bg-raised:  #FBF9F2;
-  --bg-bar:     #ECE8D9;
-  --ink:        #1F2823;
-  --muted:      #5A675E;
-  --rule:       #D8D2BE;
-  --accent:     #0B6A45;   /* verified ≥5.41 on every surface */
-  --accent-rgb: 11 106 69;
+  --bg:         #FFFFFF;
+  --bg-soft:    #F4F6F8;
+  /* legacy aliases — Tailwind colors `soft`/`bar` still resolve. */
+  --bg-raised:  #F4F6F8;
+  --bg-bar:     #F4F6F8;
+  --ink:        #173145;
+  --muted:      #5A6B7C;   /* 5.9:1 on #FFFFFF */
+  --rule:       #E2E6EB;
+  --accent:     #0058CC;
+  --accent-rgb: 0 88 204;
   --amber:      #8A5A00;
 
-  --tc-blue:    #0B6A45;
-  --tc-blue-fg: #FBF9F2;
+  --tc-blue:    #0058CC;
+  --tc-blue-fg: #FFFFFF;
 
-  --bg-rgb:  244 241 230;
-  --ink-rgb: 31 40 35;
+  --bg-rgb:  255 255 255;
+  --ink-rgb: 23 49 69;
 
-  --add:     #0B6A45;
-  --add-bg:  rgb(11 106 69 / 0.08);
+  --add:     #0058CC;
+  --add-bg:  rgb(0 88 204 / 0.08);
   --del:     #9A3B2E;
-  --readhl:  rgb(11 106 69 / 0.08);
+  --readhl:  rgb(0 88 204 / 0.08);
+}
+
+/* DARK — the page goes navy; panes keep their own tokens. */
+[data-theme="dark"] {
+  --bg:         #0A1622;
+  --bg-soft:    #122031;
+  --bg-raised:  #122031;
+  --bg-bar:     #122031;
+  --ink:        #EDF2F7;
+  --muted:      #8FA0B2;
+  --rule:       #1E2B3A;
+  --accent:     #5B9CF0;
+  --accent-rgb: 91 156 240;
+  --amber:      #F0B429;
+
+  --tc-blue:    #5B9CF0;
+  --tc-blue-fg: #0A1622;
+
+  --bg-rgb:  10 22 34;
+  --ink-rgb: 237 242 247;
+
+  --add:     #5B9CF0;
+  --add-bg:  rgb(91 156 240 / 0.08);
+  --del:     #E08B82;
+  --readhl:  rgb(91 156 240 / 0.14);
 }
 
 /* ---------------------------------------------------------
@@ -73,14 +93,14 @@
     color: var(--ink);
     font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
     font-optical-sizing: auto;
-    /* room for the fixed SessionBar (40px) */
-    padding-top: 40px;
+    /* room for the fixed Nav (52px) */
+    padding-top: 52px;
   }
   ::selection {
     background: var(--accent);
-    color: var(--bg);
+    color: #FFFFFF;
   }
-  /* Phosphor focus ring everywhere. */
+  /* Accent focus ring everywhere. */
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
@@ -92,20 +112,20 @@
   }
 }
 
-/* The field — fixed dotted grid; the room's faint texture. Replaces noise. */
+/* The field — a very subtle soft-gray dot grid (3% navy). Page texture only. */
 .field {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image: radial-gradient(rgb(var(--accent-rgb) / 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(rgb(23 49 69 / 0.03) 1px, transparent 1px);
   background-size: 28px 28px;
 }
-[data-theme="light"] .field {
-  background-image: radial-gradient(rgb(31 40 35 / 0.05) 1px, transparent 1px);
+[data-theme="dark"] .field {
+  background-image: radial-gradient(rgb(237 242 247 / 0.03) 1px, transparent 1px);
 }
 /* Content sits above the field. */
-main, footer, .session-bar { position: relative; z-index: 1; }
+main, footer, .site-nav { position: relative; z-index: 1; }
 
 /* ---------------------------------------------------------
    Display type — Bricolage Grotesque at display optical size.
@@ -183,28 +203,31 @@ main, footer, .session-bar { position: relative; z-index: 1; }
 }
 
 /* ---------------------------------------------------------
-   SESSION BAR — fixed top, the maximized terminal window's bar.
-   Replaces the traditional header on every page.
+   SITE NAV — fixed top, clean minimal bar. white/95 + blur.
+   Replaces the retired SessionBar on every page.
    --------------------------------------------------------- */
-.session-bar {
+.site-nav {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 200;
-  height: 40px;
+  height: 52px;
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0 1rem;
-  background: var(--bg-bar);
+  padding: 0 1.25rem;
+  background: rgb(var(--bg-rgb) / 0.95);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--rule);
   font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
 }
 
 /* ---------------------------------------------------------
-   KEYCAP CHIP — mono, raised ground, accent active.
-   Reused by CommandStage, TryTerminal, guide TOC, changelog.
+   KEYCAP CHIP — brand: white ground, rule border, ink text,
+   accent on hover/active. On panes, pane tokens take over below.
+   Reused by TryTerminal, vault chips, guide TOC, changelog.
    --------------------------------------------------------- */
 .keycap {
   display: inline-flex;
@@ -214,7 +237,7 @@ main, footer, .session-bar { position: relative; z-index: 1; }
   font-size: 13px;
   letter-spacing: -0.01em;
   padding: 0.4rem 0.75rem;
-  background: var(--bg-bar);
+  background: var(--bg);
   border: 1px solid var(--rule);
   border-radius: 6px;
   color: var(--ink);
@@ -232,24 +255,39 @@ main, footer, .session-bar { position: relative; z-index: 1; }
   color: var(--accent);
   background: rgb(var(--accent-rgb) / 0.08);
 }
+/* Keycaps that live inside a dark pane use pane tokens. */
+.pane .keycap {
+  background: var(--pane-bar);
+  border-color: var(--pane-rule);
+  color: var(--pane-ink);
+}
+.pane .keycap:hover {
+  border-color: rgb(var(--pane-accent-rgb) / 0.6);
+  color: var(--pane-accent);
+}
+.pane .keycap[aria-selected="true"],
+.pane .keycap[data-active="true"] {
+  border-color: var(--pane-accent);
+  color: var(--pane-accent);
+  background: rgb(var(--pane-accent-rgb) / 0.1);
+}
 
 /* ---------------------------------------------------------
-   PANE — the lit artifact. Phosphor bloom in dark, printed
-   card in light. 6px radius.
+   PANE — a dark-navy artifact on the light page. ALWAYS dark
+   in both themes (pane tokens). 6px radius. In dark mode a 1px
+   pane-rule border keeps it reading as a distinct object.
    --------------------------------------------------------- */
 .pane {
   border-radius: 6px;
-  background: var(--bg-raised);
+  background: var(--pane-bg);
   overflow: hidden;
   box-shadow:
-    0 0 0 1px var(--rule),
-    0 0 48px rgb(var(--accent-rgb) / 0.05),
-    0 0 8px rgb(var(--accent-rgb) / 0.04);
+    0 1px 2px rgb(10 22 34 / 0.16),
+    0 8px 28px rgb(10 22 34 / 0.12),
+    0 0 0 1px var(--pane-rule);
 }
-[data-theme="light"] .pane {
-  box-shadow:
-    0 1px 0 rgb(31 40 35 / 0.06),
-    0 0 0 1px var(--rule);
+[data-theme="dark"] .pane {
+  box-shadow: 0 0 0 1px var(--pane-rule);
 }
 .pane-bar {
   display: flex;
@@ -258,15 +296,15 @@ main, footer, .session-bar { position: relative; z-index: 1; }
   gap: 1rem;
   height: 32px;
   padding: 0 0.85rem;
-  background: var(--bg-bar);
-  border-bottom: 1px solid var(--rule);
+  background: var(--pane-bar);
+  border-bottom: 1px solid var(--pane-rule);
 }
 .pane-bar .pane-path {
   font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--pane-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -276,36 +314,37 @@ main, footer, .session-bar { position: relative; z-index: 1; }
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--pane-muted);
   white-space: nowrap;
   flex-shrink: 0;
 }
-.pane-tag[data-kind="add"]  { color: var(--accent); }
-.pane-tag[data-kind="read"] { color: var(--accent); }
-.pane-tag[data-kind="del"]  { color: var(--del); }
+.pane-tag[data-kind="add"]  { color: var(--pane-accent); }
+.pane-tag[data-kind="read"] { color: var(--pane-accent); }
+.pane-tag[data-kind="del"]  { color: var(--pane-del); }
 .pane-tag[data-kind="amber"]{ color: var(--amber); }
+.pane-tag[data-kind="muted"]{ color: var(--pane-muted); }
 .pane-body {
   padding: 1.1rem 1rem;
   font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
   font-size: 12.5px;
   line-height: 1.7;
-  color: var(--ink);
+  color: var(--pane-ink);
   margin: 0;
   overflow-x: auto;
 }
 
-/* Diff lines */
+/* Diff lines — on panes, use pane add/del tokens. */
 .diff-add {
   display: block;
-  background: var(--add-bg);
-  color: var(--add);
-  box-shadow: inset 2px 0 0 var(--add);
+  background: var(--pane-add-bg);
+  color: var(--pane-add);
+  box-shadow: inset 2px 0 0 var(--pane-add);
   padding-left: 0.4rem;
   margin-left: -0.4rem;
 }
 .diff-del {
   display: block;
-  color: var(--muted);
+  color: var(--pane-muted);
   padding-left: 0.4rem;
   margin-left: -0.4rem;
   /* line-through drawn via background gradient (D3) — fully struck base state */
@@ -314,38 +353,29 @@ main, footer, .session-bar { position: relative; z-index: 1; }
   background-position: 0 55%;
   background-size: 100% 1px;
 }
-/* read-row highlight */
+/* read-row highlight — on panes. */
 .read-row {
   display: inline-block;
   width: 100%;
-  background: var(--readhl);
-  box-shadow: inset 2px 0 0 var(--accent);
+  background: var(--pane-readhl);
+  box-shadow: inset 2px 0 0 var(--pane-accent);
   padding-left: 0.4rem;
   margin-left: -0.4rem;
 }
 
 /* ---------------------------------------------------------
-   Install prompt — now a pane.
+   Install prompt — a light card (NOT a dark pane). Brand tokens.
    --------------------------------------------------------- */
 .install-card {
-  background: var(--bg-raised);
+  background: var(--bg-soft);
   border-radius: 6px;
   position: relative;
   overflow: hidden;
-  box-shadow:
-    0 0 0 1px var(--rule),
-    0 0 48px rgb(var(--accent-rgb) / 0.05),
-    0 0 8px rgb(var(--accent-rgb) / 0.04);
+  box-shadow: 0 0 0 1px var(--rule);
   transition: box-shadow 200ms ease;
 }
-[data-theme="light"] .install-card {
-  box-shadow: 0 1px 0 rgb(31 40 35 / 0.06), 0 0 0 1px var(--rule);
-}
 .install-card:hover {
-  box-shadow:
-    0 0 0 1px rgb(var(--accent-rgb) / 0.5),
-    0 0 56px rgb(var(--accent-rgb) / 0.08),
-    0 0 10px rgb(var(--accent-rgb) / 0.06);
+  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.5);
 }
 
 /* Copy button hover */
@@ -555,6 +585,11 @@ details.faq .faq-body {
   0%, 49%   { border-color: var(--accent); }
   50%, 100% { border-color: transparent; }
 }
+/* Caret blink for type-lines inside dark panes (choreo / try). */
+@keyframes caret-blink-pane {
+  0%, 49%   { border-color: var(--pane-accent); }
+  50%, 100% { border-color: transparent; }
+}
 .type-line {
   display: inline-block;
   overflow: hidden;
@@ -651,16 +686,6 @@ html.reveal-ready .diff-stagger.is-visible .diff-del {
   transition-delay: var(--d, 0ms);
 }
 
-/* --- Connector draw (FlowDiagram) ------------------------- */
-html.reveal-ready .scene .flow-link .flow-line {
-  background-size: 0% 1px;
-}
-html.reveal-ready .scene.is-visible .flow-link .flow-line {
-  background-size: 100% 1px;
-  transition: background-size 400ms ease;
-  transition-delay: var(--cd, 0ms);
-}
-
 /* ===========================================================
    STEP ENGINE — sequenced choreography (cause → effect → result)
    A [data-choreo] scene holds [data-step="N"] elements. The inline
@@ -689,9 +714,10 @@ html.reveal-ready [data-choreo] [data-step].step-fade.step-on {
 }
 
 /* Typing inside a choreo scene must NOT fire on scene visibility — it fires
-   when its OWN step turns on. Override the scene-visibility typing rule. */
+   when its OWN step turns on. Override the scene-visibility typing rule.
+   The caret lives inside a dark pane → pane accent. */
 html.reveal-ready [data-choreo] .type-line {
-  border-right: 1px solid var(--accent);
+  border-right: 1px solid var(--pane-accent);
   width: 0;
   animation: none;
 }
@@ -699,14 +725,14 @@ html.reveal-ready [data-choreo] [data-step].step-on .type-line,
 html.reveal-ready [data-choreo] [data-step].step-on.type-line {
   animation:
     type-in 900ms steps(var(--type-steps, 14)) 0ms both,
-    caret-blink 800ms steps(1) 900ms 4;
+    caret-blink-pane 800ms steps(1) 900ms 4;
 }
 
 /* read-row highlight sweeps L→R when its step turns on (instead of just
    appearing). The highlight background grows from 0 to full width. */
 html.reveal-ready [data-choreo] [data-step] .read-row,
 html.reveal-ready [data-choreo] [data-step].read-row {
-  background-image: linear-gradient(var(--readhl), var(--readhl));
+  background-image: linear-gradient(var(--pane-readhl), var(--pane-readhl));
   background-repeat: no-repeat;
   background-position: 0 50%;
   background-size: 0% 100%;
@@ -719,9 +745,13 @@ html.reveal-ready [data-choreo] [data-step].step-on.read-row {
 }
 
 /* line-stagger — plain (non-diff) lines print one after another inside a
-   stepped block. Each <span class="line-stagger"> carries its own --d. */
+   stepped block. Each <span class="line-stagger"> carries its own --d.
+   Block-level in ALL modes so lines stack even with no JS / reduced-motion. */
+.line-stagger { display: block; }
+/* .ls-gap adds a blank line above the first body line (the prompt → response
+   break) without an empty span that would mis-stagger. */
+.line-stagger.ls-gap { margin-top: 1.7em; }
 html.reveal-ready [data-choreo] [data-step] .line-stagger {
-  display: block;
   opacity: 0;
   transform: translateY(3px);
 }
@@ -765,47 +795,6 @@ html.reveal-ready [data-choreo] [data-step].pair-draw .pair-link::after {
   }
 }
 
-/* FlowDiagram nodes are .pane — the scene-visibility pane light-up rule has
-   higher specificity than the generic step rule, so it would defeat gating.
-   Re-assert step gating for choreo flow nodes with matching specificity. */
-html.reveal-ready [data-choreo].is-visible .flow-node[data-step] {
-  opacity: 0;
-}
-html.reveal-ready [data-choreo].is-visible .flow-node[data-step].step-on {
-  opacity: 1;
-  transition: opacity 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-/* FlowDiagram connector line draws when its step turns on (not on visibility).
-   Override the scene-visibility flow-line rule. */
-html.reveal-ready [data-choreo] .flow-link[data-step] .flow-line {
-  background-size: 0% 1px;
-  transition: none;
-}
-html.reveal-ready [data-choreo].is-visible .flow-link[data-step] .flow-line {
-  background-size: 0% 1px;
-}
-html.reveal-ready [data-choreo] .flow-link[data-step].step-on .flow-line {
-  background-size: 100% 1px;
-  transition: background-size 400ms ease;
-}
-
-/* Beat badges — tiny mono accent tags that appear with their step. */
-.beat-badge {
-  display: inline-block;
-  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-}
-
-/* The annotation line under a command (dim mono 12px). */
-.cmd-annot {
-  display: block;
-  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
-  font-size: 12px;
-  color: var(--muted);
-}
-
 /* ===========================================================
    REDUCED MOTION — every device collapses to final static state.
    =========================================================== */
@@ -846,11 +835,6 @@ html.reveal-ready [data-choreo] .flow-link[data-step].step-on .flow-line {
     background-size: 100% 1px;   /* fully struck */
     transition: none;
   }
-  html.reveal-ready .scene .flow-link .flow-line,
-  html.reveal-ready .scene.is-visible .flow-link .flow-line {
-    background-size: 100% 1px;
-    transition: none;
-  }
   /* Step engine collapses fully: every stepped element is shown final. */
   html.reveal-ready [data-choreo] [data-step] {
     opacity: 1 !important;
@@ -867,7 +851,7 @@ html.reveal-ready [data-choreo] .flow-link[data-step].step-on .flow-line {
   html.reveal-ready [data-choreo] [data-step] .read-row,
   html.reveal-ready [data-choreo] [data-step].read-row {
     background-image: none;
-    background-color: var(--readhl);
+    background-color: var(--pane-readhl);
     background-size: auto;
     transition: none;
   }
@@ -884,17 +868,6 @@ html.reveal-ready [data-choreo] .flow-link[data-step].step-on .flow-line {
   }
   html.reveal-ready [data-choreo] [data-step].pair-draw .pair-link::after {
     width: 100% !important;
-    transition: none;
-  }
-  html.reveal-ready [data-choreo].is-visible .flow-node[data-step],
-  html.reveal-ready [data-choreo].is-visible .flow-node[data-step].step-on {
-    opacity: 1 !important;
-    transition: none;
-  }
-  html.reveal-ready [data-choreo] .flow-link[data-step] .flow-line,
-  html.reveal-ready [data-choreo].is-visible .flow-link[data-step] .flow-line,
-  html.reveal-ready [data-choreo] .flow-link[data-step].step-on .flow-line {
-    background-size: 100% 1px !important;
     transition: none;
   }
   .link-anim,

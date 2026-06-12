@@ -481,8 +481,8 @@ const tenCommands = [
           <ul class="p-6 md:p-7 space-y-6">
             {dos.map(([lead, body]) => (
               <li>
-                <p class="font-mono text-[14px] text-accent mb-1">&gt; {lead}</p>
-                <p class="text-[15px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 15">{body}</p>
+                <p class="font-mono text-[14px] mb-1" style="color:var(--pane-accent)">&gt; {lead}</p>
+                <p class="text-[15px] leading-relaxed" style={`color:var(--pane-muted); font-variation-settings:'opsz' 15`}>{body}</p>
               </li>
             ))}
           </ul>
@@ -495,8 +495,8 @@ const tenCommands = [
           <ul class="p-6 md:p-7 space-y-6">
             {donts.map(([lead, body]) => (
               <li>
-                <p class="font-mono text-[14px] text-ink mb-1"><span style="color:var(--del)">&gt;</span> {lead}</p>
-                <p class="text-[15px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 15">{body}</p>
+                <p class="font-mono text-[14px] mb-1" style="color:var(--pane-ink)"><span style="color:var(--pane-del)">&gt;</span> {lead}</p>
+                <p class="text-[15px] leading-relaxed" style={`color:var(--pane-muted); font-variation-settings:'opsz' 15`}>{body}</p>
               </li>
             ))}
           </ul>

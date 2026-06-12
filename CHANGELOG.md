@@ -2,6 +2,17 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.9.8] — 2026-06-12 — Website V3: the brand world, and an argument instead of theater
+
+Third take on the site, redirected by two client notes: the Live Session conceit produced unmotivated theater (a "$ claude" boot type-on that argued nothing), and the palette should be Think Company's. V3 is a light, brand-true world — white paper, Think navy #173145 ink, Think blue #0058CC accents — with terminal panes sitting on it as always-dark navy artifacts. The opening scene is now the product's whole argument in one beat: the same prompt typed into two panes simultaneously, and the responses diverge — without Think OS, Claude asks who you are; with it, it answers. Every remaining animation exists to make a point: an interactive vault folder whose file chips swap a live preview, a self-drawing day timeline, and the typeable demo terminal carried over.
+
+### Changed
+
+- Tokens rebuilt around the verified brand palette (light default; navy-dark theme retained); phosphor/scanline artifacts deleted; panes use theme-independent pane tokens with AA pairs.
+- Homepage rebuilt to an eight-section narrative: hero, same-prompt-two-mornings, the folder (interactive previews), keeps-itself-current timeline, type-something, trust, get-started, FAQ.
+- SessionBar and the day-clock conceit retired for a clean sticky nav (wordmark, version chip, section links, theme toggle); CommandStage and FlowDiagram deleted, their jobs absorbed by the new scenes.
+- Subpages (guide, commands, docs, changelog, 404) made coherent: pane-token fixes inside dark panes, sidebar offset for the new nav, zero retired-world colors in the built output.
+
 ## [v0.9.7] — 2026-06-12 — Cause, then effect: the homepage scenes learn to tell their story in order
 
 Client-note revision pass on the Live Session site. Every animated scene is now a sequenced story — nothing renders before its trigger. A step engine walks each scene's beats on entry: in The Read, you say good morning, an annotation notes it runs /thinkos-morning, the connector draws, the two vault files light up as read, and only then does the answer print, with numbered beat badges narrating. The try-it terminal is now genuinely typeable: free-typed input matches four demos (including a log demo that writes your own words into a Work Log diff with a file side-effect chip), with a graceful fallback for everything else. CommandStage tabs replay their vignette as cause-then-effect. Homepage copy cut roughly a third — captions over paragraphs, a file-grid graphic replacing a sentence about files. Reduced-motion and no-JS still render everything static and complete.

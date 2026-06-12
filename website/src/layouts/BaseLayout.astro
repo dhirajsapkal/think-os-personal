@@ -7,7 +7,7 @@ import '@fontsource-variable/bricolage-grotesque/opsz.css';
 import '@fontsource-variable/jetbrains-mono';
 import '@fontsource-variable/jetbrains-mono/wght-italic.css';
 import '../styles/global.css';
-import SessionBar from '../components/SessionBar.astro';
+import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 
 interface Props {
@@ -39,12 +39,13 @@ const {
     <meta name="twitter:image" content="/og.png" />
     <link rel="alternate" type="application/rss+xml" title="Think OS Changelog" href="/rss.xml" />
     <script is:inline>
-      // Apply theme before paint to avoid flash. Default is dark — the site
-      // IS the Live Session world; first visits land there regardless of OS
-      // preference. The toggle persists the user's choice as before.
+      // Apply theme before paint to avoid flash. Light is the default — the
+      // page is white paper with navy ink; dark navy panes sit on top. First
+      // visits land in light regardless of OS preference. The toggle persists
+      // the user's choice.
       (function () {
         const stored = localStorage.getItem('thinkos-theme');
-        const theme = stored || 'dark';
+        const theme = stored || 'light';
         document.documentElement.setAttribute('data-theme', theme);
       })();
     </script>
@@ -61,36 +62,17 @@ const {
       class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[300] focus:bg-bar focus:border focus:border-accent focus:px-4 focus:py-2 focus:font-mono focus:text-[12px] focus:text-ink"
     >Skip to content</a>
     <div class="field" aria-hidden="true"></div>
-    <SessionBar />
+    <Nav />
     <main id="main">
       <slot />
     </main>
     <Footer />
     <script is:inline>
-      // Two observers. The first adds .reveal-ready (motion permitted) and
-      // animates scene light-ups + scroll typing — gated on IntersectionObserver
-      // and prefers-reduced-motion. The second updates the session clock from
-      // each scene's data-time — pure state, NOT motion, so it runs always.
+      // Reveal + step-engine observers. Adds .reveal-ready (motion permitted)
+      // and animates scene light-ups, scroll typing, and [data-choreo] step
+      // sequences — gated on IntersectionObserver and prefers-reduced-motion.
+      // The day-clock conceit is retired; no clock observer.
       (function () {
-        // Clock observer — runs regardless of motion preference. Text swap only.
-        var clockEl = document.querySelector('[data-session-clock]');
-        if (clockEl && 'IntersectionObserver' in window) {
-          var scenes = document.querySelectorAll('.scene[data-time]');
-          if (scenes.length) {
-            var clockIO = new IntersectionObserver(function (entries) {
-              for (var i = 0; i < entries.length; i++) {
-                var e = entries[i];
-                if (e.isIntersecting && e.intersectionRatio >= 0.5) {
-                  var day = e.target.getAttribute('data-day');
-                  var time = e.target.getAttribute('data-time');
-                  clockEl.textContent = (day ? day + ' ' : '') + time;
-                }
-              }
-            }, { threshold: [0.5] });
-            for (var s = 0; s < scenes.length; s++) clockIO.observe(scenes[s]);
-          }
-        }
-
         // Reveal observer — motion-gated.
         if (!('IntersectionObserver' in window)) return;
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

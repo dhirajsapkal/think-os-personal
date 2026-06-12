@@ -1,36 +1,59 @@
 ---
-// Homepage v2 — "Live Session". The site IS a running terminal session viewed
-// at night. The day advances as you scroll; commands type themselves as scenes
-// enter; diffs write line-by-line; two genuinely interactive moments.
-//
-// All copy verified against the v0.9.5 inventory (index/DayPairs/guide/commands)
-// or the shipped playbooks. Restaged, not rewritten.
+// Homepage v3. The Live Session day-clock world is retired. The page is white
+// paper; dark-navy panes are the artifacts. Every animation makes an argument:
+//   §2 same prompt, two mornings — the thesis, side by side.
+//   §3 the folder — interactive: click a vault file, preview swaps.
+//   §4 it keeps itself current — a timeline that draws itself.
+//   §5 type something — the existing TryTerminal, untouched.
+// Reduced-motion collapses to static-final-complete; no-JS server-renders all.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InstallPrompt from '../components/InstallPrompt.astro';
 import WorksWith from '../components/WorksWith.astro';
 import ChangelogPreview from '../components/ChangelogPreview.astro';
-import CommandStage from '../components/CommandStage.astro';
 import TryTerminal from '../components/TryTerminal.astro';
-import FlowDiagram from '../components/FlowDiagram.astro';
-import Pair from '../components/Pair.astro';
 import TerminalPane from '../components/panes/TerminalPane.astro';
-import FilePane from '../components/panes/FilePane.astro';
-import DiffPane from '../components/panes/DiffPane.astro';
-import { VERSION } from '../lib/version';
 
-const flowNodes = [
+// §3 — the vault files and their (sample) preview contents.
+const vaultFiles = [
   {
-    label: 'your files',
-    body: 'A plain folder on your disk. Open it in Obsidian, VS Code, TextEdit — nothing hidden, nothing locked in.',
-    files: ['Identity.md', 'Current Focus.md', 'Tasks.md', 'Work Log.md', 'Projects/', 'People.md', 'Decisions.md', 'Learnings.md'],
+    name: 'Identity.md',
+    path: '~/ThinkOS/vault/05 Profile/Identity.md',
+    lines: ['# Identity', '', 'Design lead at a product studio.', 'Plans first, plain language, no fluff.', 'Stack: Figma, Claude Code, GitHub.'],
   },
   {
-    label: 'a local index',
-    body: 'Search and links, derived from your files — never the other way around. Breaks? One command rebuilds it.',
+    name: 'Current Focus.md',
+    path: '~/ThinkOS/vault/01 Now/Current Focus.md',
+    lines: ['# Current Focus — this week', '', '1. v2 ingestion pipeline — cut release', '2. Q3 hiring plan, draft Friday', '3. clear PR queue (T. + R.)'],
   },
   {
-    label: 'every session',
-    body: 'Claude queries the index and reads only the span it needs.',
+    name: 'Tasks.md',
+    path: '~/ThinkOS/vault/01 Now/Tasks.md',
+    lines: ['## Today', '', '- v2 release notes', '- 1:1 with Priya, 2pm'],
+  },
+  {
+    name: 'Work Log.md',
+    path: '~/ThinkOS/vault/01 Now/Work Log.md',
+    lines: ['### 14:00 — acme-redesign', '- Edited 12 files', '- HEAD: a1b2c3d'],
+  },
+  {
+    name: 'People.md',
+    path: '~/ThinkOS/vault/03 People/People.md',
+    lines: ['### Priya — eng lead, v2', '- prefers async, briefs by Thu'],
+  },
+  {
+    name: 'Decisions.md',
+    path: '~/ThinkOS/vault/04 Knowledge/Decisions.md',
+    lines: ['## 2026-06-11 — API versioning', 'Version the API from day one.'],
+  },
+  {
+    name: 'Learnings.md',
+    path: '~/ThinkOS/vault/04 Knowledge/Learnings.md',
+    lines: ['## Demos beat decks', 'Clients decide on the prototype.'],
+  },
+  {
+    name: 'Projects/',
+    path: '~/ThinkOS/vault/02 Projects/',
+    lines: ['v2-ingestion/  acme-redesign/', 'q3-hiring/'],
   },
 ];
 
@@ -105,57 +128,47 @@ const faqs = [
 <BaseLayout>
 
   <!-- ============================================================
-       SCENE 1 · BOOT (08:38) — pure CSS, plays on load, no observer
+       §1 · HERO — gentle fade-in stagger, no choreography
        ============================================================ -->
-  <section class="play-on-load border-b border-rule" data-time="08:38">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-14 md:pt-20 pb-16 md:pb-24" style="min-height:88vh; display:flex; flex-direction:column; justify-content:center">
-
-      <!-- borderless boot region — the room itself -->
-      <pre class="font-mono text-[13px] md:text-[14px] leading-[1.9] text-ink m-0 whitespace-pre-wrap"><span class="prompt">$</span> <span class="cmd type-line" style="--type-ch:7ch; --type-steps:7; --type-start:220ms">claude</span><span class="po-1 block text-muted">thinkos v{VERSION} · vault mounted · 2 files read</span></pre>
-
-      <h1 class="display po-2 mt-9 text-[clamp(44px,9vw,116px)] max-w-[14ch]">
+  <section class="play-on-load border-b border-rule">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-16 md:pb-24" style="min-height:78vh; display:flex; flex-direction:column; justify-content:center">
+      <h1 class="display po-1 text-[clamp(44px,9vw,104px)] max-w-[15ch]">
         Stop being a stranger <em>every session.</em>
       </h1>
 
-      <p class="po-3 mt-7 max-w-[62ch] text-[18px] md:text-[19px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
-        A folder of markdown files Claude reads at the start of every session — your role, your week, your people, your decisions. No re-typing.
+      <p class="po-2 mt-7 max-w-[58ch] text-[18px] md:text-[19px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
+        Think OS is a folder of files Claude reads before it answers — your role,
+        your projects, your people. Set it up once; it keeps itself current.
       </p>
 
-      <div class="po-4 mt-10 max-w-[820px]">
+      <div class="po-3 mt-10 max-w-[820px]">
         <InstallPrompt />
       </div>
       <p class="po-4 mt-6 font-mono text-[12px] tracking-[0.06em]">
-        <a href="#scene-read" class="link-anim text-accent">↓ watch a day with it</a>
+        <a href="#same-prompt" class="link-anim text-accent">↓ watch the same prompt, two mornings</a>
       </p>
     </div>
   </section>
 
   <!-- ============================================================
-       SCENE 2 · THE READ (08:40)
+       §2 · SAME PROMPT, TWO MORNINGS — the argument
        ============================================================ -->
-  <section id="scene-read" class="scene border-t border-rule" data-time="08:40" data-choreo>
+  <section id="same-prompt" class="scene border-t border-rule" data-choreo>
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <Pair connectorStep={3}>
-        <TerminalPane slot="left" label="claude code" tag="08:40"><span data-step="1"><span class="beat-badge mr-2">[1] you say it</span>
-<span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:13ch; --type-steps:13">good morning</span></span><span class="cmd-annot step-fade" data-step="2" data-step-ms="500">→ runs /thinkos-morning</span><span data-step="6" data-step-ms="600"><span class="beat-badge step-fade" data-step="6">[3] it answers</span>
+      <div class="twin-grid">
+        <!-- LEFT: without Think OS -->
+        <div class="twin-cell">
+          <TerminalPane label="claude code" tag="without think os"><span data-step="1"><span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:38ch; --type-steps:38">draft a standup update for the v2 project</span></span><span data-step="2" data-step-ms="700"><span class="line-stagger ls-gap" style="--d:0ms">Happy to help — a few questions first:</span><span class="line-stagger" style="--d:180ms">  · which project is the v2 project?</span><span class="line-stagger" style="--d:270ms">  · who reads this update?</span><span class="line-stagger" style="--d:360ms">  · what happened since the last one?</span></span></TerminalPane>
+        </div>
 
-<span class="line-stagger" style="--d:0ms">This week (top 3):</span><span class="line-stagger" style="--d:70ms">  1. v2 ingestion pipeline — cut release</span><span class="line-stagger" style="--d:140ms">  2. Q3 hiring plan, first draft Friday</span><span class="line-stagger" style="--d:210ms">  3. clear PR queue (T. + R.)</span><span class="line-stagger" style="--d:280ms">
-</span><span class="line-stagger" style="--d:350ms">Calendar: 2 meetings, both afternoon.</span></span></TerminalPane>
-        <FilePane slot="right" path="~/ThinkOS/vault/" tag="read"><span class="dim">00 Home/</span>
-<span class="dim">01 Now/</span>
-<span class="read-row" data-step="4" data-step-ms="500">  <span class="text-accent">Current Focus.md</span>  <span class="dim">← read</span></span>
-<span class="dim">  Tasks.md</span>
-<span class="dim">  Work Log.md</span>
-<span class="dim">02 Projects/</span>
-<span class="dim">03 People/</span>
-<span class="dim">04 Knowledge/</span>
-<span class="dim">05 Profile/</span>
-<span class="read-row" data-step="5" data-step-ms="500">  <span class="text-accent">Identity.md</span>  <span class="dim">← read</span></span>
-<span class="dim">90 System/</span></FilePane>
-      </Pair>
-      <p class="mt-4 font-mono text-[10px] tracking-[0.1em]"><span class="beat-badge step-fade" data-step="3">[2] it reads</span></p>
-      <p class="mt-6 text-[15px] leading-relaxed text-muted max-w-[64ch]">
-        Say good morning — Claude reads two small files before it answers. That's the whole trick.
+        <!-- RIGHT: with Think OS -->
+        <div class="twin-cell">
+          <TerminalPane label="claude code" tag="with think os"><span data-step="1"><span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:38ch; --type-steps:38">draft a standup update for the v2 project</span></span><span data-step="3" data-step-ms="700"><span class="line-stagger ls-gap" style="--d:0ms">Standup — v2 ingestion pipeline:</span><span class="line-stagger" style="--d:180ms">  · release cut today; notes drafted</span><span class="line-stagger" style="--d:270ms">  · Q3 hiring plan: first draft Friday</span><span class="line-stagger" style="--d:360ms">  · PR queue clearing with T. + R.</span></span></TerminalPane>
+        </div>
+      </div>
+
+      <p class="mt-10 text-[17px] md:text-[19px] leading-relaxed text-ink max-w-[58ch] step-fade" data-step="4" data-step-ms="500" style="font-variation-settings:'opsz' 17">
+        Same prompt. The only difference is a folder of notes Claude read first.
       </p>
       <p class="mt-3 font-mono text-[10px] tracking-[0.16em] uppercase text-muted">
         Sample vault content — your real vault has your real notes.
@@ -164,64 +177,102 @@ const faqs = [
   </section>
 
   <!-- ============================================================
-       SCENE 3 · YOU TYPED NOTHING (14:02)
+       §3 · THE FOLDER — interactive moment 1
        ============================================================ -->
-  <section class="scene border-t border-rule" data-time="14:02" data-choreo>
+  <section class="scene border-t border-rule" data-choreo>
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <span data-step="1" data-step-ms="900" style="display:none" aria-hidden="true"></span>
-      <Pair>
-        <TerminalPane slot="left" label="claude code" tag="14:02"><span class="dim">— no session open —</span></TerminalPane>
-        <DiffPane slot="right" path="01 Now / Work Log.md" tag="+3 lines" stagger={false}><span class="dim"># appended by session capture</span>
+      <header class="mb-12 reveal">
+        <h2 class="md-heading">Where it comes from</h2>
+      </header>
 
-<span class="diff-stagger" data-step="2" data-step-ms="600"><span class="diff-add" style="--d:0ms">+ ### 14:00 — acme-redesign</span>
-<span class="diff-add" style="--d:80ms">+ - Edited 12 files in ~/code/acme-redesign</span>
-<span class="diff-add" style="--d:160ms">+ - HEAD: a1b2c3d</span></span>
+      <div class="folder-grid" data-folder>
+        <!-- LEFT: the vault panel (light card, NOT a pane) -->
+        <div class="vault-panel" data-step="1">
+          <p class="font-mono text-[11px] tracking-[0.08em] text-muted mb-4">~/ThinkOS/vault</p>
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Preview a vault file">
+            {vaultFiles.map((f, i) => (
+              <>
+                <button
+                  type="button"
+                  class="keycap vault-chip"
+                  data-folder-chip={f.name}
+                  aria-pressed={i === 0 ? 'true' : 'false'}
+                >{f.name}</button>
+                <span class="vault-chip-static keycap" aria-hidden="true">{f.name}</span>
+              </>
+            ))}
+          </div>
+        </div>
 
-<span class="step-fade" data-step="3" data-step-ms="500"><span class="dim"># listed in the ledger; removable</span>
-<span class="dim"># with /thinkos-undo-capture</span></span></DiffPane>
-      </Pair>
-      <p class="mt-6 text-[15px] leading-relaxed text-muted max-w-[58ch]">
-        No session open. The background job still logged where the day went — never content.
+        <!-- RIGHT: preview pane (dark artifact) -->
+        <div class="pane preview-pane" data-step="2">
+          <div class="pane-bar">
+            <span class="pane-path" data-folder-path>{vaultFiles[0].path}</span>
+            <span class="pane-tag" data-kind="read">preview</span>
+          </div>
+          <pre class="pane-body whitespace-pre-wrap break-words" data-folder-body>{vaultFiles[0].lines.join('\n')}</pre>
+        </div>
+      </div>
+
+      <p class="mt-8 text-[15px] leading-relaxed text-muted max-w-[60ch]">
+        Plain markdown on your disk. Open any of it in Obsidian or TextEdit — it's yours.
       </p>
     </div>
   </section>
 
   <!-- ============================================================
-       SCENE 4 · COMMAND STAGE — interactive moment 1
+       §4 · IT KEEPS ITSELF CURRENT — timeline that draws itself
        ============================================================ -->
-  <section class="border-t border-rule" data-time="08:40">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <CommandStage />
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SCENE 5 · HOW IT WORKS
-       ============================================================ -->
-  <section class="scene border-t border-rule" data-time="09:15" data-choreo>
+  <section class="scene border-t border-rule" data-choreo>
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-12 reveal">
-        <h2 class="md-heading">How it works</h2>
+        <h2 class="md-heading">It keeps itself current</h2>
       </header>
 
-      <FlowDiagram nodes={flowNodes} />
+      <div class="rail">
+        <!-- Card 1 -->
+        <article class="rail-card" data-step="1">
+          <p class="rail-tag">08:40 · you type one command</p>
+          <div class="pane">
+            <pre class="pane-body whitespace-pre-wrap break-words"><span class="prompt">&gt;</span> good morning
+<span class="dim">→ this week's top 3, today's plate</span></pre>
+          </div>
+        </article>
 
-      <div class="mt-12 reveal">
-        <p class="md-quote max-w-[40ch]">
-          Markdown is the source of truth. Everything else is a rebuildable index.
-        </p>
-        <p class="mt-5 text-[15px] leading-relaxed text-muted max-w-[60ch]">
-          The why, tradeoffs included →
-          <a href="/docs/architecture" class="underline underline-offset-2 hover:text-accent">/docs/architecture</a>
-        </p>
+        <div class="rail-link" aria-hidden="true" data-step="2" data-step-ms="420"><span class="rail-line"></span></div>
+
+        <!-- Card 2 -->
+        <article class="rail-card" data-step="3">
+          <p class="rail-tag">during the day · you type nothing</p>
+          <div class="pane">
+            <pre class="pane-body whitespace-pre-wrap break-words"><span class="diff-add">Work Log.md  +3 lines</span>
+<span class="dim">folders · file counts · commit hash</span>
+<span class="dim">never content</span></pre>
+          </div>
+        </article>
+
+        <div class="rail-link" aria-hidden="true" data-step="4" data-step-ms="420"><span class="rail-line"></span></div>
+
+        <!-- Card 3 -->
+        <article class="rail-card" data-step="5">
+          <p class="rail-tag">sun 20:00 · twenty minutes</p>
+          <div class="pane">
+            <pre class="pane-body whitespace-pre-wrap break-words"><span class="prompt">&gt;</span> /weekly-review
+<span class="dim">→ Current Focus rewritten for next week</span></pre>
+          </div>
+        </article>
       </div>
+
+      <p class="mt-10 text-[15px] leading-relaxed text-muted max-w-[60ch]">
+        One command in the morning, one on Sunday. Capture runs in the background — metadata only.
+      </p>
     </div>
   </section>
 
   <!-- ============================================================
-       SCENE 6 · TRY IT — interactive moment 2
+       §5 · TYPE SOMETHING — existing TryTerminal, untouched
        ============================================================ -->
-  <section class="border-t border-rule" data-time="11:30">
+  <section class="border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-10">
         <h2 class="md-heading">Type something</h2>
@@ -233,9 +284,9 @@ const faqs = [
   </section>
 
   <!-- ============================================================
-       SCENE 7 · WHAT IT DOESN'T DO
+       §6 · WHAT IT DOESN'T DO — light trust cards
        ============================================================ -->
-  <section class="scene border-t border-rule" data-time="13:00">
+  <section class="scene border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-14 reveal">
         <h2 class="md-heading">What it doesn't do</h2>
@@ -243,9 +294,9 @@ const faqs = [
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         {trust.map((t) => (
-          <article class="pane p-7 md:p-8">
+          <article class="trust-card p-7 md:p-8">
             <p class="font-mono text-[14px] text-ink">
-              <span class="text-muted">&gt; </span>{t.label}
+              <span class="text-accent">&gt; </span>{t.label}
             </p>
             <p class="mt-4 text-[15px] leading-relaxed text-muted max-w-[44ch]" style="font-variation-settings:'opsz' 15">{t.body}</p>
           </article>
@@ -258,9 +309,9 @@ const faqs = [
   <WorksWith />
 
   <!-- ============================================================
-       SCENE 8 · GET STARTED
+       §7 · GET STARTED
        ============================================================ -->
-  <section class="scene border-t border-rule" data-time="15:00">
+  <section class="scene border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-14 reveal">
         <h2 class="md-heading">Get started</h2>
@@ -269,10 +320,9 @@ const faqs = [
         </p>
       </header>
 
-      <div class="pane max-w-[860px]">
-        <div class="pane-bar">
-          <span class="pane-path">setup — queued</span>
-          <span class="pane-tag" data-kind="read">3 steps</span>
+      <div class="setup-card max-w-[860px]">
+        <div class="setup-bar">
+          <span class="font-mono text-[10px] tracking-[0.12em] uppercase text-muted">setup — 3 steps</span>
         </div>
         <div class="p-6 md:p-8 space-y-8">
           {steps.map((s, i) => (
@@ -303,9 +353,9 @@ const faqs = [
   </section>
 
   <!-- ============================================================
-       SCENE 9 · QUESTIONS + CLOSE
+       §8 · QUESTIONS + CLOSE
        ============================================================ -->
-  <section class="scene border-t border-rule" data-time="20:14" data-day="sun">
+  <section class="scene border-t border-rule">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-12 reveal">
         <h2 class="md-heading">Questions</h2>
@@ -346,3 +396,194 @@ const faqs = [
   </section>
 
 </BaseLayout>
+
+<style>
+  /* §2 twin grid — two panes side by side, no connector. */
+  .twin-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .twin-cell { min-width: 0; }
+  @media (min-width: 900px) {
+    .twin-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  }
+
+  /* §3 folder grid — vault panel + preview pane. */
+  .folder-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .folder-grid { grid-template-columns: 0.85fr 1.15fr; gap: 2rem; }
+  }
+  .vault-panel {
+    background: var(--bg-soft);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+  .preview-pane { min-width: 0; }
+  .preview-pane .pane-body { min-height: 9.5rem; }
+
+  /* No-JS: chips become inert static spans; live buttons hidden. */
+  html:not(.js) .folder-grid [data-folder-chip] { display: none; }
+  html.js .folder-grid .vault-chip-static { display: none; }
+
+  /* Brief highlight sweep when a preview swaps (JS adds .preview-flash). */
+  .preview-pane.preview-flash .pane-body {
+    animation: preview-sweep 460ms cubic-bezier(0.2, 0.7, 0.2, 1) 1;
+  }
+  @keyframes preview-sweep {
+    0%   { background-color: rgb(var(--pane-accent-rgb) / 0.12); }
+    100% { background-color: transparent; }
+  }
+
+  /* §4 timeline rail — horizontal on desktop, vertical on mobile. */
+  .rail {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    align-items: stretch;
+  }
+  .rail-card { min-width: 0; }
+  .rail-tag {
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+  .rail-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.25rem;
+  }
+  .rail-link::before {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 100%;
+    background: var(--rule);
+  }
+  /* The drawing line — accent overlay grows when its step turns on. */
+  .rail-line {
+    position: absolute;
+    width: 1px;
+    height: 100%;
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-repeat: no-repeat;
+    background-position: 50% 0;
+    background-size: 1px 100%;
+  }
+  @media (min-width: 900px) {
+    .rail {
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      align-items: center;
+    }
+    .rail-link { height: auto; width: 2.5rem; }
+    .rail-link::before { width: 100%; height: 1px; }
+    .rail-line {
+      width: 100%;
+      height: 1px;
+      background-position: 0 50%;
+      background-size: 100% 1px;
+    }
+  }
+
+  /* Rail line draws when its step turns on (motion only). Base: not drawn. */
+  html.reveal-ready [data-choreo] .rail-line { background-size: 0% 1px; }
+  @media (max-width: 899px) {
+    html.reveal-ready [data-choreo] .rail-line { background-size: 1px 0%; }
+  }
+  html.reveal-ready [data-choreo] [data-step].step-on .rail-line {
+    background-size: 100% 1px;
+    transition: background-size 400ms ease;
+  }
+  @media (max-width: 899px) {
+    html.reveal-ready [data-choreo] [data-step].step-on .rail-line {
+      background-size: 1px 100%;
+    }
+  }
+
+  /* §6 trust cards + §7 setup card — light cards with rule borders. */
+  .trust-card,
+  .setup-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+  }
+  .setup-bar {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* Reduced-motion: rail line is fully drawn, no preview sweep. */
+  @media (prefers-reduced-motion: reduce) {
+    html.reveal-ready [data-choreo] .rail-line,
+    html.reveal-ready [data-choreo] [data-step].step-on .rail-line {
+      background-size: 100% 1px !important;
+      transition: none;
+    }
+    .preview-pane.preview-flash .pane-body { animation: none; }
+  }
+</style>
+
+<script is:inline>
+  // §3 — the folder. Clicking a chip swaps the preview pane content + path
+  // and runs a brief highlight sweep. Keyboard: chips are real buttons;
+  // selected chip aria-pressed="true". No-JS: chips are inert spans, preview
+  // stays on Identity.md (server-rendered). Reduced-motion: no sweep.
+  (function () {
+    var root = document.querySelector('[data-folder]');
+    if (!root) return;
+    var dataEl = document.querySelector('[data-folder-data]');
+    var files;
+    try { files = JSON.parse(dataEl.textContent); } catch (e) { return; }
+
+    var chips = Array.prototype.slice.call(root.querySelectorAll('[data-folder-chip]'));
+    var bodyEl = root.querySelector('[data-folder-body]');
+    var pathEl = root.querySelector('[data-folder-path]');
+    var pane = root.querySelector('.preview-pane');
+    var motion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function byName(name) {
+      for (var i = 0; i < files.length; i++) if (files[i].name === name) return files[i];
+      return files[0];
+    }
+
+    function select(name) {
+      var f = byName(name);
+      chips.forEach(function (c) {
+        c.setAttribute('aria-pressed', c.getAttribute('data-folder-chip') === name ? 'true' : 'false');
+      });
+      bodyEl.textContent = f.lines.join('\n');
+      pathEl.textContent = f.path;
+      if (motion && pane) {
+        pane.classList.remove('preview-flash');
+        // force reflow so the sweep restarts
+        void pane.offsetWidth;
+        pane.classList.add('preview-flash');
+      }
+    }
+
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        select(chip.getAttribute('data-folder-chip'));
+      });
+    });
+  })();
+</script>
+
+<script
+  type="application/json"
+  data-folder-data
+  set:html={JSON.stringify(vaultFiles)}
+></script>

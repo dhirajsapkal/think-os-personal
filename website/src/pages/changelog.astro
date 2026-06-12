@@ -96,7 +96,7 @@ const anchor = (version: string) => `v${version.replace(/\./g, '-')}`;
               <div class="timeline-body col-span-12 md:col-span-9 relative md:border-l md:border-rule md:pl-10 pt-2 pb-16 md:pb-20">
                 <div class="pane">
                   <div class="pane-bar">
-                    <span class="pane-path text-accent">v{entry.data.version}</span>
+                    <span class="pane-path" style="color:var(--pane-accent)">v{entry.data.version}</span>
                     <span class="pane-tag">{dateFormatter.format(entry.data.date)}</span>
                   </div>
                   <div class="p-6 md:p-8">

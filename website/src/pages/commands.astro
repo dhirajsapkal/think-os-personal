@@ -135,15 +135,15 @@ const groups = [
               <span class="pane-path">{group.name}</span>
               <span class="pane-tag" data-kind="read">{group.items.length} commands</span>
             </div>
-            <p class="px-5 md:px-6 pt-4 text-[14px] leading-relaxed text-muted max-w-[64ch]" style="font-variation-settings:'opsz' 14">{group.intro}</p>
-            <div class="mt-3 border-t border-rule">
+            <p class="px-5 md:px-6 pt-4 text-[14px] leading-relaxed max-w-[64ch]" style={`color:var(--pane-muted); font-variation-settings:'opsz' 14`}>{group.intro}</p>
+            <div class="mt-3" style="border-top:1px solid var(--pane-rule)">
               {group.items.map(([cmd, desc]) => (
-                <div class="hover-row grid grid-cols-12 gap-3 md:gap-6 items-baseline border-b border-rule last:border-b-0 py-3.5 px-5 md:px-6 hover:bg-bar/60" data-cmd-row data-cmd-text={`${cmd} ${desc}`.toLowerCase()}>
+                <div class="hover-row grid grid-cols-12 gap-3 md:gap-6 items-baseline last:border-b-0 py-3.5 px-5 md:px-6" style="border-bottom:1px solid var(--pane-rule)" data-cmd-row data-cmd-text={`${cmd} ${desc}`.toLowerCase()}>
                   <div class="col-span-12 md:col-span-4">
-                    <code class="font-mono text-[14px] md:text-[15px]"><span class="text-muted">&gt; </span><span class="text-accent">{cmd}</span></code>
+                    <code class="font-mono text-[14px] md:text-[15px]"><span style="color:var(--pane-muted)">&gt; </span><span style="color:var(--pane-accent)">{cmd}</span></code>
                   </div>
                   <div class="col-span-12 md:col-span-8">
-                    <p class="text-[15px] text-muted" style="font-variation-settings:'opsz' 15">{desc}</p>
+                    <p class="text-[15px]" style={`color:var(--pane-muted); font-variation-settings:'opsz' 15`}>{desc}</p>
                   </div>
                 </div>
               ))}
@@ -161,6 +161,16 @@ const groups = [
   </section>
 
 </BaseLayout>
+
+<style>
+  /* Command rows live inside dark panes — override page-token hover rules. */
+  #cmd-groups [data-cmd-row].hover-row::before {
+    background: var(--pane-accent);
+  }
+  #cmd-groups [data-cmd-row].hover-row:hover {
+    background-color: rgb(var(--pane-accent-rgb) / 0.06);
+  }
+</style>
 
 <script is:inline>
   (function () {
