@@ -3,14 +3,14 @@ import ThinkCompanyMark from './ThinkCompanyMark.astro';
 import { VERSION } from '../lib/version';
 const year = new Date().getFullYear();
 ---
-<footer class="mt-32 border-t border-rule">
+<footer class="mt-32 border-t border-rule bg-bar">
   <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-14 md:py-16">
 
-    <!-- Top row: pull-quote on left, Think Company block on right -->
+    <!-- Top row: closing line on left, Think Company block on right -->
     <div class="grid grid-cols-12 gap-8 items-end pb-10 border-b border-rule">
       <div class="col-span-12 md:col-span-7">
-        <p class="font-display italic text-2xl md:text-[28px] leading-tight max-w-[22ch]">
-          A markdown vault that<br />travels with you,<br />between agents.
+        <p class="font-display font-bold text-2xl md:text-[28px] leading-tight tracking-tightest max-w-[22ch]" style="font-variation-settings: 'opsz' 32">
+          A markdown vault that travels with you, between agents.
         </p>
       </div>
       <div class="col-span-12 md:col-span-5 md:text-right">

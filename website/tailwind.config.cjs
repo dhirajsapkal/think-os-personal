@@ -5,17 +5,19 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['"Newsreader Variable"', 'ui-serif', 'Georgia', 'serif'],
-        sans: ['"Hanken Grotesk Variable"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        display: ['"Bricolage Grotesque Variable"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['"Bricolage Grotesque Variable"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono Variable"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {
-        paper: 'var(--paper)',
+        paper: 'var(--bg)',
         ink: 'var(--ink)',
         muted: 'var(--muted)',
         rule: 'var(--rule)',
         accent: 'var(--accent)',
-        soft: 'var(--soft)',
+        soft: 'var(--bg-raised)',
+        bar: 'var(--bg-bar)',
+        amber: 'var(--amber)',
       },
       letterSpacing: {
         tightest: '-0.04em',

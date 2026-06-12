@@ -14,8 +14,13 @@ const { nodes } = Astro.props;
 <div class="flow">
   {nodes.map((n, i) => (
     <>
-      {i > 0 && <div class="flow-link" aria-hidden="true"><span class="flow-arrow">→</span></div>}
-      <article class="flow-node">
+      {i > 0 && (
+        <div class="flow-link" aria-hidden="true" style={`--cd: ${(i - 1) * 200}ms`}>
+          <span class="flow-line"></span>
+          <span class="flow-arrow">→</span>
+        </div>
+      )}
+      <article class="flow-node pane">
         <p class="flow-label">{n.label}</p>
         <p class="flow-body" set:html={n.body}></p>
       </article>
@@ -30,16 +35,13 @@ const { nodes } = Astro.props;
     gap: 0;
   }
   .flow-node {
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    background: var(--paper);
     padding: 1.5rem 1.5rem 1.75rem;
   }
   .flow-label {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
     font-weight: 600;
     font-size: 15px;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
     color: var(--accent);
     margin-bottom: 0.75rem;
   }
@@ -49,6 +51,7 @@ const { nodes } = Astro.props;
     font-weight: 500;
   }
   .flow-body {
+    font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
     font-size: 15px;
     line-height: 1.6;
     color: var(--muted);
@@ -60,6 +63,7 @@ const { nodes } = Astro.props;
     height: 2.5rem;
     position: relative;
   }
+  /* The connector hairline; accent overlay draws L→R via .flow-line size. */
   .flow-link::before {
     content: '';
     position: absolute;
@@ -67,11 +71,20 @@ const { nodes } = Astro.props;
     height: 100%;
     background: var(--rule);
   }
+  .flow-line {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-repeat: no-repeat;
+    background-position: 0 50%;
+    background-size: 100% 1px;
+  }
   .flow-arrow {
     position: relative;
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
     color: var(--accent);
-    background: var(--paper);
+    background: var(--bg);
     padding: 0.2rem;
     transform: rotate(90deg);
     line-height: 1;
@@ -94,11 +107,12 @@ const { nodes } = Astro.props;
   }
 
   :global(.flow-body code) {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
     font-size: 0.85em;
-    background: var(--soft);
+    background: var(--bg-bar);
+    border: 1px solid var(--rule);
     padding: 0.1em 0.35em;
-    border-radius: 3px;
-    color: var(--ink);
+    border-radius: 4px;
+    color: var(--accent);
   }
 </style>

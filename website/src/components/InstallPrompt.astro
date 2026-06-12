@@ -2,22 +2,17 @@
 const command = 'Install Think OS for me from https://github.com/dhirajsapkal/think-os';
 ---
 <div class="install-card" data-install-prompt>
-  <div class="flex items-baseline justify-between px-5 md:px-7 pt-4 pb-3 border-b border-rule/70">
-    <div class="flex items-baseline gap-3">
-      <span class="font-mono text-[10px] tracking-[0.22em] uppercase text-muted">
-        Setup prompt
-      </span>
-      <span class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted">
-        — paste into Claude Code
-      </span>
-    </div>
+  <div class="flex items-baseline justify-between gap-4 px-4 md:px-5 h-9 bg-bar border-b border-rule">
+    <span class="font-mono text-[10px] tracking-[0.12em] uppercase text-muted truncate">
+      setup prompt — paste into claude code
+    </span>
     <button
       type="button"
       data-copy-trigger
       aria-label="Copy install prompt"
-      class="copy-btn font-mono text-[11px] tracking-[0.18em] uppercase text-muted"
+      class="copy-btn font-mono text-[10px] tracking-[0.14em] uppercase text-muted shrink-0"
     >
-      <span data-copy-label>Copy</span>
+      <span data-copy-label>copy</span>
     </button>
   </div>
   <pre class="px-5 md:px-7 py-6 md:py-7 font-mono text-[15px] md:text-[17px] leading-relaxed text-ink whitespace-pre-wrap break-words m-0"><code data-copy-source>{command}</code></pre>
@@ -38,14 +33,14 @@ const command = 'Install Think OS for me from https://github.com/dhirajsapkal/th
         try {
           await navigator.clipboard.writeText(source.textContent.trim());
           trigger.setAttribute('data-copied', 'true');
-          label.textContent = 'Copied';
+          label.textContent = 'copied';
           setTimeout(() => {
             trigger.removeAttribute('data-copied');
-            label.textContent = 'Copy';
+            label.textContent = 'copy';
           }, 1800);
         } catch (e) {
-          label.textContent = 'Failed';
-          setTimeout(() => (label.textContent = 'Copy'), 1800);
+          label.textContent = 'failed';
+          setTimeout(() => (label.textContent = 'copy'), 1800);
         }
       });
     });

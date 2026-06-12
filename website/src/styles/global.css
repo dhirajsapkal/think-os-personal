@@ -2,54 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ---------------------------------------------------------
-   Theme tokens — Think Company palette
-   Pulled from thinkcompany.com: navy #173145, Think blue,
-   white backgrounds. The palette is the brand; it stays.
-   --------------------------------------------------------- */
-:root {
-  --paper:   #FFFFFF;
-  --ink:     #173145;            /* Think navy — verified from their CSS */
-  --muted:   #5A6B7C;
-  --rule:    #E2E6EB;
-  --soft:    #F4F6F8;
-  --accent:  #0058CC;            /* Think blue — primary */
+/* ===========================================================
+   THINK OS v2 — "LIVE SESSION"
+   The site is a running terminal session viewed at night.
+   Dark is the default identity; light is "the printout".
+   All contrast ratios verified (WCAG relative luminance).
+   =========================================================== */
 
-  /* Endorsement mark color (same as accent in light mode) */
-  --tc-blue: #0058CC;
-  --tc-blue-fg: #FFFFFF;
+/* DARK — "Live Session" (default theme) */
+:root,
+[data-theme="dark"] {
+  --bg:         #0A0F0C;   /* the room */
+  --bg-raised:  #101614;   /* lit pane bodies */
+  --bg-bar:     #161D1A;   /* title bars, session bar */
+  --ink:        #E6EFE8;
+  --muted:      #9CB0A3;
+  --rule:       #243029;
+  --accent:     #56D99F;   /* phosphor green */
+  --accent-rgb: 86 217 159;
+  --amber:      #F0B429;
 
-  --paper-rgb: 255 255 255;
-  --ink-rgb:    23 49 69;
-  --accent-rgb:  0 88 204;
+  /* Endorsement mark color */
+  --tc-blue:    #56D99F;
+  --tc-blue-fg: #0A0F0C;
 
-  /* Functional diff tokens — the visual system IS cause/effect.
-     --add: lines the product WROTE. --readhl: a file row it READ. */
-  --add:     #1A7F37;              /* diff-green on white = 4.9:1 (AA) */
-  --add-bg:  rgb(26 127 55 / 0.07);
-  --del:     #B42318;
-  --readhl:  rgb(0 88 204 / 0.08);
+  --bg-rgb:  10 15 12;
+  --ink-rgb: 230 239 232;
+
+  --add:     #56D99F;                  /* written lines glow — the thesis */
+  --add-bg:  rgb(86 217 159 / 0.08);
+  --del:     #F08C82;
+  --readhl:  rgb(86 217 159 / 0.10);
 }
 
-[data-theme="dark"] {
-  --paper:   #0A1622;
-  --ink:     #EDF2F7;
-  --muted:   #8FA0B2;
-  --rule:    #1E2B3A;
-  --soft:    #122031;
-  --accent:  #5B9CF0;            /* Lighter Think blue for dark mode */
+/* LIGHT — "The Printout" */
+[data-theme="light"] {
+  --bg:         #F4F1E6;   /* warm paper */
+  --bg-raised:  #FBF9F2;
+  --bg-bar:     #ECE8D9;
+  --ink:        #1F2823;
+  --muted:      #5A675E;
+  --rule:       #D8D2BE;
+  --accent:     #0B6A45;   /* verified ≥5.41 on every surface */
+  --accent-rgb: 11 106 69;
+  --amber:      #8A5A00;
 
-  --tc-blue: #5B9CF0;
-  --tc-blue-fg: #0A1622;
+  --tc-blue:    #0B6A45;
+  --tc-blue-fg: #FBF9F2;
 
-  --paper-rgb: 10 22 34;
-  --ink-rgb:   237 242 247;
-  --accent-rgb: 91 156 240;
+  --bg-rgb:  244 241 230;
+  --ink-rgb: 31 40 35;
 
-  --add:     #4CC38A;              /* on #0A1622 = 8.7:1 (AA) */
-  --add-bg:  rgb(76 195 138 / 0.10);
-  --del:     #F1827C;
-  --readhl:  rgb(91 156 240 / 0.12);
+  --add:     #0B6A45;
+  --add-bg:  rgb(11 106 69 / 0.08);
+  --del:     #9A3B2E;
+  --readhl:  rgb(11 106 69 / 0.08);
 }
 
 /* ---------------------------------------------------------
@@ -62,100 +69,109 @@
     text-rendering: optimizeLegibility;
   }
   body {
-    background: var(--paper);
+    background: var(--bg);
     color: var(--ink);
-    font-family: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
     font-optical-sizing: auto;
+    /* room for the fixed SessionBar (40px) */
+    padding-top: 40px;
   }
   ::selection {
     background: var(--accent);
-    color: var(--paper);
+    color: var(--bg);
   }
-  /* Visible focus everywhere — keyboard users get the brand blue. */
+  /* Phosphor focus ring everywhere. */
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
     border-radius: 2px;
   }
+  .font-mono,
+  code, pre, kbd, samp {
+    font-family: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, monospace;
+  }
 }
 
+/* The field — fixed dotted grid; the room's faint texture. Replaces noise. */
+.field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(rgb(var(--accent-rgb) / 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+[data-theme="light"] .field {
+  background-image: radial-gradient(rgb(31 40 35 / 0.05) 1px, transparent 1px);
+}
+/* Content sits above the field. */
+main, footer, .session-bar { position: relative; z-index: 1; }
+
 /* ---------------------------------------------------------
-   Display type — Newsreader (Think Company's own serif),
-   served at its display optical size. Italics matter.
+   Display type — Bricolage Grotesque at display optical size.
+   The loud human voice.
    --------------------------------------------------------- */
 .display {
-  font-family: 'Newsreader Variable', ui-serif, Georgia, serif;
-  font-weight: 380;
+  font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
   font-optical-sizing: auto;
-  font-variation-settings: 'opsz' 72;
-  font-feature-settings: 'kern', 'liga', 'calt';
-  letter-spacing: -0.025em;
+  font-variation-settings: 'opsz' 96;
+  letter-spacing: -0.03em;
   line-height: 0.98;
   text-wrap: balance;
 }
 .display em {
-  font-style: italic;
-  font-weight: 360;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--accent);
 }
 
 /* ---------------------------------------------------------
-   Editorial chrome
+   Machine-voice chrome — mono labels / kickers.
    --------------------------------------------------------- */
 .kicker {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
   font-size: 11px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
 .numeral {
-  font-family: 'Newsreader Variable', serif;
-  font-style: italic;
-  font-weight: 300;
-  font-variation-settings: 'opsz' 72;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-weight: 600;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-}
-
-.hrule {
-  border-color: var(--rule);
-}
-
-/* ---------------------------------------------------------
-   Signature device 1 — markdown-source headings.
-   Every H2 wears its own syntax: a dimmed "##" in accent,
-   then the heading text in Plex Mono 500. The site's chrome
-   is built from the same stuff the product manages.
-   The glyph is decorative; we expose alt text so the heading
-   reads cleanly to assistive tech via the ' / ""' alt syntax.
-   --------------------------------------------------------- */
-.md-heading {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-weight: 500;
-  font-size: clamp(28px, 4.2vw, 40px);
-  line-height: 1.12;
   letter-spacing: -0.01em;
+}
+
+.hrule { border-color: var(--rule); }
+
+/* Markdown-source heading device — re-voiced. Display text, mono "##" glyph. */
+.md-heading {
+  font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-variation-settings: 'opsz' 40;
+  font-size: clamp(28px, 4.2vw, 44px);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
   color: var(--ink);
   text-transform: none;
 }
 .md-heading::before {
   content: '## ' / '';
-  color: rgb(var(--accent-rgb) / 0.5);
-  font-weight: 600;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 0.6em;
+  color: rgb(var(--accent-rgb) / 0.7);
 }
 
-/* ---------------------------------------------------------
-   Signature device — markdown blockquote, mono.
-   Replaces the old serif pullquote. A "> " glyph in accent
-   leads a quiet mono line.
-   --------------------------------------------------------- */
+/* Markdown blockquote — mono, accent "> " lead. */
 .md-quote {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
   font-weight: 500;
-  font-size: clamp(17px, 2.4vw, 24px);
-  line-height: 1.4;
+  font-size: clamp(16px, 2.2vw, 22px);
+  line-height: 1.45;
   letter-spacing: -0.005em;
   color: var(--ink);
   text-wrap: balance;
@@ -163,20 +179,77 @@
 .md-quote::before {
   content: '> ' / '';
   color: var(--accent);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* ---------------------------------------------------------
-   Signature device 4 — pane chrome.
-   Every artifact (terminal, file, diff) gets a title bar:
-   path/label left, status tag right. 1px rule, 4px radius.
-   No traffic-light dots.
+   SESSION BAR — fixed top, the maximized terminal window's bar.
+   Replaces the traditional header on every page.
+   --------------------------------------------------------- */
+.session-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+  background: var(--bg-bar);
+  border-bottom: 1px solid var(--rule);
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+}
+
+/* ---------------------------------------------------------
+   KEYCAP CHIP — mono, raised ground, accent active.
+   Reused by CommandStage, TryTerminal, guide TOC, changelog.
+   --------------------------------------------------------- */
+.keycap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-bar);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+.keycap:hover {
+  border-color: rgb(var(--accent-rgb) / 0.6);
+  color: var(--accent);
+}
+.keycap[aria-selected="true"],
+.keycap[data-active="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgb(var(--accent-rgb) / 0.08);
+}
+
+/* ---------------------------------------------------------
+   PANE — the lit artifact. Phosphor bloom in dark, printed
+   card in light. 6px radius.
    --------------------------------------------------------- */
 .pane {
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background: var(--paper);
+  border-radius: 6px;
+  background: var(--bg-raised);
   overflow: hidden;
+  box-shadow:
+    0 0 0 1px var(--rule),
+    0 0 48px rgb(var(--accent-rgb) / 0.05),
+    0 0 8px rgb(var(--accent-rgb) / 0.04);
+}
+[data-theme="light"] .pane {
+  box-shadow:
+    0 1px 0 rgb(31 40 35 / 0.06),
+    0 0 0 1px var(--rule);
 }
 .pane-bar {
   display: flex;
@@ -185,13 +258,13 @@
   gap: 1rem;
   height: 32px;
   padding: 0 0.85rem;
-  background: var(--soft);
+  background: var(--bg-bar);
   border-bottom: 1px solid var(--rule);
 }
 .pane-bar .pane-path {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
   font-size: 10px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
@@ -199,19 +272,21 @@
   text-overflow: ellipsis;
 }
 .pane-tag {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
   font-size: 10px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
   flex-shrink: 0;
 }
-.pane-tag[data-kind="add"] { color: var(--add); }
+.pane-tag[data-kind="add"]  { color: var(--accent); }
 .pane-tag[data-kind="read"] { color: var(--accent); }
+.pane-tag[data-kind="del"]  { color: var(--del); }
+.pane-tag[data-kind="amber"]{ color: var(--amber); }
 .pane-body {
   padding: 1.1rem 1rem;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
   font-size: 12.5px;
   line-height: 1.7;
   color: var(--ink);
@@ -219,7 +294,7 @@
   overflow-x: auto;
 }
 
-/* Diff lines — the green a user watches get appended. */
+/* Diff lines */
 .diff-add {
   display: block;
   background: var(--add-bg);
@@ -231,13 +306,15 @@
 .diff-del {
   display: block;
   color: var(--muted);
-  text-decoration: line-through;
-  text-decoration-thickness: 1px;
   padding-left: 0.4rem;
   margin-left: -0.4rem;
-  opacity: 0.65;
+  /* line-through drawn via background gradient (D3) — fully struck base state */
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 55%;
+  background-size: 100% 1px;
 }
-/* "this file was read" row highlight */
+/* read-row highlight */
 .read-row {
   display: inline-block;
   width: 100%;
@@ -248,103 +325,52 @@
 }
 
 /* ---------------------------------------------------------
-   Atmosphere — quiet gradient washes in brand hues.
-   Hairlines and negative space do the rest.
-   --------------------------------------------------------- */
-.wash-hero {
-  position: relative;
-}
-.wash-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(120% 70% at 80% -10%, rgb(var(--accent-rgb) / 0.04), transparent 60%),
-    linear-gradient(to bottom, rgb(var(--ink-rgb) / 0.015), transparent 30%);
-}
-[data-theme="dark"] .wash-hero::before {
-  background:
-    radial-gradient(120% 70% at 80% -10%, rgb(var(--accent-rgb) / 0.09), transparent 60%),
-    linear-gradient(to bottom, rgb(var(--accent-rgb) / 0.02), transparent 30%);
-}
-/* ---------------------------------------------------------
-   Install card — index-card feel
+   Install prompt — now a pane.
    --------------------------------------------------------- */
 .install-card {
-  background: var(--soft);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
+  background: var(--bg-raised);
+  border-radius: 6px;
   position: relative;
-  transition: border-color 200ms ease;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px var(--rule),
+    0 0 48px rgb(var(--accent-rgb) / 0.05),
+    0 0 8px rgb(var(--accent-rgb) / 0.04);
+  transition: box-shadow 200ms ease;
+}
+[data-theme="light"] .install-card {
+  box-shadow: 0 1px 0 rgb(31 40 35 / 0.06), 0 0 0 1px var(--rule);
 }
 .install-card:hover {
-  border-color: rgb(var(--accent-rgb) / 0.4);
-}
-.install-card::before,
-.install-card::after {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border: 1px solid var(--rule);
-  transition: border-color 200ms ease;
-}
-.install-card:hover::before,
-.install-card:hover::after {
-  border-color: rgb(var(--accent-rgb) / 0.5);
-}
-.install-card::before {
-  top: -4px;
-  left: -4px;
-  border-right: none;
-  border-bottom: none;
-}
-.install-card::after {
-  bottom: -4px;
-  right: -4px;
-  border-left: none;
-  border-top: none;
+  box-shadow:
+    0 0 0 1px rgb(var(--accent-rgb) / 0.5),
+    0 0 56px rgb(var(--accent-rgb) / 0.08),
+    0 0 10px rgb(var(--accent-rgb) / 0.06);
 }
 
-/* Copy button hover state */
-.copy-btn {
-  position: relative;
-  transition: color 120ms ease, background 120ms ease;
-}
-.copy-btn:hover {
-  color: var(--accent);
-}
-.copy-btn[data-copied="true"] {
-  color: var(--accent);
-}
+/* Copy button hover */
+.copy-btn { transition: color 120ms ease; }
+.copy-btn:hover { color: var(--accent); }
+.copy-btn[data-copied="true"] { color: var(--accent); }
 
-/* ---------------------------------------------------------
-   Version chip — changelog signature
-   --------------------------------------------------------- */
+/* Version chip — keycap-style pill for changelog. */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
   font-size: 12px;
-  letter-spacing: 0.06em;
-  padding: 0.3rem 0.7rem;
+  letter-spacing: 0.02em;
+  padding: 0.35rem 0.7rem;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: 6px;
   color: var(--ink);
-  background: var(--paper);
+  background: var(--bg-bar);
   text-decoration: none;
   transition: border-color 160ms ease, color 160ms ease;
 }
-.chip:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.chip--latest {
-  border-color: rgb(var(--accent-rgb) / 0.45);
-  color: var(--accent);
-}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip--latest { border-color: var(--accent); color: var(--accent); }
 .chip--latest::before {
   content: '';
   width: 5px;
@@ -354,57 +380,43 @@
 }
 
 /* ---------------------------------------------------------
-   Subtle paper noise (very low opacity, finer grain)
-   --------------------------------------------------------- */
-.paper-noise {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 100;
-  opacity: 0.022;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  mix-blend-mode: multiply;
-}
-[data-theme="dark"] .paper-noise {
-  opacity: 0.05;
-  mix-blend-mode: screen;
-}
-
-/* ---------------------------------------------------------
-   Prose (docs)
+   Prose (docs / guide)
    --------------------------------------------------------- */
 .prose {
   color: var(--ink);
   line-height: 1.65;
   max-width: 68ch;
+  font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  font-variation-settings: 'opsz' 14;
+  font-size: 16px;
 }
 .prose h1 {
-  font-family: 'Newsreader Variable', serif;
-  font-variation-settings: 'opsz' 44;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
+  font-variation-settings: 'opsz' 48;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   font-size: 2.25rem;
   margin: 0 0 0.5rem;
 }
-/* Docs section headings wear their markdown syntax — matches the homepage
-   md-heading device. The "## " / "### " glyph is decorative (alt-empty). */
 .prose h2, .prose h3 {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: 1.25;
+  color: var(--ink);
 }
-.prose h2 { font-size: 1.4rem; margin: 2.25rem 0 0.6rem; }
-.prose h3 { font-size: 1.1rem; margin: 1.75rem 0 0.5rem; }
+.prose h2 { font-size: 1.3rem; margin: 2.25rem 0 0.6rem; }
+.prose h3 { font-size: 1.05rem; margin: 1.75rem 0 0.5rem; }
 .prose h2::before {
   content: '## ' / '';
-  color: rgb(var(--accent-rgb) / 0.5);
-  font-weight: 600;
+  color: rgb(var(--accent-rgb) / 0.7);
+  font-weight: 700;
 }
 .prose h3::before {
   content: '### ' / '';
-  color: rgb(var(--accent-rgb) / 0.5);
-  font-weight: 600;
+  color: rgb(var(--accent-rgb) / 0.7);
+  font-weight: 700;
 }
 .prose p { margin: 1rem 0; }
 .prose a {
@@ -414,41 +426,37 @@
   text-underline-offset: 3px;
 }
 .prose code {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'JetBrains Mono Variable', monospace;
   font-size: 0.875em;
-  background: var(--soft);
+  background: var(--bg-raised);
+  border: 1px solid var(--rule);
   padding: 0.1em 0.35em;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 .prose pre {
-  background: var(--soft);
+  background: var(--bg-raised);
   border: 1px solid var(--rule);
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 1rem 1.25rem;
   overflow-x: auto;
   font-size: 0.875rem;
 }
-.prose pre code {
-  background: transparent;
-  padding: 0;
-}
-.prose ul, .prose ol {
-  margin: 1rem 0;
-  padding-left: 1.25rem;
-}
+.prose pre code { background: transparent; border: none; padding: 0; }
+.prose ul, .prose ol { margin: 1rem 0; padding-left: 1.25rem; }
 .prose li { margin: 0.35rem 0; }
-.prose hr {
-  border-color: var(--rule);
-  margin: 2.5rem 0;
-}
+.prose hr { border-color: var(--rule); margin: 2.5rem 0; }
 .prose blockquote {
   margin: 1.25rem 0;
-  border-left: 1px solid var(--accent);
+  border-left: 2px solid var(--accent);
   padding-left: 1.25rem;
   color: var(--muted);
-  font-family: 'Newsreader Variable', serif;
-  font-variation-settings: 'opsz' 24;
-  font-size: 1.05em;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 0.95em;
+  line-height: 1.55;
+}
+.prose blockquote p::before {
+  content: '> ';
+  color: var(--accent);
 }
 
 /* ---------------------------------------------------------
@@ -458,51 +466,43 @@ details.faq {
   border-top: 1px solid var(--rule);
   padding: 1.25rem 0;
 }
-details.faq:last-child {
-  border-bottom: 1px solid var(--rule);
-}
+details.faq:last-child { border-bottom: 1px solid var(--rule); }
 details.faq summary {
   list-style: none;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   gap: 2rem;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
   font-weight: 500;
-  font-size: 0.95rem;
-  letter-spacing: -0.005em;
+  font-variation-settings: 'opsz' 17;
+  font-size: 17px;
+  letter-spacing: -0.01em;
   color: var(--ink);
   transition: color 140ms ease;
 }
-details.faq summary:hover {
-  color: var(--accent);
-}
+details.faq summary:hover { color: var(--accent); }
 details.faq summary::-webkit-details-marker { display: none; }
 details.faq summary::after {
   content: '+';
-  font-family: 'IBM Plex Mono', monospace;
-  color: var(--muted);
-  transition: transform 200ms ease;
-}
-details.faq[open] summary::after {
-  content: '–';
-}
-details.faq[open] summary {
+  font-family: 'JetBrains Mono Variable', monospace;
   color: var(--accent);
+  font-weight: 600;
 }
+details.faq[open] summary::after { content: '–'; }
+details.faq[open] summary { color: var(--accent); }
 details.faq .faq-body {
   margin-top: 0.75rem;
   color: var(--muted);
-  max-width: 60ch;
+  max-width: 62ch;
   line-height: 1.6;
 }
 
 /* ---------------------------------------------------------
-   Links — hairline underline that draws in on hover
+   Links — hairline underline draws in on hover
    --------------------------------------------------------- */
 .link-anim {
   position: relative;
-  transition: color 140ms ease;
   background-image: linear-gradient(currentColor, currentColor);
   background-size: 0% 1px;
   background-position: 0 100%;
@@ -514,7 +514,7 @@ details.faq .faq-body {
   background-size: 100% 1px;
 }
 
-/* Row hover — command tables, list rows. A hairline accent slides in. */
+/* Row hover — command tables */
 .hover-row {
   position: relative;
   transition: background-color 160ms ease;
@@ -531,62 +531,28 @@ details.faq .faq-body {
   transform-origin: top;
   transition: transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.hover-row:hover::before {
-  transform: scaleY(1);
-}
+.hover-row:hover::before { transform: scaleY(1); }
 
-/* Card hover — panels in bordered grids */
-.hover-card {
-  transition: background-color 200ms ease;
-}
-.hover-card:hover {
-  background-color: var(--soft);
-}
+.hover-card { transition: background-color 200ms ease; }
+.hover-card:hover { background-color: var(--bg-raised); }
 
-/* ---------------------------------------------------------
-   Motion — hero load sequence + scroll reveals.
-   STRICT prefers-reduced-motion respect: every animation in
-   this block collapses to a static, fully-visible state.
-   --------------------------------------------------------- */
+/* ===========================================================
+   MOTION DEVICES D1–D4
+   =========================================================== */
+
+/* Lift — used by hero ladder + sequential fades. */
 @keyframes lift {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: none; }
 }
-.lift {
-  animation: lift 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-.lift-1 { animation-delay: 60ms; }
-.lift-2 { animation-delay: 160ms; }
-.lift-3 { animation-delay: 280ms; }
-.lift-4 { animation-delay: 420ms; }
-.lift-5 { animation-delay: 560ms; }
-.lift-6 { animation-delay: 700ms; }
 
-/* Scroll reveals are opt-in: JS adds .reveal-ready to <html> only
-   when motion is allowed. No JS, or reduced motion → content is
-   simply visible. */
-html.reveal-ready .reveal {
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 650ms cubic-bezier(0.2, 0.7, 0.2, 1),
-              transform 650ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  transition-delay: var(--reveal-delay, 0ms);
-}
-html.reveal-ready .reveal.is-visible {
-  opacity: 1;
-  transform: none;
-}
-
-/* ---------------------------------------------------------
-   Hero typing — the command line types itself in once, via
-   steps(), with a blinking caret. Pure CSS, runs on load.
-   --------------------------------------------------------- */
+/* --- D1: typing ------------------------------------------- */
 @keyframes type-in {
   from { width: 0; }
   to   { width: var(--type-ch, 14ch); }
 }
 @keyframes caret-blink {
-  0%, 49%  { border-color: var(--accent); }
+  0%, 49%   { border-color: var(--accent); }
   50%, 100% { border-color: transparent; }
 }
 .type-line {
@@ -594,23 +560,75 @@ html.reveal-ready .reveal.is-visible {
   overflow: hidden;
   white-space: nowrap;
   vertical-align: bottom;
-  border-right: 1px solid var(--accent);
-  width: var(--type-ch, 14ch);
-  animation:
-    type-in 900ms steps(var(--type-steps, 14)) 220ms both,
-    caret-blink 800ms steps(1) 1120ms 4;
+  width: var(--type-ch, 14ch);   /* base: full width — static unless animated */
 }
-/* The response + read-highlights fade in after the line finishes. */
+/* Hero typing — plays on load, no observer, no flash. */
+.play-on-load .type-line {
+  border-right: 1px solid var(--accent);
+  width: 0;
+  animation:
+    type-in 900ms steps(var(--type-steps, 14)) var(--type-start, 220ms) both,
+    caret-blink 800ms steps(1) calc(var(--type-start, 220ms) + 900ms) 4;
+}
+/* Scroll typing — only under reveal-ready + visible; otherwise full width static. */
+html.reveal-ready .scene .type-line {
+  border-right: 1px solid var(--accent);
+  width: 0;
+}
+html.reveal-ready .scene.is-visible .type-line {
+  animation:
+    type-in 900ms steps(var(--type-steps, 14)) var(--type-start, 120ms) both,
+    caret-blink 800ms steps(1) calc(var(--type-start, 120ms) + 900ms) 4;
+}
+
+/* response + read-highlights fade in after typing */
 .after-type {
   opacity: 0;
   animation: lift 600ms cubic-bezier(0.2, 0.7, 0.2, 1) 1200ms both;
 }
 
-/* ---------------------------------------------------------
-   Diff reveal — inside a Pair's right pane, the appended
-   "+" lines stagger in when the pair scrolls into view.
-   Opt-in via .reveal-ready, same as scroll reveals.
-   --------------------------------------------------------- */
+/* --- Hero play-on-load ladder ----------------------------- */
+.play-on-load .po-1 { opacity: 0; animation: lift 600ms cubic-bezier(0.2,0.7,0.2,1) 900ms both; }
+.play-on-load .po-2 { opacity: 0; animation: lift 700ms cubic-bezier(0.2,0.7,0.2,1) 1400ms both; }
+.play-on-load .po-3 { opacity: 0; animation: lift 700ms cubic-bezier(0.2,0.7,0.2,1) 1900ms both; }
+.play-on-load .po-4 { opacity: 0; animation: lift 700ms cubic-bezier(0.2,0.7,0.2,1) 2200ms both; }
+
+/* --- D4: pane light-up (replaces .reveal lift) ------------ */
+html.reveal-ready .scene .pane {
+  opacity: 0.45;
+  box-shadow: none;
+}
+html.reveal-ready .scene.is-visible .pane {
+  opacity: 1;
+  transition: opacity 500ms ease, box-shadow 700ms ease;
+}
+/* Generic reveal fallback (non-scene blocks) keeps a quiet lift. */
+html.reveal-ready .reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 600ms cubic-bezier(0.2, 0.7, 0.2, 1),
+              transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+html.reveal-ready .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+/* When a scene wraps reveal children, the scene drives light-up; let inner
+   reveal blocks that AREN'T panes still fade in on scene visibility. */
+html.reveal-ready .scene .reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 600ms cubic-bezier(0.2, 0.7, 0.2, 1),
+              transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+html.reveal-ready .scene.is-visible .reveal {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- D2: diff write-in ------------------------------------ */
 html.reveal-ready .diff-stagger .diff-add {
   opacity: 0;
   transform: translateY(4px);
@@ -622,36 +640,77 @@ html.reveal-ready .diff-stagger.is-visible .diff-add {
   transform: none;
 }
 
+/* --- D3: deletion strike ---------------------------------- */
+/* Under reveal-ready, del lines start unstruck and draw the strike L→R. */
+html.reveal-ready .diff-stagger .diff-del {
+  background-size: 0% 1px;
+}
+html.reveal-ready .diff-stagger.is-visible .diff-del {
+  background-size: 100% 1px;
+  transition: background-size 300ms ease;
+  transition-delay: var(--d, 0ms);
+}
+
+/* --- Connector draw (FlowDiagram) ------------------------- */
+html.reveal-ready .scene .flow-link .flow-line {
+  background-size: 0% 1px;
+}
+html.reveal-ready .scene.is-visible .flow-link .flow-line {
+  background-size: 100% 1px;
+  transition: background-size 400ms ease;
+  transition-delay: var(--cd, 0ms);
+}
+
+/* ===========================================================
+   REDUCED MOTION — every device collapses to final static state.
+   =========================================================== */
 @media (prefers-reduced-motion: reduce) {
-  .lift,
-  .lift-1, .lift-2, .lift-3, .lift-4, .lift-5, .lift-6 {
-    animation: none;
-  }
-  html.reveal-ready .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-  /* Typing collapses to fully-typed static text, no caret. */
-  .type-line {
+  .play-on-load .type-line,
+  html.reveal-ready .scene .type-line,
+  html.reveal-ready .scene.is-visible .type-line {
     width: auto !important;
     border-right: none;
     animation: none;
   }
-  .after-type {
+  .after-type,
+  .play-on-load .po-1,
+  .play-on-load .po-2,
+  .play-on-load .po-3,
+  .play-on-load .po-4 {
     opacity: 1;
     animation: none;
   }
-  /* Diffs are simply visible. */
+  html.reveal-ready .reveal,
+  html.reveal-ready .scene .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  html.reveal-ready .scene .pane,
+  html.reveal-ready .scene.is-visible .pane {
+    opacity: 1;
+    transition: none;
+  }
   html.reveal-ready .diff-stagger .diff-add {
     opacity: 1;
     transform: none;
     transition: none;
   }
+  html.reveal-ready .diff-stagger .diff-del,
+  html.reveal-ready .diff-stagger.is-visible .diff-del {
+    background-size: 100% 1px;   /* fully struck */
+    transition: none;
+  }
+  html.reveal-ready .scene .flow-link .flow-line,
+  html.reveal-ready .scene.is-visible .flow-link .flow-line {
+    background-size: 100% 1px;
+    transition: none;
+  }
   .link-anim,
   .hover-row::before,
   .install-card,
-  .chip {
+  .chip,
+  .keycap {
     transition: none;
   }
 }

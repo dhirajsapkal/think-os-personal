@@ -84,22 +84,22 @@ const groups = [
   description="Every Think OS slash command — grouped by when you'd reach for it."
 >
 
-  <!-- PAGE HEADER -->
-  <section class="wash-hero">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-12 md:pb-16">
+  <!-- PAGE HEADER — boot-style opener -->
+  <section class="play-on-load">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-14 md:pt-20 pb-12 md:pb-16">
       <div class="grid grid-cols-12 gap-6">
-        <div class="col-span-12 md:col-span-9 md:col-start-2">
-          <p class="kicker lift lift-1"># Commands</p>
-          <h1 class="display lift lift-2 mt-6 text-[40px] md:text-[72px] lg:text-[84px] tracking-tightest">
+        <div class="col-span-12 md:col-span-10 md:col-start-2">
+          <pre class="font-mono text-[13px] md:text-[14px] leading-[1.8] text-ink m-0"><span class="prompt">$</span> <span class="cmd type-line" style="--type-ch:12ch; --type-steps:12; --type-start:220ms">ls commands/</span></pre>
+          <h1 class="display po-1 mt-6 text-[clamp(38px,7vw,84px)] tracking-tightest">
             Commands
           </h1>
-          <p class="lift lift-3 mt-8 max-w-[60ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
+          <p class="po-2 mt-7 max-w-[60ch] text-[17px] md:text-[19px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
             Every Think OS slash command. Most are prefixed so they autocomplete
             as a group — type
-            <code class="font-mono bg-soft px-1.5 py-0.5 rounded text-[15px]">/thinkos</code>
+            <code class="font-mono bg-bar border border-rule px-1.5 py-0.5 rounded text-[15px] text-accent">/thinkos</code>
             in Claude Code and tab through the list.
           </p>
-          <p class="lift lift-4 mt-5 max-w-[60ch] text-[15px] leading-relaxed text-muted">
+          <p class="po-3 mt-5 max-w-[60ch] text-[15px] leading-relaxed text-muted">
             New here? The ten you'll actually use day to day are in
             <a href="/guide" class="underline underline-offset-2 hover:text-accent">How to use it</a>.
           </p>
@@ -128,25 +128,22 @@ const groups = [
         <p id="cmd-filter-empty" class="mt-4 text-[14px] text-muted hidden">No commands match that.</p>
       </div>
 
-      <div class="space-y-14" id="cmd-groups">
+      <div class="space-y-8" id="cmd-groups">
         {groups.map((group) => (
-          <div class="reveal" data-cmd-group>
-            <div class="grid grid-cols-12 gap-6 mb-4">
-              <div class="col-span-12 md:col-span-4">
-                <p class="kicker">{group.name}</p>
-              </div>
-              <div class="col-span-12 md:col-span-8">
-                <p class="text-[15px] leading-relaxed text-muted max-w-[60ch]">{group.intro}</p>
-              </div>
+          <div class="pane reveal" data-cmd-group>
+            <div class="pane-bar">
+              <span class="pane-path">{group.name}</span>
+              <span class="pane-tag" data-kind="read">{group.items.length} commands</span>
             </div>
-            <div class="border-t border-rule">
+            <p class="px-5 md:px-6 pt-4 text-[14px] leading-relaxed text-muted max-w-[64ch]" style="font-variation-settings:'opsz' 14">{group.intro}</p>
+            <div class="mt-3 border-t border-rule">
               {group.items.map(([cmd, desc]) => (
-                <div class="hover-row grid grid-cols-12 gap-6 items-baseline border-b border-rule py-3.5 hover:bg-soft/50" data-cmd-row data-cmd-text={`${cmd} ${desc}`.toLowerCase()}>
-                  <div class="col-span-12 md:col-span-4 pl-4 md:pl-5">
+                <div class="hover-row grid grid-cols-12 gap-3 md:gap-6 items-baseline border-b border-rule last:border-b-0 py-3.5 px-5 md:px-6 hover:bg-bar/60" data-cmd-row data-cmd-text={`${cmd} ${desc}`.toLowerCase()}>
+                  <div class="col-span-12 md:col-span-4">
                     <code class="font-mono text-[14px] md:text-[15px]"><span class="text-muted">&gt; </span><span class="text-accent">{cmd}</span></code>
                   </div>
                   <div class="col-span-12 md:col-span-8">
-                    <p class="text-[15px] text-muted">{desc}</p>
+                    <p class="text-[15px] text-muted" style="font-variation-settings:'opsz' 15">{desc}</p>
                   </div>
                 </div>
               ))}
@@ -156,8 +153,8 @@ const groups = [
       </div>
 
       <p class="mt-10 text-[14px] leading-relaxed text-muted max-w-[66ch]">
-        All commands are plain <code class="font-mono text-[13px] bg-soft px-1.5 py-0.5 rounded">.md</code>
-        files at <code class="font-mono text-[13px] bg-soft px-1.5 py-0.5 rounded">~/.claude/commands/</code> —
+        All commands are plain <code class="font-mono text-[13px] bg-bar border border-rule px-1.5 py-0.5 rounded text-accent">.md</code>
+        files at <code class="font-mono text-[13px] bg-bar border border-rule px-1.5 py-0.5 rounded text-accent">~/.claude/commands/</code> —
         auditable, editable, yours.
       </p>
     </div>

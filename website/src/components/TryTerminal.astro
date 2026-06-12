@@ -1,0 +1,190 @@
+---
+// TryTerminal — homepage Scene 6, interactive moment 2.
+// Preset buttons type a command char-by-char (35ms/char) then print the
+// response line-by-line (60ms/line). Vanilla typing engine, cancellable.
+//
+// A11y: presets are buttons; pane body is aria-hidden during animation; one
+// sr-only aria-live region gets the complete command+response in a single
+// mutation after typing finishes.
+// Reduced-motion + JS: command + output appear instantly.
+// No-JS: presets hidden; pane shows preset 1 transcript statically + a note.
+//
+// Responses verified against the morning brief (DayPairs), the Decisions.md
+// API-versioning entry, and the guide's plate description.
+const presets = [
+  {
+    id: 'morning',
+    label: 'good morning',
+    cmd: 'good morning',
+    lines: [
+      'This week (top 3):',
+      '  1. v2 ingestion pipeline — cut release',
+      '  2. Q3 hiring plan, first draft Friday',
+      '  3. clear PR queue (T. + R.)',
+      '',
+      'On your plate today:',
+      '  · v2 release notes',
+      '  · 1:1 with Priya, 2pm',
+      '',
+      'Calendar: 2 meetings, both afternoon.',
+    ],
+  },
+  {
+    id: 'decisions',
+    label: '/thinkos-decisions api',
+    cmd: '/thinkos-decisions api',
+    lines: [
+      '1 match in 04 Knowledge/Decisions.md:',
+      '',
+      '## 2026-06-11 — API versioning',
+      '  Decision: Version the API from day one.',
+      '  Why: Breaking changes after launch are',
+      '  costlier than a /v1 prefix up front.',
+      '  Applies to: all public endpoints.',
+    ],
+  },
+  {
+    id: 'plate',
+    label: "what's on my plate?",
+    cmd: "what's on my plate?",
+    lines: [
+      "Today's tasks against this week's",
+      'priorities; flags overdue:',
+      '',
+      '  · v2 release notes        (focus #1)',
+      '  · 1:1 with Priya, 2pm     (today)',
+      '  · review T. + R. PRs      ⚠ overdue',
+    ],
+  },
+];
+---
+<div class="try-terminal" data-try-terminal>
+  <div class="sr-only" aria-live="polite" data-try-live></div>
+
+  <!-- Presets — only meaningful with JS -->
+  <div class="try-presets flex flex-wrap gap-2 mb-6" role="group" aria-label="Try a command">
+    {presets.map((p, i) => (
+      <button
+        type="button"
+        class="keycap"
+        data-try-preset={p.id}
+        data-active={i === 0 ? 'true' : 'false'}
+      >{p.label}</button>
+    ))}
+  </div>
+
+  <!-- The pane -->
+  <div class="pane">
+    <div class="pane-bar">
+      <span class="pane-path">claude code · try it</span>
+      <span class="pane-tag" data-kind="read">interactive</span>
+    </div>
+    <pre class="pane-body whitespace-pre-wrap break-words" data-try-body aria-hidden="true"><span class="prompt">&gt;</span> <span class="cmd" data-try-cmd>good morning</span>
+<span data-try-out>This week (top 3):
+  1. v2 ingestion pipeline — cut release
+  2. Q3 hiring plan, first draft Friday
+  3. clear PR queue (T. + R.)
+
+On your plate today:
+  · v2 release notes
+  · 1:1 with Priya, 2pm
+
+Calendar: 2 meetings, both afternoon.</span><span class="try-nojs dim">
+
+# three example commands — install to run them yourself</span></pre>
+  </div>
+
+  <p class="mt-6 text-[15px] leading-relaxed text-muted max-w-[58ch]">
+    Tell Claude things in plain English. "Log this", "who is Sam?", "what's on
+    my plate?" all work. The slash commands are precision tools, not the only
+    door.
+  </p>
+</div>
+
+<script
+  type="application/json"
+  data-try-data
+  set:html={JSON.stringify(presets)}
+></script>
+
+<style is:global>
+  /* The no-JS hint only shows without JS. */
+  html.js .try-terminal .try-nojs { display: none; }
+  html:not(.js) .try-terminal .try-presets { display: none; }
+</style>
+
+<script is:inline>
+  (function () {
+    var root = document.querySelector('[data-try-terminal]');
+    if (!root) return;
+    var dataEl = root.parentNode.querySelector('[data-try-data]')
+      || document.querySelector('[data-try-data]');
+    var presets;
+    try { presets = JSON.parse(dataEl.textContent); } catch (e) { return; }
+
+    var motion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      && document.documentElement.classList.contains('reveal-ready');
+    var cmdEl = root.querySelector('[data-try-cmd]');
+    var outEl = root.querySelector('[data-try-out]');
+    var live = root.querySelector('[data-try-live]');
+    var buttons = Array.prototype.slice.call(root.querySelectorAll('[data-try-preset]'));
+    var token = 0; // cancellation token
+
+    function byId(id) {
+      for (var i = 0; i < presets.length; i++) if (presets[i].id === id) return presets[i];
+      return presets[0];
+    }
+
+    function announce(p) {
+      if (live) live.textContent = '> ' + p.cmd + '\n' + p.lines.join('\n');
+    }
+
+    function setActive(id) {
+      buttons.forEach(function (b) {
+        b.setAttribute('data-active', b.getAttribute('data-try-preset') === id ? 'true' : 'false');
+      });
+    }
+
+    function instant(p) {
+      cmdEl.textContent = p.cmd;
+      outEl.textContent = p.lines.join('\n');
+      announce(p);
+    }
+
+    function run(p) {
+      var my = ++token;
+      cmdEl.textContent = '';
+      outEl.textContent = '';
+      var chars = p.cmd.split('');
+      var ci = 0;
+      function typeChar() {
+        if (my !== token) return;
+        if (ci < chars.length) {
+          cmdEl.textContent += chars[ci++];
+          setTimeout(typeChar, 35);
+        } else {
+          printLines();
+        }
+      }
+      var li = 0;
+      function printLines() {
+        if (my !== token) return;
+        if (li < p.lines.length) {
+          outEl.textContent += (li === 0 ? '' : '\n') + p.lines[li++];
+          setTimeout(printLines, 60);
+        } else {
+          announce(p); // single-shot, after animation completes
+        }
+      }
+      typeChar();
+    }
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var p = byId(btn.getAttribute('data-try-preset'));
+        setActive(p.id);
+        if (motion) run(p); else instant(p);
+      });
+    });
+  })();
+</script>

@@ -27,16 +27,16 @@ const anchor = (version: string) => `v${version.replace(/\./g, '-')}`;
   description="What's shipped, in reverse chronological order. Subscribe via RSS."
 >
 
-  <!-- HEADER -->
-  <section class="border-b border-rule wash-hero">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-20 md:pt-28 pb-14 md:pb-20">
+  <!-- HEADER — boot-style opener -->
+  <section class="border-b border-rule play-on-load">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-14 md:pt-20 pb-14 md:pb-20">
       <div class="grid grid-cols-12 gap-6">
-        <div class="col-span-12 md:col-span-9 md:col-start-2">
-          <p class="kicker lift lift-1">Public log</p>
-          <h1 class="display lift lift-2 mt-6 text-[44px] md:text-[80px] tracking-tightest">
+        <div class="col-span-12 md:col-span-10 md:col-start-2">
+          <pre class="font-mono text-[13px] md:text-[14px] leading-[1.8] text-ink m-0"><span class="prompt">$</span> <span class="cmd type-line" style="--type-ch:18ch; --type-steps:18; --type-start:220ms">git log --oneline</span></pre>
+          <h1 class="display po-1 mt-6 text-[clamp(40px,8vw,80px)] tracking-tightest">
             Changelog.
           </h1>
-          <p class="lift lift-3 mt-8 max-w-[60ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
+          <p class="po-2 mt-7 max-w-[60ch] text-[17px] md:text-[19px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
             What shipped, in reverse chronological order. Newest at the top.
             Maintainer-facing detail lives in
             <a
@@ -47,12 +47,12 @@ const anchor = (version: string) => `v${version.replace(/\./g, '-')}`;
             >CHANGELOG.md</a>;
             this page is the friendlier version.
           </p>
-          <p class="lift lift-4 mt-6 font-mono text-[11px] tracking-[0.18em] uppercase text-muted">
+          <p class="po-3 mt-6 font-mono text-[11px] tracking-[0.12em] uppercase text-muted">
             <a href="/rss.xml" class="link-anim">Subscribe via RSS ↗</a>
           </p>
 
-          <!-- VERSION INDEX — every release as a chip; latest carries the dot. -->
-          <nav class="lift lift-5 mt-10 flex flex-wrap gap-2" aria-label="Jump to a release">
+          <!-- VERSION INDEX — every release as a keycap chip; latest carries the dot. -->
+          <nav class="po-4 mt-10 flex flex-wrap gap-2" aria-label="Jump to a release">
             {entries.map((entry, i) => (
               <a
                 href={`#${anchor(entry.data.version)}`}
@@ -92,19 +92,27 @@ const anchor = (version: string) => `v${version.replace(/\./g, '-')}`;
                 </div>
               </div>
 
-              <!-- Entry body, hung off the timeline spine -->
+              <!-- Entry body — a lit artifact, hung off the timeline spine -->
               <div class="timeline-body col-span-12 md:col-span-9 relative md:border-l md:border-rule md:pl-10 pt-2 pb-16 md:pb-20">
-                <header class="mb-8">
-                  <h2 class="display text-3xl md:text-[42px] tracking-tight">
-                    {entry.data.title}
-                  </h2>
-                  <p class="mt-5 max-w-[58ch] text-[17px] leading-relaxed text-muted font-display italic">
-                    {entry.data.summary}
-                  </p>
-                </header>
+                <div class="pane">
+                  <div class="pane-bar">
+                    <span class="pane-path text-accent">v{entry.data.version}</span>
+                    <span class="pane-tag">{dateFormatter.format(entry.data.date)}</span>
+                  </div>
+                  <div class="p-6 md:p-8">
+                    <header class="mb-6">
+                      <h2 class="display font-bold text-[26px] md:text-[36px] tracking-tightest leading-tight" style="font-variation-settings:'opsz' 36">
+                        {entry.data.title}
+                      </h2>
+                      <p class="mt-4 max-w-[58ch] text-[16px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
+                        {entry.data.summary}
+                      </p>
+                    </header>
 
-                <div class="prose changelog-prose">
-                  <Content />
+                    <div class="prose changelog-prose">
+                      <Content />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -129,7 +137,7 @@ const anchor = (version: string) => `v${version.replace(/\./g, '-')}`;
       width: 8px;
       height: 8px;
       border-radius: 999px;
-      background: var(--paper);
+      background: var(--bg);
       border: 1.5px solid var(--accent);
     }
     .changelog-entry:first-of-type .timeline-body::before {
@@ -139,7 +147,7 @@ const anchor = (version: string) => `v${version.replace(/\./g, '-')}`;
 
   /* Tighten prose for changelog entries — they're short and structural. */
   .changelog-prose h3 {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -150,6 +158,8 @@ const anchor = (version: string) => `v${version.replace(/\./g, '-')}`;
   .changelog-prose h3:first-child {
     margin-top: 0.5rem;
   }
+  /* Changelog h3s are uppercase mono labels — drop the "### " glyph. */
+  .changelog-prose h3::before { content: none; }
   .changelog-prose ul {
     padding-left: 1rem;
     list-style-type: none;

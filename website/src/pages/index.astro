@@ -1,23 +1,22 @@
 ---
-// Homepage 2.0 — "Cause / Effect". The product is two surfaces: a terminal
-// where you talk, and a folder of plain files that change because you talked.
-// Every beat is a two-pane vignette (Pair): LEFT what you typed, RIGHT the
-// file that was read or written. Copy is captions; the panes carry the story.
+// Homepage v2 — "Live Session". The site IS a running terminal session viewed
+// at night. The day advances as you scroll; commands type themselves as scenes
+// enter; diffs write line-by-line; two genuinely interactive moments.
 //
-// All strings verified against the v0.9.4 inventory (index/guide/commands/docs)
-// or the shipped playbooks; the only net-new artifact is the Decisions.md
-// appended entry in S3 beat 3, whose field format is verified against
-// adapters/claude-code/commands/thinkos-capture.md (decision mode).
+// All copy verified against the v0.9.5 inventory (index/DayPairs/guide/commands)
+// or the shipped playbooks. Restaged, not rewritten.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InstallPrompt from '../components/InstallPrompt.astro';
-import TrustBar from '../components/TrustBar.astro';
 import WorksWith from '../components/WorksWith.astro';
 import ChangelogPreview from '../components/ChangelogPreview.astro';
-import DayPairs from '../components/DayPairs.astro';
+import CommandStage from '../components/CommandStage.astro';
+import TryTerminal from '../components/TryTerminal.astro';
 import FlowDiagram from '../components/FlowDiagram.astro';
 import Pair from '../components/Pair.astro';
 import TerminalPane from '../components/panes/TerminalPane.astro';
 import FilePane from '../components/panes/FilePane.astro';
+import DiffPane from '../components/panes/DiffPane.astro';
+import { VERSION } from '../lib/version';
 
 const flowNodes = [
   {
@@ -46,6 +45,27 @@ const trust = [
   {
     label: 'doesn\'t write silently',
     body: 'Conversational writes are confirmed with you; automatic captures are metadata-only, ledger-logged, and undoable. When you state a reusable decision mid-conversation, Claude asks once whether to log it — it won\'t capture silently.',
+  },
+];
+
+const steps = [
+  {
+    marker: '[1/3]',
+    title: 'Install',
+    time: '~5 min',
+    body: 'Paste the install prompt into a fresh Claude Code session. The agent clones the repo, asks five questions, and runs the install.',
+  },
+  {
+    marker: '[2/3]',
+    title: 'Restart + authenticate',
+    time: '~2 min',
+    body: 'Quit Claude Code and reopen it. MCPs and new slash commands only load on startup. If you installed a plugin bundle, type /mcp and authorize each connector listed.',
+  },
+  {
+    marker: '[3/3]',
+    title: 'Continue, when you want',
+    time: 'opt-in · ~15–30 min',
+    body: 'Skip this and the vault still fills in — emergent seeding watches your real conversations and proposes entries you confirm. Or run /thinkos-continue to bulk-seed: import an existing markdown vault, pull from your connected tools, and draft Identity, Project Index, Current Focus, and People in one sitting.',
   },
 ];
 
@@ -84,35 +104,40 @@ const faqs = [
 <BaseLayout>
 
   <!-- ============================================================
-       S1 · HERO — the morning, demonstrated
+       SCENE 1 · BOOT (08:38) — pure CSS, plays on load, no observer
        ============================================================ -->
-  <section class="wash-hero border-b border-rule">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-16 md:pb-24">
+  <section class="play-on-load border-b border-rule" data-time="08:38">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-14 md:pt-20 pb-16 md:pb-24" style="min-height:88vh; display:flex; flex-direction:column; justify-content:center">
 
-      <div class="lift lift-1">
-        <a
-          href="https://thinkcompany.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="font-mono text-[10px] tracking-[0.18em] uppercase text-muted hover:text-accent transition-colors"
-        >A project from Think Company</a>
-      </div>
+      <!-- borderless boot region — the room itself -->
+      <pre class="font-mono text-[13px] md:text-[14px] leading-[1.9] text-ink m-0 whitespace-pre-wrap"><span class="prompt">$</span> <span class="cmd type-line" style="--type-ch:7ch; --type-steps:7; --type-start:220ms">claude</span><span class="po-1 block text-muted">thinkos v{VERSION} · vault mounted · 2 files read</span></pre>
 
-      <h1 class="display lift lift-2 mt-7 text-[42px] md:text-[80px] lg:text-[92px] tracking-tightest max-w-[16ch]">
+      <h1 class="display po-2 mt-9 text-[clamp(44px,9vw,116px)] max-w-[14ch]">
         Stop being a stranger <em>every session.</em>
       </h1>
 
-      <p class="lift lift-3 mt-8 max-w-[62ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
+      <p class="po-3 mt-7 max-w-[62ch] text-[18px] md:text-[19px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
         Think OS is a folder of markdown files Claude reads at the start of
         every session — so it knows your role, your week, your people, your
         decisions, without you re-typing them.
       </p>
 
-      <!-- THE PAIR — the whole product in one glance -->
-      <div class="lift lift-4 mt-12">
-        <Pair>
-          <TerminalPane slot="left" label="claude code" tag="08:40">
-<span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:13ch; --type-steps:13">good morning</span><span class="after-type">
+      <div class="po-4 mt-10 max-w-[820px]">
+        <InstallPrompt />
+      </div>
+      <p class="po-4 mt-6 font-mono text-[12px] tracking-[0.06em]">
+        <a href="#scene-read" class="link-anim text-accent">↓ watch a day with it</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCENE 2 · THE READ (08:40)
+       ============================================================ -->
+  <section id="scene-read" class="scene border-t border-rule" data-time="08:40">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+      <Pair>
+        <TerminalPane slot="left" label="claude code" tag="08:40"><span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:13ch; --type-steps:13; --type-start:200ms">good morning</span><span class="after-type">
 
 This week (top 3):
   1. v2 ingestion pipeline — cut release
@@ -120,8 +145,7 @@ This week (top 3):
   3. clear PR queue (T. + R.)
 
 Calendar: 2 meetings, both afternoon.</span></TerminalPane>
-          <FilePane slot="right" path="~/ThinkOS/vault/" tag="read">
-<span class="after-type"><span class="dim">00 Home/</span>
+        <FilePane slot="right" path="~/ThinkOS/vault/" tag="read"><span class="after-type"><span class="dim">00 Home/</span>
 <span class="dim">01 Now/</span>
 <span class="read-row">  <span class="text-accent">Current Focus.md</span>  <span class="dim">← read</span></span>
 <span class="dim">  Tasks.md</span>
@@ -132,47 +156,63 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
 <span class="dim">05 Profile/</span>
 <span class="read-row">  <span class="text-accent">Identity.md</span>  <span class="dim">← read</span></span>
 <span class="dim">90 System/</span></span></FilePane>
-        </Pair>
-      </div>
-
-      <p class="lift lift-4 mt-6 text-[15px] leading-relaxed text-muted max-w-[64ch]">
+      </Pair>
+      <p class="mt-6 text-[15px] leading-relaxed text-muted max-w-[64ch]">
         At the start of a session, Claude reads two small files — your Identity
         and this week's Current Focus. Both are small, so it reads them whole.
         That's the entire trick.
       </p>
-      <p class="lift lift-4 mt-3 font-mono text-[10px] tracking-[0.18em] uppercase text-muted">
+      <p class="mt-3 font-mono text-[10px] tracking-[0.16em] uppercase text-muted">
         Sample vault content — your real vault has your real notes.
       </p>
-
-      <div class="lift lift-5 mt-10 max-w-[820px]">
-        <InstallPrompt />
-      </div>
-
-      <div class="lift lift-5 mt-6 max-w-[820px]">
-        <ChangelogPreview />
-      </div>
-
-      <div class="lift lift-6 mt-10 max-w-[820px]">
-        <TrustBar />
-      </div>
     </div>
   </section>
 
   <!-- ============================================================
-       S2 · HOW IT WORKS — three nodes, one artifact
+       SCENE 3 · YOU TYPED NOTHING (14:02)
        ============================================================ -->
-  <section class="border-t border-rule">
+  <section class="scene border-t border-rule" data-time="14:02">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+      <Pair>
+        <TerminalPane slot="left" label="claude code" tag="14:02"><span class="dim">— no session open —</span></TerminalPane>
+        <DiffPane slot="right" path="01 Now / Work Log.md" tag="+3 lines"><span class="dim"># appended by session capture</span>
+
+<span class="diff-add" style="--d:0ms">+ ### 14:00 — acme-redesign</span>
+<span class="diff-add" style="--d:80ms">+ - Edited 12 files in ~/code/acme-redesign</span>
+<span class="diff-add" style="--d:160ms">+ - HEAD: a1b2c3d</span>
+
+<span class="dim"># listed in the ledger; removable</span>
+<span class="dim"># with /thinkos-undo-capture</span></DiffPane>
+      </Pair>
+      <p class="mt-6 text-[15px] leading-relaxed text-muted max-w-[58ch]">
+        The background job noted where the morning went — folders, file
+        counts, a commit hash. Never content.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCENE 4 · COMMAND STAGE — interactive moment 1
+       ============================================================ -->
+  <section class="border-t border-rule" data-time="08:40">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+      <CommandStage />
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCENE 5 · HOW IT WORKS
+       ============================================================ -->
+  <section class="scene border-t border-rule" data-time="09:15">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-12 reveal">
         <h2 class="md-heading">How it works</h2>
       </header>
 
-      <div class="reveal">
-        <FlowDiagram nodes={flowNodes} />
-      </div>
+      <FlowDiagram nodes={flowNodes} />
 
       <div class="mt-12 reveal">
-        <p class="md-quote max-w-[34ch]">
+        <p class="md-quote max-w-[40ch]">
           Markdown is the source of truth. Everything else is a rebuildable index.
         </p>
         <p class="mt-5 text-[15px] leading-relaxed text-muted max-w-[60ch]">
@@ -184,96 +224,35 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
   </section>
 
   <!-- ============================================================
-       S3 · A DAY WITH IT — four cause/effect pairs
+       SCENE 6 · TRY IT — interactive moment 2
        ============================================================ -->
-  <DayPairs />
-
-  <!-- ============================================================
-       S4 · GET STARTED
-       ============================================================ -->
-  <section class="border-t border-rule bg-soft/40">
+  <section class="border-t border-rule" data-time="11:30">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <header class="mb-14 reveal">
-        <h2 class="md-heading">Get started</h2>
-        <p class="mt-5 text-[16px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-          About fifteen to thirty minutes once. Zero overhead after — the vault
-          fills in from your real conversations, not a long Q&A.
-        </p>
+      <header class="mb-10">
+        <h2 class="md-heading">Try it</h2>
       </header>
-
-      <div class="grid grid-cols-12 gap-x-6 gap-y-12">
-        <article class="col-span-12 md:col-span-4 md:border-r md:border-rule md:pr-8 reveal">
-          <div class="flex items-baseline justify-between border-b border-rule pb-3">
-            <p class="font-mono text-[12px] tracking-[0.08em] text-accent">&gt; step 1</p>
-            <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">~5 min</p>
-          </div>
-          <h3 class="font-mono text-[20px] md:text-[22px] mt-5">Install</h3>
-          <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-            Paste the install prompt into a fresh Claude Code session. The agent
-            clones the repo, asks five questions, and runs the install.
-          </p>
-        </article>
-
-        <article class="col-span-12 md:col-span-4 md:border-r md:border-rule md:px-8 reveal" style="--reveal-delay: 90ms">
-          <div class="flex items-baseline justify-between border-b border-rule pb-3">
-            <p class="font-mono text-[12px] tracking-[0.08em] text-accent">&gt; step 2</p>
-            <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">~2 min</p>
-          </div>
-          <h3 class="font-mono text-[20px] md:text-[22px] mt-5">Restart + authenticate</h3>
-          <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-            Quit Claude Code and reopen it. MCPs and new slash commands only
-            load on startup.
-          </p>
-          <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-            If you installed a plugin bundle, type
-            <code class="font-mono text-[14px] bg-soft px-1.5 py-0.5 rounded">/mcp</code> and
-            authorize each connector listed.
-          </p>
-        </article>
-
-        <article class="col-span-12 md:col-span-4 md:pl-8 reveal" style="--reveal-delay: 180ms">
-          <div class="flex items-baseline justify-between border-b border-rule pb-3">
-            <p class="font-mono text-[12px] tracking-[0.08em] text-accent">&gt; step 3 — opt-in</p>
-            <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">~15–30 min</p>
-          </div>
-          <h3 class="font-mono text-[20px] md:text-[22px] mt-5">Continue, when you want</h3>
-          <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-            Skip this and the vault still fills in — emergent seeding watches
-            your real conversations and proposes entries you confirm. Or run
-            <code class="font-mono text-[14px] bg-soft px-1.5 py-0.5 rounded">/thinkos-continue</code>
-            to bulk-seed: import an existing markdown vault, pull from your
-            connected tools, and draft Identity, Project Index, Current Focus,
-            and People in one sitting.
-          </p>
-          <p class="mt-4 text-[16px] leading-relaxed text-muted max-w-[42ch]">
-            Then read
-            <a href="/guide" class="underline underline-offset-2 text-ink hover:text-accent"><strong>How to use it</strong></a> →
-          </p>
-        </article>
-      </div>
-
-      <div class="mt-14 max-w-[820px] reveal">
-        <InstallPrompt />
+      <div class="max-w-[820px]">
+        <TryTerminal />
       </div>
     </div>
   </section>
 
   <!-- ============================================================
-       S5 · TRUST, FLATLY — lead with the negatives
+       SCENE 7 · WHAT IT DOESN'T DO
        ============================================================ -->
-  <section class="border-t border-rule">
+  <section class="scene border-t border-rule" data-time="13:00">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-14 reveal">
         <h2 class="md-heading">What it doesn't do</h2>
       </header>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-rule border border-rule reveal">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         {trust.map((t) => (
-          <article class="bg-paper p-7 md:p-8 hover-card">
+          <article class="pane p-7 md:p-8">
             <p class="font-mono text-[14px] text-ink">
               <span class="text-muted">&gt; </span>{t.label}
             </p>
-            <p class="mt-4 text-[15px] leading-relaxed text-muted max-w-[44ch]">{t.body}</p>
+            <p class="mt-4 text-[15px] leading-relaxed text-muted max-w-[44ch]" style="font-variation-settings:'opsz' 15">{t.body}</p>
           </article>
         ))}
       </div>
@@ -284,9 +263,55 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
   <WorksWith />
 
   <!-- ============================================================
-       S6 · QUESTIONS + CLOSE
+       SCENE 8 · GET STARTED
        ============================================================ -->
-  <section class="border-t border-rule">
+  <section class="scene border-t border-rule" data-time="15:00">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+      <header class="mb-14 reveal">
+        <h2 class="md-heading">Get started</h2>
+        <p class="mt-5 text-[16px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
+          About fifteen to thirty minutes once. Zero overhead after — the vault
+          fills in from your real conversations, not a long Q&A.
+        </p>
+      </header>
+
+      <div class="pane max-w-[860px]">
+        <div class="pane-bar">
+          <span class="pane-path">setup — queued</span>
+          <span class="pane-tag" data-kind="read">3 steps</span>
+        </div>
+        <div class="p-6 md:p-8 space-y-8">
+          {steps.map((s, i) => (
+            <div class="reveal" style={`--reveal-delay: ${i * 150}ms`}>
+              <p class="font-mono text-[13px] mb-2">
+                <span class="text-accent">{s.marker}</span>
+                <span class="text-ink"> {s.title}</span>
+                <span class="text-muted"> — {s.time}</span>
+              </p>
+              <p class="text-[16px] leading-relaxed text-muted max-w-[60ch]" style="font-variation-settings:'opsz' 16">
+                {s.body}
+                {i === 2 && (<>
+                  {' '}Then read <a href="/guide" class="underline underline-offset-2 text-ink hover:text-accent"><strong>How to use it</strong></a> →
+                </>)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="mt-12 max-w-[820px] reveal">
+        <InstallPrompt />
+      </div>
+      <div class="mt-6 max-w-[820px] reveal">
+        <ChangelogPreview />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCENE 9 · QUESTIONS + CLOSE
+       ============================================================ -->
+  <section class="scene border-t border-rule" data-time="20:14" data-day="sun">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-12 reveal">
         <h2 class="md-heading">Questions</h2>
@@ -312,10 +337,10 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
       </div>
 
       <div class="mt-16 reveal">
-        <p class="font-display italic text-2xl md:text-[32px] leading-tight max-w-[24ch]">
+        <p class="display font-bold text-[28px] md:text-[36px] leading-tight max-w-[24ch]" style="font-variation-settings:'opsz' 36">
           A markdown vault that travels with you, between agents.
         </p>
-        <p class="mt-7 font-mono text-[12px] tracking-[0.18em] uppercase">
+        <p class="mt-7 font-mono text-[12px] tracking-[0.08em]">
           <a href="#main" class="link-anim text-muted">Install ↑</a>
           <span class="mx-3 text-muted opacity-50">·</span>
           <a href="/guide" class="link-anim text-muted">How to use it →</a>

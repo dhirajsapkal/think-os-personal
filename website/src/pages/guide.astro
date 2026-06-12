@@ -43,16 +43,16 @@ const tenCommands = [
   description="What to do daily, weekly, and quarterly with Think OS — the mental model, the first week, the rhythms, and the dos and don'ts."
 >
 
-  <!-- PAGE HEADER -->
-  <section class="wash-hero">
-    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-16 md:pt-24 pb-16 md:pb-24">
+  <!-- PAGE HEADER — boot-style opener -->
+  <section class="play-on-load">
+    <div class="mx-auto max-w-[1200px] px-6 md:px-10 pt-14 md:pt-20 pb-16 md:pb-24">
       <div class="grid grid-cols-12 gap-6">
-        <div class="col-span-12 md:col-span-9 md:col-start-2">
-          <p class="kicker lift lift-1"># Guide</p>
-          <h1 class="display lift lift-2 mt-6 text-[40px] md:text-[72px] lg:text-[84px] tracking-tightest">
+        <div class="col-span-12 md:col-span-10 md:col-start-2">
+          <pre class="font-mono text-[13px] md:text-[14px] leading-[1.8] text-ink m-0"><span class="prompt">$</span> <span class="cmd type-line" style="--type-ch:13ch; --type-steps:13; --type-start:220ms">open guide.md</span></pre>
+          <h1 class="display po-1 mt-6 text-[clamp(38px,7vw,84px)] tracking-tightest">
             How to use Think OS
           </h1>
-          <p class="lift lift-3 mt-8 max-w-[62ch] text-[17px] md:text-[19px] leading-relaxed text-muted">
+          <p class="po-2 mt-7 max-w-[62ch] text-[17px] md:text-[19px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
             You installed it. Now what? This page is the answer: what Think OS
             is doing underneath, what your first week looks like, what to type
             each morning, what to run on Sundays, and what to leave alone.
@@ -60,15 +60,15 @@ const tenCommands = [
             routine.
           </p>
 
-          <!-- STATIC ANCHOR TOC — no JS, mono links to each section -->
-          <nav class="lift lift-4 mt-10 flex flex-wrap gap-x-6 gap-y-2" aria-label="On this page">
-            <a href="#mental-model" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">The mental model</a>
-            <a href="#first-week" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">Your first week</a>
-            <a href="#daily" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">The daily rhythm</a>
-            <a href="#weekly" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">The weekly rhythm</a>
-            <a href="#maintenance" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">Maintenance</a>
-            <a href="#dos-donts" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">Dos and don'ts</a>
-            <a href="#commands" class="font-mono text-[11px] tracking-[0.14em] uppercase link-anim text-muted">What to type</a>
+          <!-- STATIC ANCHOR TOC — keycap chips, no JS -->
+          <nav class="po-3 mt-10 flex flex-wrap gap-2" aria-label="On this page">
+            <a href="#mental-model" class="keycap">the mental model</a>
+            <a href="#first-week" class="keycap">your first week</a>
+            <a href="#daily" class="keycap">the daily rhythm</a>
+            <a href="#weekly" class="keycap">the weekly rhythm</a>
+            <a href="#maintenance" class="keycap">maintenance</a>
+            <a href="#dos-donts" class="keycap">dos and don'ts</a>
+            <a href="#commands" class="keycap">what to type</a>
           </nav>
         </div>
       </div>
@@ -472,29 +472,31 @@ const tenCommands = [
         </div>
       </header>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-12">
-        <div class="reveal">
-          <p class="kicker border-b border-rule pb-3 mb-6">Do</p>
-          <ul class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="pane reveal">
+          <div class="pane-bar">
+            <span class="pane-path">dos</span>
+            <span class="pane-tag" data-kind="add">&gt; do</span>
+          </div>
+          <ul class="p-6 md:p-7 space-y-6">
             {dos.map(([lead, body]) => (
-              <li class="pl-5" style="border-left: 2px solid var(--add)">
-                <p class="text-[16px] leading-relaxed">
-                  <strong class="text-ink">{lead}</strong>
-                  <span class="text-muted"> {body}</span>
-                </p>
+              <li>
+                <p class="font-mono text-[14px] text-accent mb-1">&gt; {lead}</p>
+                <p class="text-[15px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 15">{body}</p>
               </li>
             ))}
           </ul>
         </div>
-        <div class="reveal" style="--reveal-delay: 90ms">
-          <p class="kicker border-b border-rule pb-3 mb-6">Don't</p>
-          <ul class="space-y-6">
+        <div class="pane reveal" style="--reveal-delay: 90ms">
+          <div class="pane-bar">
+            <span class="pane-path">don'ts</span>
+            <span class="pane-tag" data-kind="del">&gt; don't</span>
+          </div>
+          <ul class="p-6 md:p-7 space-y-6">
             {donts.map(([lead, body]) => (
-              <li class="border-l border-rule pl-5">
-                <p class="text-[16px] leading-relaxed">
-                  <strong class="text-ink">{lead}</strong>
-                  <span class="text-muted"> {body}</span>
-                </p>
+              <li>
+                <p class="font-mono text-[14px] text-ink mb-1"><span style="color:var(--del)">&gt;</span> {lead}</p>
+                <p class="text-[15px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 15">{body}</p>
               </li>
             ))}
           </ul>

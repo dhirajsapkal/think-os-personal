@@ -7,24 +7,23 @@ import TerminalPane from '../components/panes/TerminalPane.astro';
   title="Page not found · Think OS"
   description="The page you're looking for doesn't exist."
 >
-  <section class="mx-auto max-w-[1200px] px-6 md:px-10 pt-20 md:pt-28 pb-24 md:pb-36">
+  <section class="play-on-load mx-auto max-w-[1200px] px-6 md:px-10 pt-20 md:pt-28 pb-24 md:pb-36" style="min-height:80vh; display:flex; flex-direction:column; justify-content:center">
     <p class="kicker">404</p>
-    <h1 class="display mt-6 text-[44px] md:text-[80px] tracking-tightest">
+    <h1 class="display po-1 mt-6 text-[clamp(40px,8vw,80px)] tracking-tightest">
       Page not found.
     </h1>
 
-    <div class="mt-12 max-w-[920px]">
+    <div class="po-2 mt-12 max-w-[920px]">
       <Pair>
-        <TerminalPane slot="left" label="claude code" tag="404">
-<span class="prompt">&gt;</span> <span class="cmd">cat 404.md</span>
-cat: 404.md: No such file or directory</TerminalPane>
-        <p slot="right" class="text-[16px] md:text-[18px] leading-relaxed text-muted max-w-[42ch]">
+        <TerminalPane slot="left" label="claude code" tag="404"><span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:10ch; --type-steps:10; --type-start:220ms">cat 404.md</span><span class="after-type">
+cat: 404.md: No such file or directory</span></TerminalPane>
+        <p slot="right" class="display font-bold text-[20px] md:text-[26px] leading-snug tracking-tight text-ink max-w-[42ch]" style="font-variation-settings:'opsz' 26">
           The vault remembers everything — the website, evidently, does not.
         </p>
       </Pair>
     </div>
 
-    <p class="mt-12 font-mono text-[11px] tracking-[0.18em] uppercase">
+    <p class="po-3 mt-12 font-mono text-[11px] tracking-[0.12em] uppercase">
       <a href="/" class="link-anim text-muted">← Back to the front page</a>
       <span class="mx-4 text-muted opacity-50">·</span>
       <a href="/guide" class="link-anim text-muted">How to use it →</a>
