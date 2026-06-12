@@ -6,14 +6,20 @@
 // Slots: "left" and "right". Optional `tag` (a time/label) sits above the pair.
 interface Props {
   tag?: string;
+  /** When set, the connector becomes a choreography step that draws L→R. */
+  connectorStep?: number;
 }
-const { tag } = Astro.props;
+const { tag, connectorStep } = Astro.props;
 ---
 <div class="pair">
   {tag && <p class="kicker mb-3">{tag}</p>}
   <div class="pair-grid">
     <div class="pair-cell"><slot name="left" /></div>
-    <div class="pair-link" aria-hidden="true"><span class="pair-arrow">→</span></div>
+    {connectorStep != null ? (
+      <div class="pair-link pair-draw" aria-hidden="true" data-step={String(connectorStep)} data-step-ms="380"><span class="pair-arrow">→</span></div>
+    ) : (
+      <div class="pair-link" aria-hidden="true"><span class="pair-arrow">→</span></div>
+    )}
     <div class="pair-cell"><slot name="right" /></div>
   </div>
 </div>

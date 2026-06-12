@@ -109,6 +109,69 @@ const {
           { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
         );
         for (var j = 0; j < els.length; j++) io.observe(els[j]);
+
+        // ----------------------------------------------------------------
+        // Step engine — sequenced choreography for [data-choreo] scenes.
+        // On first intersect, walk [data-step] groups in ascending order:
+        // add .step-on to all elements of step N, wait that step's duration,
+        // then advance. Steps may repeat a number (simultaneous). Only runs
+        // under reveal-ready (motion permitted); without it the CSS shows all
+        // steps static. Once-only via its own observer + a played flag.
+        // ----------------------------------------------------------------
+        var choreoScenes = document.querySelectorAll('[data-choreo]');
+        if (choreoScenes.length) {
+          var stepDuration = function (el) {
+            // type-line elements: CSS typing is a fixed 900ms + 200ms buffer.
+            var hasType = el.classList.contains('type-line')
+              || el.querySelector('.type-line');
+            if (hasType) return 1100;
+            var attr = parseInt(el.getAttribute('data-step-ms'), 10);
+            return isNaN(attr) ? 700 : attr;
+          };
+          var playChoreo = function (scene) {
+            if (scene.getAttribute('data-choreo-played') === '1') return;
+            scene.setAttribute('data-choreo-played', '1');
+            var stepped = Array.prototype.slice.call(
+              scene.querySelectorAll('[data-step]')
+            );
+            // Group by step number, ascending.
+            var order = [];
+            var groups = {};
+            stepped.forEach(function (el) {
+              var n = parseInt(el.getAttribute('data-step'), 10) || 0;
+              if (!groups[n]) { groups[n] = []; order.push(n); }
+              groups[n].push(el);
+            });
+            order.sort(function (a, b) { return a - b; });
+            var gi = 0;
+            var runGroup = function () {
+              if (gi >= order.length) return;
+              var els = groups[order[gi++]];
+              var wait = 0;
+              els.forEach(function (el) {
+                el.classList.add('step-on');
+                var d = stepDuration(el);
+                if (d > wait) wait = d;
+              });
+              setTimeout(runGroup, wait);
+            };
+            runGroup();
+          };
+          var choreoIO = new IntersectionObserver(
+            function (entries) {
+              for (var k = 0; k < entries.length; k++) {
+                if (entries[k].isIntersecting) {
+                  playChoreo(entries[k].target);
+                  choreoIO.unobserve(entries[k].target);
+                }
+              }
+            },
+            { rootMargin: '0px 0px -8% 0px', threshold: 0.05 }
+          );
+          for (var c = 0; c < choreoScenes.length; c++) {
+            choreoIO.observe(choreoScenes[c]);
+          }
+        }
       })();
     </script>
   </body>

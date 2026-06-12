@@ -1,16 +1,21 @@
 ---
-// TryTerminal — homepage Scene 6, interactive moment 2.
-// Preset buttons type a command char-by-char (35ms/char) then print the
-// response line-by-line (60ms/line). Vanilla typing engine, cancellable.
+// TryTerminal — homepage Scene 6, interactive moment 2. TYPEABLE.
+// A real prompt input ("> ") runs whatever you type on Enter; keycap presets
+// fill the input and run. The typing engine types the command char-by-char
+// (35ms/char) then prints the response line-by-line (60ms/line). Cancellable.
 //
-// A11y: presets are buttons; pane body is aria-hidden during animation; one
+// Demo registry matches case/punctuation-insensitively: morning, plate,
+// decisions, and a `log` demo that echoes YOUR words into the Work Log line.
+// Unknown input gets a graceful "needs the real install" reply.
+//
+// A11y: input is labelled; pane body is aria-hidden during animation; one
 // sr-only aria-live region gets the complete command+response in a single
 // mutation after typing finishes.
 // Reduced-motion + JS: command + output appear instantly.
-// No-JS: presets hidden; pane shows preset 1 transcript statically + a note.
+// No-JS: input + presets hidden; pane shows preset 1 transcript statically.
 //
 // Responses verified against the morning brief (DayPairs), the Decisions.md
-// API-versioning entry, and the guide's plate description.
+// API-versioning entry, the guide's plate description, and /thinkos-log.
 const presets = [
   {
     id: 'morning',
@@ -30,8 +35,21 @@ const presets = [
     ],
   },
   {
+    id: 'plate',
+    label: "what's on my plate?",
+    cmd: "what's on my plate?",
+    lines: [
+      "Today's tasks against this week's",
+      'priorities; flags overdue:',
+      '',
+      '  · v2 release notes        (focus #1)',
+      '  · 1:1 with Priya, 2pm     (today)',
+      '  · review T. + R. PRs      ⚠ overdue',
+    ],
+  },
+  {
     id: 'decisions',
-    label: '/thinkos-decisions api',
+    label: '/thinkos-decisions',
     cmd: '/thinkos-decisions api',
     lines: [
       '1 match in 04 Knowledge/Decisions.md:',
@@ -44,16 +62,15 @@ const presets = [
     ],
   },
   {
-    id: 'plate',
-    label: "what's on my plate?",
-    cmd: "what's on my plate?",
+    id: 'log',
+    label: 'log this …',
+    cmd: 'log shipped the v2 ingestion pipeline',
     lines: [
-      "Today's tasks against this week's",
-      'priorities; flags overdue:',
+      'Logged to 01 Now/Work Log.md:',
       '',
-      '  · v2 release notes        (focus #1)',
-      '  · 1:1 with Priya, 2pm     (today)',
-      '  · review T. + R. PRs      ⚠ overdue',
+      '+ ### 16:12 — shipped the v2 ingestion pipeline',
+      '',
+      "(in the real install you'd confirm first)",
     ],
   },
 ];
@@ -91,13 +108,30 @@ On your plate today:
 
 Calendar: 2 meetings, both afternoon.</span><span class="try-nojs dim">
 
-# three example commands — install to run them yourself</span></pre>
+# four example commands — install to run them yourself</span></pre>
+    <!-- Real typeable prompt — JS only -->
+    <div class="try-inputline" data-try-inputline>
+      <span class="prompt" aria-hidden="true">&gt;</span>
+      <input
+        type="text"
+        class="try-input"
+        data-try-input
+        aria-label="Type a command to try"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        placeholder="type a command, then Enter…"
+      />
+    </div>
+    <!-- Side-effect chip — appears after the log demo, then stays. -->
+    <div class="try-fx" data-try-fx hidden>
+      <span class="try-fx-path">01 Now/Work Log.md</span>
+      <span class="try-fx-delta">+1 line</span>
+    </div>
   </div>
 
   <p class="mt-6 text-[15px] leading-relaxed text-muted max-w-[58ch]">
-    Tell Claude things in plain English. "Log this", "who is Sam?", "what's on
-    my plate?" all work. The slash commands are precision tools, not the only
-    door.
+    Plain English works — the slash commands are precision tools, not the only door.
   </p>
 </div>
 
@@ -111,6 +145,63 @@ Calendar: 2 meetings, both afternoon.</span><span class="try-nojs dim">
   /* The no-JS hint only shows without JS. */
   html.js .try-terminal .try-nojs { display: none; }
   html:not(.js) .try-terminal .try-presets { display: none; }
+  /* The typeable input only exists with JS. */
+  html:not(.js) .try-terminal .try-inputline { display: none; }
+
+  .try-inputline {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5ch;
+    padding: 0 1rem 1.1rem;
+    margin-top: -0.4rem;
+  }
+  .try-inputline .prompt { color: var(--accent); }
+  .try-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--ink);
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    padding: 0;
+    caret-color: var(--accent);
+  }
+  .try-input::placeholder { color: var(--muted); opacity: 0.7; }
+
+  .try-fx {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6ch;
+    margin: 0 1rem 1.1rem;
+    padding: 0.3rem 0.6rem;
+    font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+    font-size: 11px;
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    background: var(--add-bg);
+    position: relative;
+    overflow: hidden;
+  }
+  .try-fx-path { color: var(--ink); }
+  .try-fx-delta { color: var(--accent); }
+  /* Accent highlight sweep when the chip first appears. */
+  .try-fx[data-swept="true"]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgb(var(--accent-rgb) / 0.18), transparent);
+    transform: translateX(-100%);
+    animation: try-fx-sweep 620ms cubic-bezier(0.2, 0.7, 0.2, 1) 1 forwards;
+  }
+  @keyframes try-fx-sweep {
+    to { transform: translateX(100%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .try-fx[data-swept="true"]::after { animation: none; display: none; }
+  }
 </style>
 
 <script is:inline>
@@ -127,6 +218,8 @@ Calendar: 2 meetings, both afternoon.</span><span class="try-nojs dim">
     var cmdEl = root.querySelector('[data-try-cmd]');
     var outEl = root.querySelector('[data-try-out]');
     var live = root.querySelector('[data-try-live]');
+    var input = root.querySelector('[data-try-input]');
+    var fx = root.querySelector('[data-try-fx]');
     var buttons = Array.prototype.slice.call(root.querySelectorAll('[data-try-preset]'));
     var token = 0; // cancellation token
 
@@ -135,8 +228,71 @@ Calendar: 2 meetings, both afternoon.</span><span class="try-nojs dim">
       return presets[0];
     }
 
-    function announce(p) {
-      if (live) live.textContent = '> ' + p.cmd + '\n' + p.lines.join('\n');
+    // Normalize for matching: lowercase, strip punctuation, collapse spaces.
+    function norm(s) {
+      return (s || '')
+        .toLowerCase()
+        .replace(/[^\w\s/]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    // Sanitize a user-derived string for safe display: collapse whitespace,
+    // cap at 60 chars. Used ONLY via textContent (never innerHTML).
+    function sanitize(s) {
+      var t = (s || '').replace(/\s+/g, ' ').trim();
+      if (t.length > 60) t = t.slice(0, 60);
+      return t;
+    }
+
+    // Resolve raw input → a command object {cmd, lines, fx?}.
+    function resolve(raw) {
+      var n = norm(raw);
+      if (!n) return null;
+
+      // log demo: "log ...", "/thinkos-log ...", or "log this"
+      var logMatch = raw.match(/^\s*(?:\/thinkos-log|log)\b[:\s]*([\s\S]*)$/i);
+      if (logMatch) {
+        var rest = sanitize(logMatch[1]);
+        if (!rest || norm(rest) === 'this') rest = 'shipped the v2 ingestion pipeline';
+        return {
+          cmd: raw.trim(),
+          lines: [
+            'Logged to 01 Now/Work Log.md:',
+            '',
+            '+ ### 16:12 — ' + rest,
+            '',
+            "(in the real install you'd confirm first)",
+          ],
+          fx: true,
+        };
+      }
+
+      // morning
+      if (n === 'good morning' || n === 'morning' || n === 'thinkosmorning'
+          || n === '/thinkos-morning'.replace(/[^\w\s/]/g, '')) {
+        return byId('morning');
+      }
+      // plate
+      if (n.indexOf('plate') !== -1) return byId('plate');
+      // decisions
+      if (n.indexOf('decision') !== -1 || n === 'what did we decide'
+          || n.indexOf('thinkosdecisions') !== -1) {
+        return byId('decisions');
+      }
+
+      // unknown
+      return {
+        cmd: raw.trim(),
+        lines: [
+          '(demo) that one needs the real install.',
+          'Try a suggestion below, or see all 36 commands → /commands',
+        ],
+      };
+    }
+
+    function announce(cmd, lines) {
+      if (live) live.textContent = '> ' + cmd + '\n' + lines.join('\n');
     }
 
     function setActive(id) {
@@ -145,17 +301,31 @@ Calendar: 2 meetings, both afternoon.</span><span class="try-nojs dim">
       });
     }
 
-    function instant(p) {
-      cmdEl.textContent = p.cmd;
-      outEl.textContent = p.lines.join('\n');
-      announce(p);
+    function showFx() {
+      if (!fx) return;
+      fx.hidden = false;
+      // Re-trigger the sweep each time by toggling the swept flag.
+      fx.removeAttribute('data-swept');
+      // Force reflow so the animation restarts.
+      // eslint-disable-next-line no-unused-expressions
+      fx.offsetWidth;
+      fx.setAttribute('data-swept', 'true');
     }
 
-    function run(p) {
+    function render(obj, animate) {
       var my = ++token;
+      var cmd = obj.cmd;
+      var lines = obj.lines;
+      if (!animate) {
+        cmdEl.textContent = cmd;
+        outEl.textContent = lines.join('\n');
+        announce(cmd, lines);
+        if (obj.fx) showFx();
+        return;
+      }
       cmdEl.textContent = '';
       outEl.textContent = '';
-      var chars = p.cmd.split('');
+      var chars = cmd.split('');
       var ci = 0;
       function typeChar() {
         if (my !== token) return;
@@ -169,22 +339,43 @@ Calendar: 2 meetings, both afternoon.</span><span class="try-nojs dim">
       var li = 0;
       function printLines() {
         if (my !== token) return;
-        if (li < p.lines.length) {
-          outEl.textContent += (li === 0 ? '' : '\n') + p.lines[li++];
+        if (li < lines.length) {
+          outEl.textContent += (li === 0 ? '' : '\n') + lines[li++];
           setTimeout(printLines, 60);
         } else {
-          announce(p); // single-shot, after animation completes
+          announce(cmd, lines); // single-shot, after animation completes
+          if (obj.fx) showFx();
         }
       }
       typeChar();
     }
 
+    function runRaw(raw, fromPreset) {
+      var obj = resolve(raw);
+      if (!obj) return;
+      if (!obj.fx && fx) fx.hidden = true; // non-log demos clear the chip
+      if (fromPreset) setActive(fromPreset);
+      render(obj, motion);
+    }
+
     buttons.forEach(function (btn) {
       btn.addEventListener('click', function () {
         var p = byId(btn.getAttribute('data-try-preset'));
-        setActive(p.id);
-        if (motion) run(p); else instant(p);
+        if (input) input.value = p.cmd;
+        runRaw(p.cmd, p.id);
       });
     });
+
+    if (input) {
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          var v = input.value;
+          if (norm(v)) runRaw(v, null);
+        } else if (e.key === 'Escape') {
+          input.value = '';
+        }
+      });
+    }
   })();
 </script>

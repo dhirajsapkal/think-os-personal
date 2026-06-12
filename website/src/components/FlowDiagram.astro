@@ -5,6 +5,7 @@
 interface Node {
   label: string;
   body: string; // may contain inline <code>
+  files?: string[];
 }
 interface Props {
   nodes: Node[];
@@ -15,14 +16,21 @@ const { nodes } = Astro.props;
   {nodes.map((n, i) => (
     <>
       {i > 0 && (
-        <div class="flow-link" aria-hidden="true" style={`--cd: ${(i - 1) * 200}ms`}>
+        <div class="flow-link" aria-hidden="true" data-step={String(i * 2)} data-step-ms="420">
           <span class="flow-line"></span>
           <span class="flow-arrow">→</span>
         </div>
       )}
-      <article class="flow-node pane">
+      <article class="flow-node pane" data-step={String(i * 2 + 1)} data-step-ms="500">
         <p class="flow-label">{n.label}</p>
         <p class="flow-body" set:html={n.body}></p>
+        {n.files && (
+          <div class="grid grid-cols-2 gap-1 mt-3">
+            {n.files.map((name) => (
+              <span class="font-mono text-[11px] px-2 py-1 border border-rule rounded-[3px] text-muted whitespace-nowrap">{name}</span>
+            ))}
+          </div>
+        )}
       </article>
     </>
   ))}

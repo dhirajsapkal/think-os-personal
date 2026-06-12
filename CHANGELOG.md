@@ -2,6 +2,17 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.9.7] — 2026-06-12 — Cause, then effect: the homepage scenes learn to tell their story in order
+
+Client-note revision pass on the Live Session site. Every animated scene is now a sequenced story — nothing renders before its trigger. A step engine walks each scene's beats on entry: in The Read, you say good morning, an annotation notes it runs /thinkos-morning, the connector draws, the two vault files light up as read, and only then does the answer print, with numbered beat badges narrating. The try-it terminal is now genuinely typeable: free-typed input matches four demos (including a log demo that writes your own words into a Work Log diff with a file side-effect chip), with a graceful fallback for everything else. CommandStage tabs replay their vignette as cause-then-effect. Homepage copy cut roughly a third — captions over paragraphs, a file-grid graphic replacing a sentence about files. Reduced-motion and no-JS still render everything static and complete.
+
+### Changed
+
+- Scene choreography: new step engine in BaseLayout (IntersectionObserver, once-only, per-step durations); Scenes 2/3/5 and the Pair connector wired to it; beat badges added.
+- TryTerminal: real prompt input (Enter runs, Escape clears), four matched demos + unknown-input fallback, log demo echoes sanitized user text via textContent, Work Log side-effect chip.
+- CommandStage: JS replay engine (cancellable) — command types, response prints, file effect lights last; ARIA tablist unchanged.
+- Homepage copy diet: hero subhead, scene captions, flow nodes, trust cards, setup steps, two FAQ answers; FlowDiagram gains an optional per-node file-chip grid.
+
 ## [v0.9.6] — 2026-06-12 — Website 2.0, for real: a new visual world, scroll as narrative, and two things you can click
 
 A website-only release — nothing outside `website/` changes; no scripts, templates, instructions, or playbooks are touched (verify with `git diff --stat`). v0.9.5 changed the *content* — every beat became a two-pane Pair — but a client's read was blunt: it still looked like version 1. Same typography, same centered-prose layout, same light-paper-with-navy palette. The content had moved on; the design hadn't. This release makes the departure mechanically visible. The type system changes (Newsreader display / Hanken Grotesk body / IBM Plex Mono are retired; **Bricolage Grotesque** carries display and body, **JetBrains Mono** carries the machine voice — both self-hosted via fontsource). The color world changes (the default is now a dark "live session" — the site reads as a terminal viewed at night, file-panes glow as lit phosphor artifacts; the warm-paper world survives as "The Printout," the second theme behind the toggle). The layout grammar changes (no more centered prose column with a kicker-and-heading rhythm — the homepage is a sequence of full-bleed SCENES timestamped across one workday, and scroll is the engine that plays them). The good bones from v0.9.5 — `Pair`, `TerminalPane`, `FilePane`, `DiffPane`, the typewriter CSS — are restaged and restyled inside the new world, not thrown away. The verified copy stays the copy.

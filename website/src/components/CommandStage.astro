@@ -3,10 +3,15 @@
 // Three keycap chips (tabs) swap which vignette plays. Markup is the three
 // DayPairs beats (morning / decide / weekly-review) relocated here as panels.
 //
+// Each tab activation REPLAYS as a sequence: the command types char-by-char,
+// the response prints line-by-line, then the file-effect (read highlight or
+// diff lines) lights up last. Driven by a cancellable JS typing engine (CSS
+// can't replay on repeated clicks), mirroring TryTerminal's approach.
+//
 // A11y: WAI-ARIA tabs. Visual panes are aria-hidden; one sr-only aria-live
 // region receives the full transcript in a single mutation per panel.
 // No-JS: chips hidden, all three panels render stacked + static.
-// Reduced-motion + JS: chips work, swaps instant (handled by CSS gating).
+// Reduced-motion + JS: chips work, swaps instant (full render, no typing).
 //
 // Copy verified against DayPairs.astro (v0.9.5 inventory).
 import Pair from './Pair.astro';
@@ -49,7 +54,7 @@ const tabs = [
   <div class="stage-panels">
     <!-- PANEL: morning -->
     <div
-      class="stage-panel scene"
+      class="stage-panel"
       role="tabpanel"
       id="stage-panel-morning"
       aria-labelledby="stage-tab-morning"
@@ -58,7 +63,7 @@ const tabs = [
     >
       <p class="kicker stage-kicker mb-3">08:40 · one command</p>
       <Pair>
-        <TerminalPane slot="left" label="claude code" tag="08:40"><span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:13ch; --type-steps:13; --type-start:200ms">good morning</span><span class="after-type">
+        <TerminalPane slot="left" label="claude code" tag="08:40"><span class="prompt">&gt;</span> <span class="cmd" data-stage-cmd>good morning</span><span class="cs-response" data-stage-response>
 
 This week (top 3):
   1. v2 ingestion pipeline — cut release
@@ -75,7 +80,7 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
 <span class="dim">covers_week:</span> 2026-W24
 <span class="dim">---</span>
 
-<span class="read-row"><span class="text-accent">## This week</span></span>
+<span class="read-row" data-stage-effect><span class="text-accent">## This week</span></span>
 
 1. Ship v2 ingestion pipeline — cut
    the release this week.
@@ -88,7 +93,7 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
 
     <!-- PANEL: decide -->
     <div
-      class="stage-panel scene"
+      class="stage-panel"
       role="tabpanel"
       id="stage-panel-decide"
       aria-labelledby="stage-tab-decide"
@@ -98,26 +103,25 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
     >
       <p class="kicker stage-kicker mb-3">16:30 · a call worth keeping</p>
       <Pair>
-        <TerminalPane slot="left" label="claude code" tag="16:30"><span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:42ch; --type-steps:42; --type-start:200ms">/thinkos-decide we version the API</span>
-<span class="prompt">&gt;</span> <span class="cmd">from day one</span><span class="after-type">
+        <TerminalPane slot="left" label="claude code" tag="16:30"><span class="prompt">&gt;</span> <span class="cmd" data-stage-cmd>/thinkos-decide we version the API from day one</span><span class="cs-response" data-stage-response>
 
 Logged to 04 Knowledge/Decisions.md —
 date, reasoning, and what it applies to.
 
 /thinkos-decisions will surface it the
 next time the question comes up.</span></TerminalPane>
-        <DiffPane slot="right" path="04 Knowledge / Decisions.md" tag="+1 entry"><span class="diff-add" style="--d:0ms">+ ## 2026-06-11 — API versioning</span>
-<span class="diff-add" style="--d:70ms">+ **Decision**: Version the API from day one.</span>
-<span class="diff-add" style="--d:140ms">+ **Why**: Breaking changes after launch are</span>
-<span class="diff-add" style="--d:140ms">+ costlier than a /v1 prefix up front.</span>
-<span class="diff-add" style="--d:210ms">+ **Context**: design review, ingestion v2.</span>
-<span class="diff-add" style="--d:280ms">+ **Applies to**: all public endpoints.</span></DiffPane>
+        <DiffPane slot="right" path="04 Knowledge / Decisions.md" tag="+1 entry" stagger={false}><span data-stage-effect><span class="diff-add">+ ## 2026-06-11 — API versioning</span>
+<span class="diff-add">+ **Decision**: Version the API from day one.</span>
+<span class="diff-add">+ **Why**: Breaking changes after launch are</span>
+<span class="diff-add">+ costlier than a /v1 prefix up front.</span>
+<span class="diff-add">+ **Context**: design review, ingestion v2.</span>
+<span class="diff-add">+ **Applies to**: all public endpoints.</span></span></DiffPane>
       </Pair>
     </div>
 
     <!-- PANEL: weekly-review -->
     <div
-      class="stage-panel scene"
+      class="stage-panel"
       role="tabpanel"
       id="stage-panel-review"
       aria-labelledby="stage-tab-review"
@@ -131,7 +135,7 @@ next time the question comes up.</span></TerminalPane>
         <TerminalPane slot="left" label="claude code" tag="20:00"><span class="amber">CURRENT FOCUS STALE: covers_week ended</span>
 <span class="amber">2026-06-07 — run /weekly-review</span>
 
-<span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:14ch; --type-steps:14; --type-start:200ms">/weekly-review</span><span class="after-type">
+<span class="prompt">&gt;</span> <span class="cmd" data-stage-cmd>/weekly-review</span><span class="cs-response" data-stage-response>
 
 Read 7 days of Work Log. Last week's
 focus archived. Proposed for next week:
@@ -140,14 +144,14 @@ focus archived. Proposed for next week:
   3. close the Q3 hiring loop
 
 Replace Current Focus with this? (y / n)</span></TerminalPane>
-        <DiffPane slot="right" path="01 Now / Current Focus.md" tag="replaced"><span class="dim">## This week</span>
+        <DiffPane slot="right" path="01 Now / Current Focus.md" tag="replaced" stagger={false}><span class="dim">## This week</span>
 
-<span class="diff-del" style="--d:0ms">- ship v2 ingestion pipeline</span>
-<span class="diff-del" style="--d:90ms">- Q3 hiring plan, first draft</span>
-<span class="diff-del" style="--d:180ms">- clear PR queue (T. + R.)</span>
-<span class="diff-add" style="--d:480ms">+ ship ingestion v2.1</span>
-<span class="diff-add" style="--d:570ms">+ onboarding doc for the new hire</span>
-<span class="diff-add" style="--d:660ms">+ close the Q3 hiring loop</span></DiffPane>
+<span data-stage-effect><span class="diff-del">- ship v2 ingestion pipeline</span>
+<span class="diff-del">- Q3 hiring plan, first draft</span>
+<span class="diff-del">- clear PR queue (T. + R.)</span>
+<span class="diff-add">+ ship ingestion v2.1</span>
+<span class="diff-add">+ onboarding doc for the new hire</span>
+<span class="diff-add">+ close the Q3 hiring loop</span></span></DiffPane>
       </Pair>
     </div>
   </div>
@@ -171,6 +175,18 @@ Replace Current Focus with this? (y / n)</span></TerminalPane>
   html.js .command-stage .stage-panel { margin-bottom: 0; }
   /* Hidden panels never show under JS. */
   html.js .command-stage .stage-panel[hidden] { display: none; }
+
+  /* While a JS-driven replay is mid-flight, the response + file-effect are
+     hidden until the engine reveals them. The .cs-playing flag is added by JS
+     only when motion is permitted, so no-JS and reduced-motion never hide
+     anything (full static render survives). */
+  .command-stage.cs-playing [data-stage-response] { opacity: 0; }
+  .command-stage.cs-playing [data-stage-effect] { opacity: 0; }
+  .command-stage [data-stage-response].cs-on,
+  .command-stage [data-stage-effect].cs-on {
+    opacity: 1;
+    transition: opacity 360ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
 </style>
 
 <script is:inline>
@@ -186,9 +202,25 @@ Replace Current Focus with this? (y / n)</span></TerminalPane>
       panels[p.getAttribute('data-stage-panel')] = p;
     });
     var clockEl = document.querySelector('[data-session-clock]');
+    var token = 0; // cancellation token for the active replay
+
+    // Snapshot the final command + response text once, so replays can clear
+    // and retype without losing the source content.
+    function snapshot(panel) {
+      if (panel._snap) return panel._snap;
+      var cmd = panel.querySelector('[data-stage-cmd]');
+      var resp = panel.querySelector('[data-stage-response]');
+      panel._snap = {
+        cmd: cmd ? cmd.textContent : '',
+        cmdEl: cmd,
+        respEl: resp,
+        respText: resp ? resp.textContent : '',
+        effectEl: panel.querySelector('[data-stage-effect]'),
+      };
+      return panel._snap;
+    }
 
     function transcriptFor(panel) {
-      // Collect visible text from both panes for a single-shot announcement.
       var parts = [];
       panel.querySelectorAll('.pane-body').forEach(function (b) {
         parts.push(b.textContent.replace(/\s+\n/g, '\n').trim());
@@ -196,14 +228,57 @@ Replace Current Focus with this? (y / n)</span></TerminalPane>
       return parts.join('\n\n');
     }
 
-    function play(panel) {
-      if (!motion) return; // instant; CSS shows final state
-      // Re-trigger scene animations by toggling is-visible.
-      panel.classList.remove('is-visible');
-      // Force reflow so the class removal takes before re-add.
-      // eslint-disable-next-line no-unused-expressions
-      panel.offsetWidth;
-      panel.classList.add('is-visible');
+    function instant(panel) {
+      var s = snapshot(panel);
+      if (s.cmdEl) s.cmdEl.textContent = s.cmd;
+      if (s.respEl) { s.respEl.textContent = s.respText; s.respEl.classList.add('cs-on'); }
+      if (s.effectEl) s.effectEl.classList.add('cs-on');
+      if (live) live.textContent = transcriptFor(panel);
+    }
+
+    function replay(panel) {
+      var my = ++token;
+      root.classList.add('cs-playing');
+      var s = snapshot(panel);
+      // Reset to start state.
+      if (s.cmdEl) s.cmdEl.textContent = '';
+      if (s.respEl) s.respEl.classList.remove('cs-on');
+      if (s.effectEl) s.effectEl.classList.remove('cs-on');
+
+      var chars = s.cmd.split('');
+      var ci = 0;
+      function typeChar() {
+        if (my !== token) return;
+        if (ci < chars.length) {
+          s.cmdEl.textContent += chars[ci++];
+          setTimeout(typeChar, 32);
+        } else {
+          setTimeout(printResponse, 220);
+        }
+      }
+      // Response is a single text node; reveal it line-by-line by growing the
+      // visible slice. Keeps it cheap and avoids innerHTML.
+      var respLines = s.respText.split('\n');
+      var li = 0;
+      function printResponse() {
+        if (my !== token) return;
+        if (!s.respEl) { lightEffect(); return; }
+        s.respEl.classList.add('cs-on');
+        if (li === 0) s.respEl.textContent = '';
+        if (li < respLines.length) {
+          s.respEl.textContent += (li === 0 ? '' : '\n') + respLines[li++];
+          setTimeout(printResponse, 55);
+        } else {
+          setTimeout(lightEffect, 160);
+        }
+      }
+      function lightEffect() {
+        if (my !== token) return;
+        if (s.effectEl) s.effectEl.classList.add('cs-on');
+        if (live) live.textContent = transcriptFor(panel);
+      }
+
+      if (s.cmdEl) typeChar(); else printResponse();
     }
 
     function select(id, focusChip) {
@@ -218,7 +293,7 @@ Replace Current Focus with this? (y / n)</span></TerminalPane>
         else panels[key].setAttribute('hidden', '');
       }
       var panel = panels[id];
-      play(panel);
+      if (motion) replay(panel); else instant(panel);
       // SessionBar clock advances for decide / review.
       if (clockEl) {
         var chip = root.querySelector('[data-stage-chip="' + id + '"]');
@@ -226,8 +301,6 @@ Replace Current Focus with this? (y / n)</span></TerminalPane>
         var d = chip.getAttribute('data-day');
         clockEl.textContent = (d ? d + ' ' : '') + t;
       }
-      // Single-shot live announcement.
-      if (live) live.textContent = transcriptFor(panel);
     }
 
     chips.forEach(function (chip, i) {
@@ -246,7 +319,23 @@ Replace Current Focus with this? (y / n)</span></TerminalPane>
       });
     });
 
-    // Initial: first panel visible. Announce it once on first scroll-in is
-    // handled by the global reveal observer adding .is-visible; nothing to do.
+    // First panel: play once when the stage scrolls into view (motion), or
+    // render static immediately (reduced-motion / instant).
+    var first = panels['morning'];
+    if (first) {
+      if (motion && 'IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          for (var i = 0; i < entries.length; i++) {
+            if (entries[i].isIntersecting) {
+              replay(first);
+              io.disconnect();
+            }
+          }
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+        io.observe(root);
+      } else {
+        instant(first);
+      }
+    }
   })();
 </script>

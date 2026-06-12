@@ -662,6 +662,151 @@ html.reveal-ready .scene.is-visible .flow-link .flow-line {
 }
 
 /* ===========================================================
+   STEP ENGINE — sequenced choreography (cause → effect → result)
+   A [data-choreo] scene holds [data-step="N"] elements. The inline
+   engine in BaseLayout walks steps ascending, adding .step-on per step.
+   Under reveal-ready, steps start hidden and inert; .step-on releases them.
+   =========================================================== */
+
+/* Base hidden state for any stepped element under reveal-ready. */
+html.reveal-ready [data-choreo] [data-step] {
+  opacity: 0;
+  transition: opacity 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+html.reveal-ready [data-choreo] [data-step].step-on {
+  opacity: 1;
+}
+
+/* A stepped element may itself slide up a touch as it appears (annotations,
+   beat badges, response blocks). */
+html.reveal-ready [data-choreo] [data-step].step-fade {
+  transform: translateY(6px);
+  transition: opacity 420ms cubic-bezier(0.2, 0.7, 0.2, 1),
+              transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+html.reveal-ready [data-choreo] [data-step].step-fade.step-on {
+  transform: none;
+}
+
+/* Typing inside a choreo scene must NOT fire on scene visibility — it fires
+   when its OWN step turns on. Override the scene-visibility typing rule. */
+html.reveal-ready [data-choreo] .type-line {
+  border-right: 1px solid var(--accent);
+  width: 0;
+  animation: none;
+}
+html.reveal-ready [data-choreo] [data-step].step-on .type-line,
+html.reveal-ready [data-choreo] [data-step].step-on.type-line {
+  animation:
+    type-in 900ms steps(var(--type-steps, 14)) 0ms both,
+    caret-blink 800ms steps(1) 900ms 4;
+}
+
+/* read-row highlight sweeps L→R when its step turns on (instead of just
+   appearing). The highlight background grows from 0 to full width. */
+html.reveal-ready [data-choreo] [data-step] .read-row,
+html.reveal-ready [data-choreo] [data-step].read-row {
+  background-image: linear-gradient(var(--readhl), var(--readhl));
+  background-repeat: no-repeat;
+  background-position: 0 50%;
+  background-size: 0% 100%;
+  background-color: transparent;
+}
+html.reveal-ready [data-choreo] [data-step].step-on .read-row,
+html.reveal-ready [data-choreo] [data-step].step-on.read-row {
+  background-size: 100% 100%;
+  transition: background-size 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* line-stagger — plain (non-diff) lines print one after another inside a
+   stepped block. Each <span class="line-stagger"> carries its own --d. */
+html.reveal-ready [data-choreo] [data-step] .line-stagger {
+  display: block;
+  opacity: 0;
+  transform: translateY(3px);
+}
+html.reveal-ready [data-choreo] [data-step].step-on .line-stagger {
+  opacity: 1;
+  transform: none;
+  transition: opacity 320ms ease, transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--d, 0ms);
+}
+
+/* diff-stagger wired into the step engine: the +lines write in when their
+   step turns on, not on scene visibility. */
+html.reveal-ready [data-choreo] [data-step] .diff-stagger .diff-add,
+html.reveal-ready [data-choreo] [data-step].diff-stagger .diff-add {
+  opacity: 0;
+  transform: translateY(4px);
+}
+html.reveal-ready [data-choreo] [data-step].step-on .diff-stagger .diff-add,
+html.reveal-ready [data-choreo] [data-step].step-on.diff-stagger .diff-add {
+  opacity: 1;
+  transform: none;
+  transition: opacity 420ms ease, transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--d, 0ms);
+}
+
+/* Pair connector draws as a step (left→right). The pair-link hairline gets an
+   accent overlay that grows when its step turns on. */
+html.reveal-ready [data-choreo] [data-step].pair-draw .pair-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 1px;
+  width: 0%;
+  background: var(--accent);
+}
+@media (min-width: 900px) {
+  html.reveal-ready [data-choreo] [data-step].pair-draw.step-on .pair-link::after {
+    width: 100%;
+    transition: width 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+}
+
+/* FlowDiagram nodes are .pane — the scene-visibility pane light-up rule has
+   higher specificity than the generic step rule, so it would defeat gating.
+   Re-assert step gating for choreo flow nodes with matching specificity. */
+html.reveal-ready [data-choreo].is-visible .flow-node[data-step] {
+  opacity: 0;
+}
+html.reveal-ready [data-choreo].is-visible .flow-node[data-step].step-on {
+  opacity: 1;
+  transition: opacity 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* FlowDiagram connector line draws when its step turns on (not on visibility).
+   Override the scene-visibility flow-line rule. */
+html.reveal-ready [data-choreo] .flow-link[data-step] .flow-line {
+  background-size: 0% 1px;
+  transition: none;
+}
+html.reveal-ready [data-choreo].is-visible .flow-link[data-step] .flow-line {
+  background-size: 0% 1px;
+}
+html.reveal-ready [data-choreo] .flow-link[data-step].step-on .flow-line {
+  background-size: 100% 1px;
+  transition: background-size 400ms ease;
+}
+
+/* Beat badges — tiny mono accent tags that appear with their step. */
+.beat-badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+/* The annotation line under a command (dim mono 12px). */
+.cmd-annot {
+  display: block;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ===========================================================
    REDUCED MOTION — every device collapses to final static state.
    =========================================================== */
 @media (prefers-reduced-motion: reduce) {
@@ -704,6 +849,52 @@ html.reveal-ready .scene.is-visible .flow-link .flow-line {
   html.reveal-ready .scene .flow-link .flow-line,
   html.reveal-ready .scene.is-visible .flow-link .flow-line {
     background-size: 100% 1px;
+    transition: none;
+  }
+  /* Step engine collapses fully: every stepped element is shown final. */
+  html.reveal-ready [data-choreo] [data-step] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  html.reveal-ready [data-choreo] .type-line,
+  html.reveal-ready [data-choreo] [data-step].step-on .type-line,
+  html.reveal-ready [data-choreo] [data-step].step-on.type-line {
+    width: auto !important;
+    border-right: none;
+    animation: none;
+  }
+  html.reveal-ready [data-choreo] [data-step] .read-row,
+  html.reveal-ready [data-choreo] [data-step].read-row {
+    background-image: none;
+    background-color: var(--readhl);
+    background-size: auto;
+    transition: none;
+  }
+  html.reveal-ready [data-choreo] [data-step] .line-stagger {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  html.reveal-ready [data-choreo] [data-step] .diff-stagger .diff-add,
+  html.reveal-ready [data-choreo] [data-step].diff-stagger .diff-add {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  html.reveal-ready [data-choreo] [data-step].pair-draw .pair-link::after {
+    width: 100% !important;
+    transition: none;
+  }
+  html.reveal-ready [data-choreo].is-visible .flow-node[data-step],
+  html.reveal-ready [data-choreo].is-visible .flow-node[data-step].step-on {
+    opacity: 1 !important;
+    transition: none;
+  }
+  html.reveal-ready [data-choreo] .flow-link[data-step] .flow-line,
+  html.reveal-ready [data-choreo].is-visible .flow-link[data-step] .flow-line,
+  html.reveal-ready [data-choreo] .flow-link[data-step].step-on .flow-line {
+    background-size: 100% 1px !important;
     transition: none;
   }
   .link-anim,

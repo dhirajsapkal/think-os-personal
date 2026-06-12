@@ -21,30 +21,31 @@ import { VERSION } from '../lib/version';
 const flowNodes = [
   {
     label: 'your files',
-    body: 'A plain folder on your disk — <code>~/ThinkOS/vault</code>. Who you are, what you\'re doing this week, your projects, people, decisions, and a running work log. Open any of them in Obsidian, VS Code, or TextEdit. Nothing is hidden, encoded, or locked in.',
+    body: 'A plain folder on your disk. Open it in Obsidian, VS Code, TextEdit — nothing hidden, nothing locked in.',
+    files: ['Identity.md', 'Current Focus.md', 'Tasks.md', 'Work Log.md', 'Projects/', 'People.md', 'Decisions.md', 'Learnings.md'],
   },
   {
     label: 'a local index',
-    body: 'Basic Memory derives a hybrid index from your files — SQLite full-text search, local vector embeddings, and a knowledge graph built from your notes\' own links. The index is a copy of your files, not the other way around. If it breaks, one command rebuilds it.',
+    body: 'Search and links, derived from your files — never the other way around. Breaks? One command rebuilds it.',
   },
   {
     label: 'every session',
-    body: 'Search locates; the agent reads only the span it needs. Large files are never read end to end.',
+    body: 'Claude queries the index and reads only the span it needs.',
   },
 ];
 
 const trust = [
   {
     label: 'doesn\'t phone home',
-    body: 'Think OS is local-first. Basic Memory runs as a stdio MCP server — your markdown files stay on disk, indexed by SQLite on your machine. They only leave if you explicitly choose to sync (git, iCloud, Syncthing).',
+    body: 'Local-first. Your files stay on disk, indexed locally. They leave only if you choose to sync — git, iCloud, Syncthing.',
   },
   {
     label: 'doesn\'t capture content',
-    body: 'The background job records session metadata: directories, file counts, a commit hash. Not file contents, not transcripts, not anything you typed. It runs locally, makes no network calls, and every entry is listed in the ledger and removable with /thinkos-undo-capture.',
+    body: 'Capture records metadata — directories, file counts, a commit hash. Never file contents, never transcripts. Every entry is ledgered and undoable.',
   },
   {
     label: 'doesn\'t write silently',
-    body: 'Conversational writes are confirmed with you; automatic captures are metadata-only, ledger-logged, and undoable. When you state a reusable decision mid-conversation, Claude asks once whether to log it — it won\'t capture silently.',
+    body: 'Conversational writes are confirmed with you. Claude asks once before logging a decision — it never captures silently.',
   },
 ];
 
@@ -53,19 +54,19 @@ const steps = [
     marker: '[1/3]',
     title: 'Install',
     time: '~5 min',
-    body: 'Paste the install prompt into a fresh Claude Code session. The agent clones the repo, asks five questions, and runs the install.',
+    body: 'Paste the install prompt into a fresh Claude Code session. It clones the repo, asks five questions, runs the install.',
   },
   {
     marker: '[2/3]',
     title: 'Restart + authenticate',
     time: '~2 min',
-    body: 'Quit Claude Code and reopen it. MCPs and new slash commands only load on startup. If you installed a plugin bundle, type /mcp and authorize each connector listed.',
+    body: 'Quit and reopen Claude Code — commands and MCPs load on startup. Installed a bundle? Type /mcp and authorize each connector.',
   },
   {
     marker: '[3/3]',
     title: 'Continue, when you want',
     time: 'opt-in · ~15–30 min',
-    body: 'Skip this and the vault still fills in — emergent seeding watches your real conversations and proposes entries you confirm. Or run /thinkos-continue to bulk-seed: import an existing markdown vault, pull from your connected tools, and draft Identity, Project Index, Current Focus, and People in one sitting.',
+    body: 'Skip it and the vault still fills in from your real conversations — Claude proposes, you confirm. Or run /thinkos-continue to bulk-import in one sitting.',
   },
 ];
 
@@ -81,7 +82,7 @@ const faqs = [
   },
   {
     q: 'Why markdown files instead of a vector or graph database?',
-    a: 'You don\'t have to choose. Basic Memory derives a hybrid index from your files — SQLite full-text search, local vector embeddings, and a knowledge graph built from your notes\' own links — so you get database-grade retrieval without giving up the files. DB-native memory systems run an LLM over every write to extract "facts," which costs tokens and bakes mistakes into the store; verbatim markdown stays auditable, git-diffable, and editable anywhere. The long version, tradeoffs included, is in docs/why-files-not-a-database.md on GitHub.',
+    a: 'You don\'t have to choose — Basic Memory derives full-text search, local embeddings, and a knowledge graph FROM your files, so retrieval is database-grade and the files stay auditable and editable anywhere. The long version is in docs/why-files-not-a-database.md on GitHub.',
   },
   {
     q: 'Can I use my existing Obsidian vault?',
@@ -89,7 +90,7 @@ const faqs = [
   },
   {
     q: 'What about cost?',
-    a: 'Basic Memory itself is free and runs locally — no cloud mode, no recurring infrastructure cost. Phase 3 maintenance jobs run as local launchd jobs. The daily reindex uses no API tokens. The weekly review, quarterly archive, and morning brief each spawn a local claude session when they fire — those consume Anthropic API tokens; whether that\'s included in your Claude subscription or charged as pay-as-you-go depends on your account.',
+    a: 'Basic Memory is free and local. The scheduled jobs run on your machine; only the weekly review, quarterly archive, and morning brief spawn a Claude session, which uses your existing Claude plan or API billing.',
   },
   {
     q: 'Which agent surfaces does Think OS support?',
@@ -117,9 +118,7 @@ const faqs = [
       </h1>
 
       <p class="po-3 mt-7 max-w-[62ch] text-[18px] md:text-[19px] leading-relaxed text-muted" style="font-variation-settings:'opsz' 16">
-        Think OS is a folder of markdown files Claude reads at the start of
-        every session — so it knows your role, your week, your people, your
-        decisions, without you re-typing them.
+        A folder of markdown files Claude reads at the start of every session — your role, your week, your people, your decisions. No re-typing.
       </p>
 
       <div class="po-4 mt-10 max-w-[820px]">
@@ -134,33 +133,29 @@ const faqs = [
   <!-- ============================================================
        SCENE 2 · THE READ (08:40)
        ============================================================ -->
-  <section id="scene-read" class="scene border-t border-rule" data-time="08:40">
+  <section id="scene-read" class="scene border-t border-rule" data-time="08:40" data-choreo>
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
-      <Pair>
-        <TerminalPane slot="left" label="claude code" tag="08:40"><span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:13ch; --type-steps:13; --type-start:200ms">good morning</span><span class="after-type">
+      <Pair connectorStep={3}>
+        <TerminalPane slot="left" label="claude code" tag="08:40"><span data-step="1"><span class="beat-badge mr-2">[1] you say it</span>
+<span class="prompt">&gt;</span> <span class="cmd type-line" style="--type-ch:13ch; --type-steps:13">good morning</span></span><span class="cmd-annot step-fade" data-step="2" data-step-ms="500">→ runs /thinkos-morning</span><span data-step="6" data-step-ms="600"><span class="beat-badge step-fade" data-step="6">[3] it answers</span>
 
-This week (top 3):
-  1. v2 ingestion pipeline — cut release
-  2. Q3 hiring plan, first draft Friday
-  3. clear PR queue (T. + R.)
-
-Calendar: 2 meetings, both afternoon.</span></TerminalPane>
-        <FilePane slot="right" path="~/ThinkOS/vault/" tag="read"><span class="after-type"><span class="dim">00 Home/</span>
+<span class="line-stagger" style="--d:0ms">This week (top 3):</span><span class="line-stagger" style="--d:70ms">  1. v2 ingestion pipeline — cut release</span><span class="line-stagger" style="--d:140ms">  2. Q3 hiring plan, first draft Friday</span><span class="line-stagger" style="--d:210ms">  3. clear PR queue (T. + R.)</span><span class="line-stagger" style="--d:280ms">
+</span><span class="line-stagger" style="--d:350ms">Calendar: 2 meetings, both afternoon.</span></span></TerminalPane>
+        <FilePane slot="right" path="~/ThinkOS/vault/" tag="read"><span class="dim">00 Home/</span>
 <span class="dim">01 Now/</span>
-<span class="read-row">  <span class="text-accent">Current Focus.md</span>  <span class="dim">← read</span></span>
+<span class="read-row" data-step="4" data-step-ms="500">  <span class="text-accent">Current Focus.md</span>  <span class="dim">← read</span></span>
 <span class="dim">  Tasks.md</span>
 <span class="dim">  Work Log.md</span>
 <span class="dim">02 Projects/</span>
 <span class="dim">03 People/</span>
 <span class="dim">04 Knowledge/</span>
 <span class="dim">05 Profile/</span>
-<span class="read-row">  <span class="text-accent">Identity.md</span>  <span class="dim">← read</span></span>
-<span class="dim">90 System/</span></span></FilePane>
+<span class="read-row" data-step="5" data-step-ms="500">  <span class="text-accent">Identity.md</span>  <span class="dim">← read</span></span>
+<span class="dim">90 System/</span></FilePane>
       </Pair>
+      <p class="mt-4 font-mono text-[10px] tracking-[0.1em]"><span class="beat-badge step-fade" data-step="3">[2] it reads</span></p>
       <p class="mt-6 text-[15px] leading-relaxed text-muted max-w-[64ch]">
-        At the start of a session, Claude reads two small files — your Identity
-        and this week's Current Focus. Both are small, so it reads them whole.
-        That's the entire trick.
+        Say good morning — Claude reads two small files before it answers. That's the whole trick.
       </p>
       <p class="mt-3 font-mono text-[10px] tracking-[0.16em] uppercase text-muted">
         Sample vault content — your real vault has your real notes.
@@ -171,22 +166,22 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
   <!-- ============================================================
        SCENE 3 · YOU TYPED NOTHING (14:02)
        ============================================================ -->
-  <section class="scene border-t border-rule" data-time="14:02">
+  <section class="scene border-t border-rule" data-time="14:02" data-choreo>
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
+      <span data-step="1" data-step-ms="900" style="display:none" aria-hidden="true"></span>
       <Pair>
         <TerminalPane slot="left" label="claude code" tag="14:02"><span class="dim">— no session open —</span></TerminalPane>
-        <DiffPane slot="right" path="01 Now / Work Log.md" tag="+3 lines"><span class="dim"># appended by session capture</span>
+        <DiffPane slot="right" path="01 Now / Work Log.md" tag="+3 lines" stagger={false}><span class="dim"># appended by session capture</span>
 
-<span class="diff-add" style="--d:0ms">+ ### 14:00 — acme-redesign</span>
+<span class="diff-stagger" data-step="2" data-step-ms="600"><span class="diff-add" style="--d:0ms">+ ### 14:00 — acme-redesign</span>
 <span class="diff-add" style="--d:80ms">+ - Edited 12 files in ~/code/acme-redesign</span>
-<span class="diff-add" style="--d:160ms">+ - HEAD: a1b2c3d</span>
+<span class="diff-add" style="--d:160ms">+ - HEAD: a1b2c3d</span></span>
 
-<span class="dim"># listed in the ledger; removable</span>
-<span class="dim"># with /thinkos-undo-capture</span></DiffPane>
+<span class="step-fade" data-step="3" data-step-ms="500"><span class="dim"># listed in the ledger; removable</span>
+<span class="dim"># with /thinkos-undo-capture</span></span></DiffPane>
       </Pair>
       <p class="mt-6 text-[15px] leading-relaxed text-muted max-w-[58ch]">
-        The background job noted where the morning went — folders, file
-        counts, a commit hash. Never content.
+        No session open. The background job still logged where the day went — never content.
       </p>
     </div>
   </section>
@@ -203,7 +198,7 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
   <!-- ============================================================
        SCENE 5 · HOW IT WORKS
        ============================================================ -->
-  <section class="scene border-t border-rule" data-time="09:15">
+  <section class="scene border-t border-rule" data-time="09:15" data-choreo>
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-12 reveal">
         <h2 class="md-heading">How it works</h2>
@@ -229,7 +224,7 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
   <section class="border-t border-rule" data-time="11:30">
     <div class="mx-auto max-w-[1200px] px-6 md:px-10 py-20 md:py-28">
       <header class="mb-10">
-        <h2 class="md-heading">Try it</h2>
+        <h2 class="md-heading">Type something</h2>
       </header>
       <div class="max-w-[820px]">
         <TryTerminal />
@@ -270,8 +265,7 @@ Calendar: 2 meetings, both afternoon.</span></TerminalPane>
       <header class="mb-14 reveal">
         <h2 class="md-heading">Get started</h2>
         <p class="mt-5 text-[16px] md:text-[18px] leading-relaxed text-muted max-w-[60ch]">
-          About fifteen to thirty minutes once. Zero overhead after — the vault
-          fills in from your real conversations, not a long Q&A.
+          Fifteen to thirty minutes, once. After that it fills itself in.
         </p>
       </header>
 
