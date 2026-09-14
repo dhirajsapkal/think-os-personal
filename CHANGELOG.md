@@ -2,6 +2,30 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.9.10] — 2026-09-14 — Timesheets, and a session-capture accuracy fix
+
+Two things that turned out to be the same thing. Filling a timesheet from memory is tedious because the hard part is recall, not data entry — so Think OS should be able to say what you actually worked on. It couldn't, because session capture was wrong.
+
+**The capture bug.** `thinkos-session-capture.sh` selected session files by mtime and then parsed each one in full, counting every edit it had ever contained. A single Claude Code session file can span many days, so every run re-reported the same edits, and any touch of the file — an app launch, a sync, a metadata rewrite — replayed the whole history as "today's work". The result was phantom activity on days when nothing happened, repeated on the cron cadence. Every JSONL line already carried its own `timestamp`; the script never read it.
+
+**The fix** is `scripts/session-activity.py`, which filters by each entry's own timestamp and reports real per-project, per-day active time — summing gaps between events, treating silence beyond `--idle-gap` as away. Deliberately conservative: it under-counts thinking time with no tool calls, because it feeds a timesheet. It is an attribution signal, not a total — it only sees time spent in Claude Code.
+
+**The timesheet side** is `scripts/harvest-timesheet.py`, a converger: give it a plan and it issues the minimum create/update/delete to make a Harvest week match. Idempotent, and it never touches entries already submitted or approved. It does no reasoning — the plan comes from you or from `/thinkos-timesheet` — so a bad inference can't silently rewrite a week. Harvest exposes no submit-for-approval endpoint, so submitting stays manual, which is right: it's an attestation.
+
+### Added
+- `scripts/session-activity.py` — timestamp-accurate per-project, per-day activity from Claude Code session logs. JSON or text.
+- `scripts/harvest-timesheet.py` — Harvest week converger. Project/task pairs live in `~/.thinkos/harvest-catalog.json`; `catalog --init` discovers them from your own Harvest account. `ledger-report` totals whichever slugs you nominate, for provenance on a stream of work.
+- `/thinkos-timesheet` — gathers the week's inputs, proposes a split to react to rather than asking an open "what did you do?", shows the diff, applies only on explicit confirmation.
+- `templates/90 System/Timesheet Sources.md` — where your capacity source, calendar→slug mappings, and manual checks live. Logic in the repo, personal context in the vault.
+
+### Fixed
+- `thinkos-session-capture.sh` no longer selects by mtime or re-reports historical edits; each bucket is written under its own date header, so a window spanning midnight lands correctly.
+- The capture marker now advances only after a successful write.
+
+### Notes
+- Harvest approvals are immutable through the API, so corrections are forward-only.
+- Work-log entries written by the previous capture are not reliable; `session-activity.py` reads the raw session files and is correct for any period they still cover.
+
 ## [v0.9.9] — 2026-06-12 — Website V4: dense editorial + demo theaters, art-directed against renders
 
 Fourth take, process-corrected: previous rounds were specified blind; this one was art-directed against actual screenshots. The model the client chose: a dense editorial shell (light, layered collages, oversized type, mono annotations) punctuated by full-bleed dark demo theaters where Think blue is the light source. All homepage content rewritten from scratch around a new spine — "Every new chat, Claude meets you for the first time" → watch it answer from your files (each response line traces to a glowing file chip) → the memory is a folder (annotated anatomy) → a day writes itself (four replayable chapters) → type something → "Stop being a stranger." Static-state resilience became a rule: both theaters server-render their complete final state and replay it as choreography only when motion is allowed — screenshots, reduced-motion, and no-JS all see the full result.

@@ -12,3 +12,6 @@ build/
 
 # local planning artifacts — never publish
 .plans/
+
+# Python bytecode from scripts/
+scripts/__pycache__/
