@@ -24,23 +24,55 @@ For each meeting that passes dedup:
      If the transcript body is empty or null, skip this meeting (not yet processed).
 
   b. Privacy check: scan the meeting title and transcript body for any of these keywords (case-insensitive):
-     Match on WORD BOUNDARIES, not substrings, and prefer the specific phrase over the bare word:
-       salary, compensation, bonus, severance, equity grant, offer letter, performance review, PIP,
-       health insurance, mental health, medical, doctor, diagnosis, therapy, family, bereavement,
-       1:1, one-on-one, HR, benefits enrollment, pay raise, merit increase, personal leave
+     Match on WORD BOUNDARIES, never substrings. Then apply TWO TIERS — a flat
+     "any keyword matches" rule fails in both directions at once, and did:
 
-     Two failure modes this list is written to avoid:
-     - Substring bleed. Bare "comp" matches Company/Comparison/Complete; "PIP" matches Pipeline;
-       "personal" matches Personalization. Always require word boundaries.
-     - Semantic over-breadth. Bare "health" matches "Delivery Project & Team Health" and
-       "Project health check" — ordinary delivery meetings — even WITH word boundaries, which is
-       why it is replaced by "health insurance" / "mental health" / "medical". Same for bare
-       "raise" ("Raise the bar workshop") -> "pay raise" / "merit increase".
+     TIER 1 — flag on a SINGLE mention. Unambiguous in any context.
+       salary, compensation, severance, equity grant, offer letter, pay raise,
+       merit increase, performance review, PIP, termination, resignation,
+       transplant, bone marrow, stem cell, chemo, chemotherapy, oncology,
+       diagnosis, biopsy, surgery, hospice, terminally ill, FMLA, medical leave,
+       short term disability, bereavement, mental health, therapy, prenatal,
+       parental leave, health insurance, benefits enrollment
 
-     When a match comes only from the title and the transcript body does not corroborate it,
-     prefer PERSONAL = false. Mis-routing a sales-pipeline meeting into the personal hub is a
-     real, observed failure — not a hypothetical.
-     Set PERSONAL = true if any keyword matches, false otherwise.
+     TIER 2 — flag ONLY when substantive: several mentions or a sustained
+     passage, not one aside in an otherwise ordinary work conversation.
+       family, doctor, medical, HR, 1:1, one-on-one
+
+     Words deliberately NOT on either list, because they are ordinary
+     vocabulary in this kind of work and produced false redactions in testing:
+       "health"      — "Delivery Project & Team Health", "project health check"
+       "terminal"    — a shell, and a shipping/vehicle terminal. Use
+                       "terminally ill" when the medical sense is meant.
+       "appointment" — ordinary scheduling talk.
+       "raise"       — "raise the bar", "raise a ticket".
+       "personal"    — "personal data", "personally identifiable information",
+                       "personal preference", "personal brand". A meeting ABOUT
+                       PII handling is a work meeting. Use "personal leave" /
+                       "personal matter" when the private sense is meant.
+     Also reject substring bleed: "comp" matches Company/Comparison/Complete,
+     "PIP" matches Pipeline, "personal" matches Personalization. Word
+     boundaries are mandatory.
+
+     Before adding any term, ask what it means in THIS user's domain. A term
+     that is medical in general English can be daily vocabulary in theirs.
+
+     Two real failures this tiering exists to fix:
+     - OVER-flagging. A design backlog call was redacted because someone said
+       "family party thing" once in weekend small talk. A WalWil planning
+       meeting was redacted for one mention of a doctor's appointment in
+       scheduling logistics. Tier 2 stops both.
+     - UNDER-flagging, which is worse. A meeting titled "WalWil Design Backlog
+       Refinement" spent its last tenth on a participant's sibling's transplant
+       and medical leave. None of "transplant", "bone marrow" or "stem cell"
+       were on the old list, so it was written unredacted under an ordinary
+       work title. Tier 1 catches that on a single mention.
+
+     A work title guarantees nothing about the body. Scan the whole transcript,
+     not the first screenful.
+       Set PERSONAL = true if any TIER 1 term appears, or a TIER 2 term appears
+       substantively. Otherwise false. A TIER 2 term appearing once, in passing,
+       in an otherwise work conversation is PERSONAL = false.
 
   c. Build the vault path:
      - date: meeting start_time formatted as YYYY-MM-DD

@@ -10,9 +10,30 @@ framing.
 Draft an updated Current Focus.md covering next week (Mon-Sun).
 Match the existing file's structure.
 
-Write the draft to 01 Now/Current Focus.md.draft (NOT to the live
-file) via mcp__basic-memory__write_note. The user reviews and
-approves on Monday.
+Stage the draft — never write the live file.
+
+Write to "90 System/Pending Focus Refresh.md" via mcp__basic-memory__write_note
+(overwrite any existing one; only the newest proposal is useful), with this
+frontmatter so the SessionStart hook can surface it:
+
+  ---
+  title: Pending Focus Refresh
+  staged_at: <ISO8601 UTC>
+  proposes_week: <YYYY-MM-DD> -> <YYYY-MM-DD>
+  supersedes_covers_week: <covers_week currently live in Current Focus.md>
+  staged_by: weekly-review (unattended)
+  ---
+
+Then "## Proposed week block" (the complete block, exactly as it would be
+written to Current Focus.md) and "## Digest" (everything this playbook found).
+
+Do NOT write "01 Now/Current Focus.md" and do NOT archive the outgoing week —
+both belong to the apply step. Do NOT write a ".draft" file: Basic Memory
+derives filenames from the title and always appends ".md", so "Current
+Focus.md.draft" lands as "Current Focus.md.draft.md", and a name that is not
+surfaced anywhere is a proposal nobody ever sees.
+
+The user applies it with `/weekly-review --apply-pending`.
 
 Append a brief one-paragraph summary of this session to
 01 Now/Work Log.md noting the review ran.
@@ -23,5 +44,5 @@ Finally, append one ledger event to the vault note "Capture Log" (at
   mcp__basic-memory__edit_note(
     identifier="Capture Log",
     operation="append",
-    content="{\"ts\":\"<ISO8601 UTC>\",\"source\":\"maintenance\",\"detail\":{\"task\":\"weekly-review\"},\"output\":\"01 Now/Current Focus.md.draft\",\"mode\":\"create\",\"bytes\":<draft byte length>}\n"
+    content="{\"ts\":\"<ISO8601 UTC>\",\"source\":\"maintenance\",\"detail\":{\"task\":\"weekly-review\"},\"output\":\"90 System/Pending Focus Refresh.md\",\"mode\":\"create\",\"bytes\":<draft byte length>}\n"
   )

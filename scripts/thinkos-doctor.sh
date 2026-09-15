@@ -729,8 +729,17 @@ for plist_path in sorted(glob.glob(os.path.expanduser("~/Library/LaunchAgents/co
     if err_mt is not None and err_mt >= started - 2:
         found = stderr_cause(err_p)
         if found:
-            emit(f"launchagent:{label}:health", found[0],
-                 f"last run ({when}) failed — {found[1]}{hint}")
+            # `started` is the last run that got far enough to write a marker,
+            # NOT the last attempt. A job dying before that point keeps firing
+            # on schedule and keeps failing, so reporting the marker date as
+            # "last run" sends the reader months away from the live problem.
+            attempt = time.strftime("%Y-%m-%d %H:%M", time.localtime(err_mt))
+            if attempt[:10] != when[:10]:
+                msg = (f"failing — {found[1]}; last attempt {attempt}, "
+                       f"last run that got started {when}")
+            else:
+                msg = f"last run ({when}) failed — {found[1]}"
+            emit(f"launchagent:{label}:health", found[0], f"{msg}{hint}")
             continue
 
     iv = interval_seconds(pl)

@@ -234,7 +234,11 @@ run_task() {
     # ------------------------------------------------------------- Phase 3 maintenance
     daily-reindex)
       # Deterministic. Keeps Basic Memory's search index aligned with disk.
-      if run_deterministic basic-memory reindex --project think-os; then
+      # --full --search rebuilds all file-backed FTS rows. A plain incremental
+      # reindex ADDS rows without purging superseded ones, so search_index drifts
+      # above the entity table on every write and doctor's index:drift never
+      # clears. Costs a few seconds daily; keeps search free of duplicate hits.
+      if run_deterministic basic-memory reindex --project think-os --full --search; then
         ledger_append "maintenance" "{\"task\":\"daily-reindex\"}" null "noop" 0
         return 0
       else
