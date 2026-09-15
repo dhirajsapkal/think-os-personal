@@ -294,6 +294,25 @@ sources: [gmail, slack, clickup, atlassian, notion, calendar]
 *Last reviewed: <today>. Refreshed via /thinkos-refresh.*
 ```
 
+> ⚠️ **`last_synced` lives in frontmatter and will NOT update by itself.**
+> `write_note` manages frontmatter on its own and ignores any `last_synced:` you
+> put in the body — a full-rewrite path silently leaves the old timestamp in
+> place while the body claims to be fresh. Doctor, the freshness rule, and this
+> command's own lookback all key off that field, so a stale value makes the next
+> run sweep the wrong window.
+>
+> After ANY write to Tasks.md, set it explicitly:
+>
+> ```
+> mcp__basic-memory__edit_note(
+>   identifier="Tasks", operation="find_replace",
+>   find_text="last_synced: '<old ISO value>'",
+>   content="last_synced: '<new ISO value with timezone>'",
+>   expected_replacements=1)
+> ```
+>
+> Then verify: `grep -m1 '^last_synced:' "$VAULT/01 Now/Tasks.md"`.
+
 **Preferred write — section-scoped `find_replace` against the `## Today` anchor.** The old section text is already in context from Step 2; replace it with the newly rendered region. This never touches `### Manually added`, `## Done (this week)`, or `## Conventions`:
 
 ```
@@ -335,11 +354,48 @@ basic-memory reindex --project think-os --full --search
 
 ## Stage 5 — Reconcile projects  *(skipped by `--tasks-only`)*
 
-Scan the registered project directories (`tracked_projects` in `~/.thinkos/vaults.json`) against `02 Projects/Project Index.md`. Report directories with no index entry, index entries with no directory, and anything untouched 30+ days that is not marked dormant.
+**Index-first, not directory-first.** An earlier version scanned every directory
+under `tracked_projects` and diffed against the index. That fails when a tracked
+path is a working folder rather than a projects root — the observed case held 44
+entries, most of them loose PNGs, PDFs and `dev.log`. Read
+`02 Projects/Project Index.md` as the source of truth and verify outward.
 
-**Propose only.** What still counts as an active project is a judgment call.
+Two traps, both of which produced confident false positives in testing. Avoid both.
 
----
+**Trap 1 — the path field has a tail.** Entries look like:
+
+```
+- 🟢 **Name** — `~/Documents/Think/Folder` + ClickUp AI Kanban — 2026-05-08 — summary → `slug.md`
+```
+
+Take **only the first backticked segment** as the path. Matching to the next ` — `
+swallows `+ ClickUp …` and reports folders as missing when they exist. Entries
+reading *(no folder)* or *(ClickUp + Drive)* legitimately have no directory.
+
+**Trap 2 — the date is an audit stamp, not last-touched.** In the observed index,
+**19 of 27 entries carried the identical date**, matching the file's own header:
+`Last enriched: 2026-05-08 (60-day connector mining)`. Treating that as per-project
+activity flags every project at once and tells the user nothing.
+
+So:
+- **Do not** derive per-project staleness from the index date.
+- **Do** compare it once against the `Last enriched:` header. If they match for most
+  entries, report a single finding — *"the index has not been re-enriched since
+  <date>"* — not one per project.
+- **Do** derive real staleness from actual signal: whether the project appeared in
+  this sweep's ClickUp/calendar/Slack results, in the Work Log, or in the ledger.
+  A 🟢-active project with no signal in 60 days is a dormant candidate. A project
+  with no signal because *nothing was logged* is a capture gap, not a dormant
+  project — say which you think it is.
+
+Then check:
+1. Every 🟢-active entry's first-backticked path exists on disk.
+2. Every `→ \`<slug>.md\`` drill-down resolves to a file in `02 Projects/`.
+3. Directory scan **only** if the tracked path is genuinely a projects root —
+   directories must be more than half the entries. Otherwise say it is a working
+   folder and skip, rather than emitting noise.
+
+**Propose only.** Status changes belong to the user.
 
 ## Stage 6 — Current Focus  *(skipped by `--skip-focus` / `--tasks-only`)*
 
