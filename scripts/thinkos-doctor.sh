@@ -557,18 +557,193 @@ fi
 # ---------------------------------------------------------------------------
 # WP-37: LaunchAgent plist target-script existence check
 # ---------------------------------------------------------------------------
-for plist in "$HOME/Library/LaunchAgents"/com.thinkos.*.plist; do
-  [[ -e "$plist" ]] || continue
-  plist_label="$(basename "$plist" .plist)"
-  target_script="$(plutil -extract ProgramArguments.1 raw "$plist" 2>/dev/null || true)"
-  if [[ -z "$target_script" ]]; then
-    add_check "launchagent:${plist_label}" warn "cannot read ProgramArguments[1] from $plist — plutil failed or key missing"
-  elif [[ ! -f "$target_script" ]]; then
-    add_check "launchagent:${plist_label}" warn "plist target script not found: $target_script (from $plist)"
-  else
-    add_check "launchagent:${plist_label}" ok "plist target script exists: $target_script"
-  fi
-done
+# v0.9.11 (FIX-3): job HEALTH, not just target-script existence.
+#
+# The previous check only asked "does ProgramArguments[1] exist on disk?". It
+# does — so doctor reported ok for all ten jobs while seven of them died on
+# every run for four months. Existence is not health.
+#
+# Signals, in order of reliability:
+#   1. Did the most recent run write to stderr? stdout gets a "=== <iso> <task> ==="
+#      marker at run start; stderr only gets written on failure. If stderr's mtime
+#      is at/after the last run marker, that run errored. This is ground truth.
+#   2. Named signature from the stderr tail, so the report says WHY.
+#   3. Staleness: no run marker within 2x the job's schedule interval.
+#   4. launchctl exit status — corroborating only. It lags: a job reports its
+#      PREVIOUS exit code while running, and weekly-review sat at exit=0 for days
+#      while failing on every fire. Never let it decide the verdict on its own.
+LAUNCHCTL_SNAPSHOT="$(launchctl list 2>/dev/null | grep 'com\.thinkos\.' || true)"
+
+while IFS=$'\t' read -r _label _status _detail; do
+  [[ -z "$_label" ]] && continue
+  add_check "$_label" "$_status" "$_detail"
+done < <(LAUNCHCTL_SNAPSHOT="$LAUNCHCTL_SNAPSHOT" python3 - <<'PY'
+import os, glob, plistlib, time, re, calendar
+
+snapshot = os.environ.get("LAUNCHCTL_SNAPSHOT", "")
+exit_codes = {}
+for line in snapshot.splitlines():
+    parts = line.split()
+    if len(parts) >= 3:
+        exit_codes[parts[2]] = (parts[0], parts[1])   # label -> (pid, status)
+
+SIGNATURES = [
+    ("claude CLI not found",   "claude not resolvable under launchd's PATH"),
+    ("not found.",             "a required binary is not resolvable under launchd's PATH"),
+    ("command not found",      "a required binary is missing from launchd's PATH"),
+    ("Operation not permitted","macOS denied execution (stale path, or Full Disk Access needed)"),
+    ("session failed",         "claude ran but exited non-zero"),
+    ("missing prompt at",      "prompt file missing from scripts/cron-prompts/"),
+    ("writer failed",          "the task ran but its write step failed"),
+]
+
+def emit(label, status, detail):
+    print(f"{label}\t{status}\t{detail}")
+
+def interval_seconds(pl):
+    if "StartInterval" in pl:
+        try:
+            return int(pl["StartInterval"])
+        except (TypeError, ValueError):
+            pass
+    cal = pl.get("StartCalendarInterval")
+    if isinstance(cal, dict):
+        cal = [cal]
+    if isinstance(cal, list) and cal:
+        # fires per day -> mean spacing. Entries with a Weekday fire weekly.
+        if any("Weekday" in c for c in cal if isinstance(c, dict)):
+            return 7 * 86400
+        return max(1, 86400 // len(cal))
+    return None
+
+LOG_DIR = os.path.expanduser("~/Library/Logs/ThinkOS")
+
+def task_log(label):
+    """The script writes its own run log to <LOG_DIR>/<task>.log. That is NOT
+    the plist's StandardOutPath (<task>.stdout.log), which only captures
+    whatever leaks to stdout — usually nothing, because the scripts redirect
+    into their own log. The run markers live in the former."""
+    task = label.replace("com.thinkos.", "")
+    cand = os.path.join(LOG_DIR, task + ".log")
+    return cand if os.path.isfile(cand) else None
+
+def last_run_start(path):
+    """Epoch of the newest '=== <iso> <task> ===' marker in a run log."""
+    if not path or not os.path.isfile(path):
+        return None
+    try:
+        with open(path, "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            size = fh.tell()
+            fh.seek(max(0, size - 65536))
+            tail = fh.read().decode("utf-8", "replace")
+    except OSError:
+        return None
+    marks = re.findall(r"^=== (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) ", tail, re.M)
+    if not marks:
+        return None
+    try:
+        # Markers are UTC. calendar.timegm treats the struct as UTC; mktime
+        # would treat it as local, and time.timezone ignores DST — that pair
+        # silently shifted every timestamp by an hour during daylight time and
+        # made a clean run look like a failure.
+        return int(calendar.timegm(time.strptime(marks[-1], "%Y-%m-%dT%H:%M:%SZ")))
+    except ValueError:
+        return None
+
+# Some scripts write progress/diagnostics to stderr on SUCCESS. Treating any
+# stderr byte as failure produced a false "fail" for session-capture, whose
+# filter line is informational.
+BENIGN = [
+    re.compile(r"^filter: \d+/\d+ (buckets|sessions) matched"),
+    re.compile(r"^\[dry-run\]"),
+    re.compile(r"^#"),
+    re.compile(r"^\(rotated previous log"),
+]
+
+def stderr_cause(path, budget=8192):
+    if not path or not os.path.isfile(path):
+        return None
+    try:
+        with open(path, "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            fh.seek(max(0, fh.tell() - budget))
+            tail = fh.read().decode("utf-8", "replace")
+    except OSError:
+        return None
+    for needle, human in SIGNATURES:
+        if needle in tail:
+            return ("fail", human)
+    for line in reversed([l.strip() for l in tail.splitlines() if l.strip()]):
+        if any(rx.search(line) for rx in BENIGN):
+            return None                      # informational, not a failure
+        return ("warn", f"wrote to stderr: {line[:140]}")
+    return None
+
+now = int(time.time())
+for plist_path in sorted(glob.glob(os.path.expanduser("~/Library/LaunchAgents/com.thinkos.*.plist"))):
+    label = os.path.basename(plist_path)[:-6]
+    try:
+        with open(plist_path, "rb") as fh:
+            pl = plistlib.load(fh)
+    except Exception as exc:
+        emit(f"launchagent:{label}", "warn", f"cannot parse plist: {exc}")
+        continue
+
+    args = pl.get("ProgramArguments") or []
+    target = args[1] if len(args) > 1 else ""
+    if not target:
+        emit(f"launchagent:{label}", "warn",
+             f"cannot read ProgramArguments[1] from {plist_path}")
+        continue
+    if not os.path.isfile(target):
+        emit(f"launchagent:{label}", "fail", f"plist target script not found: {target}")
+        continue
+    emit(f"launchagent:{label}", "ok", f"plist target script exists: {target}")
+
+    out_p, err_p = pl.get("StandardOutPath"), pl.get("StandardErrorPath")
+    run_log = task_log(label)
+    started = last_run_start(run_log)
+    if started is None:
+        # Scripts without "=== <iso> ===" markers (e.g. session-capture): fall
+        # back to the newest mtime among its logs as an approximate last run.
+        cands = [q for q in (run_log, out_p) if q and os.path.isfile(q)]
+        if cands:
+            started = int(max(os.path.getmtime(q) for q in cands))
+    err_mt = os.path.getmtime(err_p) if err_p and os.path.isfile(err_p) else None
+    pid, code = exit_codes.get(label, ("-", "?"))
+    running = pid not in ("-", "")
+    hint = f" (launchctl: pid={pid} last_exit={code}{'; currently running' if running else ''})"
+
+    if started is None:
+        found = stderr_cause(err_p)
+        if found:
+            emit(f"launchagent:{label}:health", found[0],
+                 f"has never completed a run — {found[1]}{hint}")
+        else:
+            emit(f"launchagent:{label}:health", "warn",
+                 f"no run log yet — job may never have fired{hint}")
+        continue
+
+    when = time.strftime("%Y-%m-%d %H:%M", time.localtime(started))
+    if err_mt is not None and err_mt >= started - 2:
+        found = stderr_cause(err_p)
+        if found:
+            emit(f"launchagent:{label}:health", found[0],
+                 f"last run ({when}) failed — {found[1]}{hint}")
+            continue
+
+    iv = interval_seconds(pl)
+    age = now - started
+    if iv and age > 2 * iv:
+        emit(f"launchagent:{label}:health", "warn",
+             f"stale: last successful run {age // 3600}h ago, schedule is every "
+             f"~{max(1, iv // 3600)}h{hint}")
+        continue
+
+    emit(f"launchagent:{label}:health", "ok", f"last run {when} clean{hint}")
+PY
+)
 
 # v0.8.1: detect leaked LaunchAgent plist templates in the vault. These got
 # copied in by setup.sh prior to v0.8.1 because copy_templates() didn't
