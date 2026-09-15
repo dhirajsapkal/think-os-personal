@@ -119,6 +119,26 @@ XML
 </array>
 XML
       ;;
+    loose-ends)
+      # Friday 8am — before the work week closes, so anything you agreed to and
+      # never ticketed can still be caught the same week.
+      cat <<'XML'
+<array>
+  <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+</array>
+XML
+      ;;
+    figma)
+      # Not scheduled by default: it needs a file key, and which file matters
+      # week to week. Run it interactively via /thinkos-figma-triage. Registered
+      # here so `install-launchd-job.sh figma` works if someone does want a
+      # standing cadence — Monday 8am, before the week's review cycle.
+      cat <<'XML'
+<array>
+  <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+</array>
+XML
+      ;;
     granola|slack)
       # Hourly (top of each hour, between 8am and 10pm to avoid overnight noise)
       cat <<'XML'
@@ -158,7 +178,7 @@ XML
 SCHEDULE_BLOCK="$(schedule_block_for "$TASK_ID" || true)"
 if [[ -z "$SCHEDULE_BLOCK" ]]; then
   echo "Unknown task id: $TASK_ID" >&2
-  echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola slack calendar clickup gmail linear jira" >&2
+  echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola slack calendar clickup gmail linear jira figma loose-ends" >&2
   exit 2
 fi
 

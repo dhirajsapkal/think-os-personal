@@ -17,6 +17,18 @@ The principle: **scripts handle the deterministic, repetitive, large-corpus stuf
 
 ---
 
+## Reaching sources the first-party MCPs don't cover
+
+Some sources have no MCP tool at all. Figma comments are the standing example: the Figma MCP server is design read/write (`use_figma`, `download_assets`, Code Connect) and exposes nothing for comments, which live in Figma's REST API.
+
+For those, Think OS shells out to the **Composio CLI** rather than registering another MCP server:
+
+- An MCP server pushes its whole tool catalogue into every session's context. `composio search "<task>"` discovers a slug on demand instead — the same indexer-first principle as the rest of this document.
+- The CLI works under launchd. `composio` installs to `~/.local/bin`, which `thinkos-cron-run.sh` already prepends to `PATH`.
+- Auth stays in Composio's own store, not in `~/.thinkos/secrets`.
+
+`scripts/lib/composio.sh` wraps it: `check <toolkit>` (fails closed — an unconfirmable connection is treated as absent), `exec <SLUG> <json>`. A toolkit that isn't linked makes the job **skip that source and say what to run**, never fail.
+
 ## Source matrix
 
 | Source | Type | Cost | Drives |
@@ -33,6 +45,8 @@ The principle: **scripts handle the deterministic, repetitive, large-corpus stuf
 | **Notion** (top-level page list) | MCP, one call | Low | Project Index |
 | **GitHub `gh` CLI** (public repos, recent activity) | Local CLI, deterministic | ~0 tokens | Project Index (code projects) |
 | **macOS `mdfind`** (Spotlight: recent docs by author) | Local CLI, deterministic | ~0 tokens | Project Index (recent files) |
+| **Figma comments** (via Composio CLI) | CLI, 2-3 calls | Low | Design review triage — the Figma MCP has no comments tool |
+| **Granola ⨯ ClickUp diff** (spoken commitments vs tickets) | MCP, 2 sources | Medium | Loose ends — commitments that never got a ticket |
 | **Business Brain shared template** | Static ship | 0 tokens | Business Brain.md |
 
 **Cost model**: "~0 tokens" means the script writes to disk and the agent reads small text files. "Low" means a single MCP call returns a paginated list that fits in a few KB. "High" means iterating with the LLM per item.
