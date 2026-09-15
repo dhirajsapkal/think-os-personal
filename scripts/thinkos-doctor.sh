@@ -766,6 +766,81 @@ if [[ -d "$OS_HOME/LaunchAgents" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
+# v0.9.11: stale local skills shadowing current commands
+# ---------------------------------------------------------------------------
+# This repo ships exactly three skills (adapters/claude-code/skills/). Anything
+# else in ~/.claude/skills is unmanaged — /thinkos-update does not track it, so
+# it never got updated when the vault moved from a flat layout to numbered
+# folders in v0.8.
+#
+# Eleven such skills were found in the wild reading $OS_HOME/work-log.md,
+# current-focus.md, active-projects.md, identity.md, business-brain.md and
+# .last-touched.json — none of which exist any more. Each shadowed a working
+# command of the same name, so an agent that picked the skill went hunting for
+# files that were not there.
+#
+# Unmanaged on its own is fine: third-party skills are legitimate. The signal
+# is a skill referencing the OLD vault layout.
+while IFS=$'\t' read -r _name _status _detail; do
+  [[ -z "$_name" ]] && continue
+  add_check "$_name" "$_status" "$_detail"
+done < <(REPO_ROOT="$REPO_ROOT" OS_HOME="$OS_HOME" python3 - <<'PY'
+import os, re, glob
+
+home = os.path.expanduser("~")
+skills_dir = os.path.join(home, ".claude", "skills")
+cmds_dir = os.path.join(home, ".claude", "commands")
+repo_skills = os.path.join(os.environ.get("REPO_ROOT", ""), "adapters", "claude-code", "skills")
+
+if not os.path.isdir(skills_dir):
+    raise SystemExit(0)
+
+# Paths that only existed before the numbered-folder vault (v0.8).
+LEGACY = re.compile(
+    r"\$OS_HOME/(work-log|current-focus|active-projects|decisions|people|identity|"
+    r"business-brain)\.md|\$OS_HOME/\.last-touched\.json|\$OS_HOME/active-projects/"
+)
+
+stale, unmanaged = [], []
+for d in sorted(glob.glob(os.path.join(skills_dir, "*", ""))):
+    name = os.path.basename(d.rstrip(os.sep))
+    if os.path.isdir(os.path.join(repo_skills, name)):
+        continue                                   # shipped by this repo
+    files = glob.glob(os.path.join(d, "*.md"))
+    text = ""
+    for f in files:
+        try:
+            text += open(f, errors="replace").read()
+        except OSError:
+            pass
+    if LEGACY.search(text):
+        shadowed = ""
+        for cand in (f"{name}.md", f"thinkos-{name}.md"):
+            if os.path.isfile(os.path.join(cmds_dir, cand)):
+                shadowed = "/" + cand[:-3]
+                break
+        stale.append((name, shadowed))
+    else:
+        unmanaged.append(name)
+
+if stale:
+    listed = ", ".join(n + (f" (shadows {c})" if c else "") for n, c in stale)
+    print("skills:stale\tfail\t%d local skill(s) reference the pre-v0.8 flat vault layout "
+          "($OS_HOME/work-log.md etc.) — those files no longer exist, and an agent choosing "
+          "the skill over the command will read nothing: %s. Move them aside "
+          "(mv ~/.claude/skills/<name> ~/.thinkos/backups/) — the equivalent command is current."
+          % (len(stale), listed))
+else:
+    print("skills:stale\tok\tno local skill references the retired flat vault layout")
+
+if unmanaged:
+    print("skills:unmanaged\tok\t%d unmanaged skill(s), layout-clean: %s "
+          "(not shipped by this repo, so /thinkos-update will not maintain them)"
+          % (len(unmanaged), ", ".join(unmanaged)))
+PY
+)
+
+# ---------------------------------------------------------------------------
 # v0.9.3: focus freshness — covers_week end date vs today (mechanical, not prose)
 # ---------------------------------------------------------------------------
 FOCUS_FILE="$OS_HOME/01 Now/Current Focus.md"
