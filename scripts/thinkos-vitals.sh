@@ -650,7 +650,7 @@ if idx_status == "ok":
 elif idx_status == "drift":
     c = idx["counts"]
     pairs = ", ".join(f"{t} {c[t]['search_index']}/{c[t]['actual']}" for t in ("entity", "observation", "relation"))
-    print(f"  Index drift         : DRIFT — search_index/actual rows: {pairs}; run /thinkos-reindex")
+    print(f"  Index drift         : DRIFT — search_index/actual rows: {pairs}; run /thinkos-refresh")
 elif idx_status == "no_db":
     print("  Index drift         : —  — no ~/.basic-memory/memory.db yet")
 else:

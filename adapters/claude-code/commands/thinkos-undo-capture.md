@@ -127,7 +127,7 @@ PY
 Tell the user:
 - What was removed (one-line summary of the block)
 - That the reversal is recorded in the ledger under the original `ts`
-- That Basic Memory's index may need a moment to catch up; if they search and still see the content, run `/thinkos-reindex`
+- That Basic Memory's index may need a moment to catch up; if they search and still see the content, run `/thinkos-refresh`
 
 ## Rules
 

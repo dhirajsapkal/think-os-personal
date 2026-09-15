@@ -146,7 +146,7 @@ Basic Memory indexes your vault locally (it's a local-stdio server). When machin
 If Basic Memory's index appears stale after a pull (e.g. you search for a note you just synced from another machine and it doesn't appear), run:
 
 ```
-/thinkos-reindex
+/thinkos-refresh
 ```
 
 This triggers a full re-scan of the vault folder, after which searches and reads reflect the synced state.

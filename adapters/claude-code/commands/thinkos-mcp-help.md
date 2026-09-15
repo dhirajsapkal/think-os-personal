@@ -114,7 +114,7 @@ To query a specific vault explicitly, tell the agent: "search my personal vault 
 
 Basic Memory indexes your vault on disk. If you edit files in Obsidian, an external editor, or via a desktop agent task, the index may lag.
 
-To sync: run `/thinkos-reindex` (calls `basic-memory reindex --project think-os` under the hood).
+To sync: run `/thinkos-refresh` (calls `basic-memory reindex --project think-os` under the hood).
 
 ## Vault index vs. runtime tools — two separate surfaces
 
@@ -136,5 +136,5 @@ So "the vault doesn't have your Slack messages yet" and "the agent can't reach S
 ## Troubleshooting
 
 - **"MCP unavailable"** — Basic Memory isn't registered or the server isn't running. Check: `claude mcp list`. Re-register: `claude mcp add basic-memory --scope user -- basic-memory mcp --project think-os`.
-- **Search returns nothing** — try `/thinkos-reindex` first, then retry. If the vault is new, the templates may still be placeholders with no real content.
+- **Search returns nothing** — try `/thinkos-refresh` first, then retry. If the vault is new, the templates may still be placeholders with no real content.
 - **Wrong vault targeted** — check `cat ~/.thinkos/active-vault` and `cat ~/.thinkos/vaults.json`. Use `/thinkos-vault` to switch.

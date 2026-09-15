@@ -36,9 +36,7 @@ To verify: `cd ~ && claude`, then type `/` — you should see the list.
 | `/thinkos-log <message>` | Capture a timestamped note to your work log |
 | `/thinkos-capture <learning>` | Capture a cross-project learning into your vault |
 | `/thinkos-decide <decision>` | Record a standing decision in your vault |
-| `/thinkos-refresh` | Refresh Tasks.md from connectors (Gmail, Slack, Calendar, ClickUp, Atlassian, Notion, Granola) |
-| `/thinkos-stale` | List notes past their freshness window |
-| `/thinkos-reindex` | Refresh Basic Memory's index after external edits |
+| `/thinkos-refresh` | **The one refresh** — sweeps every source, updates Tasks.md (closing what's done), reindexes, reconciles projects, proposes Current Focus, validates |
 | `/thinkos-voice <before \| after>` | Rewrite a draft in your voice profile |
 | `/thinkos-setup` | Run the first-time setup wizard from the export repo |
 | `/thinkos-continue` | Resume Think OS setup after OAuth + restart (Phase 2) |

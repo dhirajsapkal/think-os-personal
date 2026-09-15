@@ -53,4 +53,4 @@ Things to roll over or revisit. `/weekly-review` reads this section when it cuts
 
 ---
 
-*Refresh every Sunday during `/weekly-review`. If you find yourself reading a stale week, run the review. Use `/thinkos-stale` to check all HOT/WARM file freshness at once.*
+*Refresh every Sunday during `/weekly-review`. If you find yourself reading a stale week, run the review. Use `/thinkos-refresh` to check all HOT/WARM file freshness at once.*

@@ -192,7 +192,7 @@ Once a folder is registered as a Think OS source, ongoing updates happen via:
 2. **Capture-on-mention** (already exists): when the user mentions a project name during chat, the agent offers to add it to `Project Index.md`.
 3. **Stop-hook auto-log** (deferred): a Claude Code Stop hook writes session summaries to `Work Log.md` with project tags inferred from cwd.
 
-Ongoing connector sync (Granola new meetings, etc.) is handled by `/thinkos-reindex` against Basic Memory plus the existing connector polling cadence.
+Ongoing connector sync (Granola new meetings, etc.) is handled by `/thinkos-refresh` against Basic Memory plus the existing connector polling cadence.
 
 ---
 
@@ -239,7 +239,7 @@ Capture behavior:
 - Linear / Jira split into independent tracker paths in `/thinkos-capture-setup` (v0.8.x)
 - `tracked_projects[]` filter in `~/.thinkos/vaults.json` so session capture sees code repos outside the vault (v0.9.0)
 - `/thinkos-refresh` — connector sweep that rewrites `01 Now/Tasks.md` (v0.9.1; replaces the retired desktop-only refresh skill)
-- `/thinkos-reindex` for manual re-index
+- `/thinkos-refresh` for manual re-index
 
 ### Future
 - Stop-hook auto-log (deferred)

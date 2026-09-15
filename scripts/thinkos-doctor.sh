@@ -899,7 +899,7 @@ fi
 # ---------------------------------------------------------------------------
 # v0.9.3: index drift — Basic Memory FTS search_index vs actual table rowcounts.
 # Concurrent per-session servers can race delete+insert on FTS5, leaving
-# duplicate rows in search_index. /thinkos-reindex rebuilds it.
+# duplicate rows in search_index. /thinkos-refresh rebuilds it.
 # ---------------------------------------------------------------------------
 BM_DB="$HOME/.basic-memory/memory.db"
 if ! command -v sqlite3 >/dev/null 2>&1; then
@@ -925,7 +925,7 @@ else
     if [[ "$SI_ENT" == "$ACT_ENT" && "$SI_OBS" == "$ACT_OBS" && "$SI_REL" == "$ACT_REL" ]]; then
       add_check "index:drift" ok "search_index matches tables (entities $ACT_ENT, observations $ACT_OBS, relations $ACT_REL)"
     else
-      add_check "index:drift" warn "search_index vs actual rowcount mismatch — entities $SI_ENT/$ACT_ENT, observations $SI_OBS/$ACT_OBS, relations $SI_REL/$ACT_REL; duplicate/stale FTS rows — run /thinkos-reindex"
+      add_check "index:drift" warn "search_index vs actual rowcount mismatch — entities $SI_ENT/$ACT_ENT, observations $SI_OBS/$ACT_OBS, relations $SI_REL/$ACT_REL; duplicate/stale FTS rows — run /thinkos-refresh"
     fi
   fi
 fi

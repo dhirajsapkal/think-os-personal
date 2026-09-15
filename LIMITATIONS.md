@@ -20,4 +20,4 @@
 ## Scope
 
 - **Cross-machine sync** is first-class via `/thinkos-sync` (manual) or the opt-in launchd job (default 18:00 weekdays). For non-git sync strategies (Syncthing, iCloud), see `docs/cross-machine-sync.md`.
-- **Auto-detect every project.** `02 Projects/Project Index.md` is maintained by hand with capture-on-mention assist. Use `bash scripts/thinkos-index.sh` to auto-scan local project folders; the `/index-projects` skill drives the in-agent version of the same flow.
+- **Auto-detect every project.** `02 Projects/Project Index.md` is maintained by hand with capture-on-mention assist. Use `bash scripts/thinkos-index.sh` to auto-scan local project folders; the `/thinkos-refresh` skill drives the in-agent version of the same flow.

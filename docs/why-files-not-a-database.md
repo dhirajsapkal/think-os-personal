@@ -92,7 +92,7 @@ Note what this is: **a derived-cache bug, not a file bug** — the markdown was 
 
 The fix ships in layers:
 
-- **Detection (v0.9.3):** `thinkos-doctor.sh` compares index rowcounts against actual entity/observation/relation counts and recommends `/thinkos-reindex` on mismatch; surfaced in `/thinkos-vitals`.
+- **Detection (v0.9.3):** `thinkos-doctor.sh` compares index rowcounts against actual entity/observation/relation counts and recommends `/thinkos-refresh` on mismatch; surfaced in `/thinkos-vitals`.
 - **Long-term cure: single-shared-BM-server mode.** Run one Basic Memory server instance that all agent sessions connect to, instead of one server per session — a single writer cannot race itself. Documented here as the recommended posture once upstream supports it cleanly; not shipped as default in v0.9.3.
 - **Upstream:** an issue with the live evidence and suggested fixes has been drafted for basicmachines-co/basic-memory (see `.plans/2026-06-10-memory-architecture-research/upstream-issue-draft.md`).
 

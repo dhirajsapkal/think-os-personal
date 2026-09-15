@@ -280,7 +280,7 @@ When the user runs `/thinkos-automate remove <name>`, run `launchctl unload ~/Li
 - **Briefs go to vault files, not Slack/email.** If you want Slack delivery, write a separate remote trigger (via the `schedule` skill) that reads the brief file and sends it (requires Slack OAuth via your plugin bundle). That use case — sending a notification, no vault write — is appropriate for a remote trigger.
 - **Jobs run locally.** They fire when your Mac is awake. Laptops that sleep through midnight will miss the 4am reindex; it catches up on the next boot/wake.
 - **Remote triggers are still available** via the `schedule` skill for use cases that fit: writing to project vaults (git-backed, push-accessible remotely), sending Slack/email notifications, or anything that does not need to write to your local personal hub.
-- **Stale-data alerting** is manual via `/thinkos-stale`.
+- **Stale-data alerting** is manual via `/thinkos-refresh`.
 
 ---
 

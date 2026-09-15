@@ -144,20 +144,16 @@ See [`docs/multi-vault-architecture.md`](docs/multi-vault-architecture.md) for t
 | `/thinkos-who <name>` | What you know about a specific person |
 | `/thinkos-project <slug>` | Load deep context for a project |
 | `/draft-reply` | Draft a reply to an email, Slack message, or comment — ALWAYS produces a draft for review, never sends |
-| `/index-projects` | Scan project directories and reconcile against the active-projects index |
+| `/thinkos-refresh` | **The one refresh** — sweeps every source, updates Tasks.md (closing what's done), reindexes, reconciles projects, proposes Current Focus, validates |
 | `/thinkos-decisions [topic]` | Search your standing decisions |
 | `/thinkos-learnings [topic]` | Search reusable learnings |
 | `/thinkos-decide <decision>` | Soft alias → `/thinkos-capture --mode decision` |
-| `/thinkos-stale` | List notes past their freshness window |
 | `/thinkos-voice <text>` | Log a before/after rewrite sample to improve your voice profile |
 | `/thinkos-recent` | See what was captured in the last 24h (the audit view) |
 | `/thinkos-undo-capture` | Remove a recent capture from the vault + ledger |
 | `/thinkos-autosave on\|off\|status` | Manage periodic background session capture |
 | `/thinkos-capture-setup` | Enable continuous-capture sources (Granola, Slack, Gmail, etc.) |
-| `/thinkos-refresh` | Connector sweep — rewrite `01 Now/Tasks.md` from Gmail, Slack, Calendar, ClickUp, Atlassian, Notion, Granola |
-| `/thinkos-reindex` | Refresh Basic Memory's index after external vault edits |
 | `/thinkos-vitals` | Vault-health snapshot — staleness, budgets, broken links, ledger volume |
-| `/validate-os` | Sanity-check the OS for stale entries, broken references, contradictions |
 | `/weekly-review` | Weekly OS digest — refresh Current Focus, surface drift, end-of-week review |
 | `/quarterly-review` | Quarterly OS maintenance — archive rotation, prune stale, audit HOT files |
 | `/thinkos-sync` | Commit + pull --rebase + push your personal-hub vault state |
