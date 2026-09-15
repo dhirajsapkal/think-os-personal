@@ -189,7 +189,13 @@ run_llm_prompt() {
   echo "=== $(iso_now) $TASK_ID ===" >> "$logfile"
   # `< /dev/null` skips claude -p's 3s "wait for stdin" warning when launchd
   # invokes us with no stdin attached.
-  if claude -p "$prompt" < /dev/null >> "$logfile" 2>&1; then
+  #
+  # THINKOS_UNATTENDED marks that there is no human to confirm anything. Any
+  # playbook whose interactive flow says "after the user confirms" must branch
+  # on this and stage its output instead of writing. Without it, a scheduled
+  # /weekly-review would either write unconfirmed or correctly decline and
+  # silently do nothing — which is what left Current Focus 8 weeks stale.
+  if THINKOS_UNATTENDED=1 claude -p "$prompt" < /dev/null >> "$logfile" 2>&1; then
     return 0
   else
     echo "[$TASK_ID] claude session failed; see $logfile" >&2

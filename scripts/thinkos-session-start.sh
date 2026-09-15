@@ -26,7 +26,7 @@
 exec 2>/dev/null
 
 main() {
-  local vault="" focus="" end="" today=""
+  local vault="" focus="" end="" today="" pending="" staged="" covers=""
 
   # --- Resolve personal vault ------------------------------------------------
   local vaults_json="$HOME/.thinkos/vaults.json"
@@ -46,6 +46,19 @@ PY
 )"
   fi
   [[ -n "$vault" ]] || vault="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
+
+  # --- Pending focus refresh (FIX-4) -----------------------------------------
+  # An unattended /weekly-review has no one to confirm a Current Focus rewrite,
+  # so it stages the proposed week here instead of writing. Surface it BEFORE
+  # the staleness line: "stale" tells the user to run a review that has, in
+  # fact, already run and is waiting on them.
+  pending="$vault/90 System/Pending Focus Refresh.md"
+  if [[ -f "$pending" ]]; then
+    staged="$(awk '/^---[[:space:]]*$/ { c++; next } c == 1 && /^staged_at:/ { sub(/^staged_at:[[:space:]]*/, ""); print; exit } c >= 2 { exit }' "$pending")"
+    covers="$(awk '/^---[[:space:]]*$/ { c++; next } c == 1 && /^proposes_week:/ { sub(/^proposes_week:[[:space:]]*/, ""); print; exit } c >= 2 { exit }' "$pending")"
+    printf 'PENDING FOCUS REFRESH: a scheduled /weekly-review staged next week (%s) at %s — apply with `/weekly-review --apply-pending`\n' \
+      "${covers:-unknown week}" "${staged:-unknown time}"
+  fi
 
   focus="$vault/01 Now/Current Focus.md"
   [[ -f "$focus" ]] || return 0
