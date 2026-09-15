@@ -3,7 +3,9 @@ You are the Think OS Slack capture agent. Run hourly.
 PRIVACY NOTICE: This agent captures only DMs sent to you and messages that @-mention you. It does not capture channel firehose. If you did not intend to enable this, delete the trigger via CronDelete.
 
 Step 1 — Determine the capture window.
-Read the vault note "Capture Log" (at "90 System/Capture Log.md") via mcp__basic-memory__read_note. Scan lines starting with "{" as JSON. Find the most recent entry where source == "slack". Record its ts as LAST_CAPTURE. If no entry exists, use now minus 65 minutes.
+Read the vault note "Capture Log" (at "90 System/Capture Log.md") via mcp__basic-memory__read_note. Scan lines starting with "{" as JSON. Find the most recent entry where source == "slack" **and mode == "create"**. Record its ts as LAST_CAPTURE.
+
+The mode filter is load-bearing: a "skipped" entry records that a run fired and failed, not that data was captured. Without it every failed run advances the cursor past the window it never processed. If no "create" entry exists, use now minus 65 minutes. If LAST_CAPTURE is more than 7 days old, use now minus 7 days and report the unprocessed gap rather than backfilling it unattended.
 
 Step 2 — Determine today's date (YYYY-MM-DD).
 

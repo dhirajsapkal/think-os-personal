@@ -8,6 +8,14 @@ Use this file when you are an agent helping someone install, inspect, or improve
 
 ## If you're maintaining or extending Think OS
 
+> **⚠️ Open work — read first:** [`docs/handoff-2026-09-15-automation-runtime.md`](docs/handoff-2026-09-15-automation-runtime.md)
+>
+> 7 of 10 scheduled jobs have been failing on every run since May 2026 (`claude` not on launchd's
+> PATH; `flock` absent on macOS). `thinkos-doctor.sh` reports them `ok` because it only checks that
+> the target script exists. That handoff has the diagnosis, repro commands, four scoped fixes with
+> acceptance criteria, and two feature requests. **Start there before building anything new** — most
+> of what looks missing already exists and has simply never run.
+
 Read in this order (skip what you don't need):
 
 1. `README.md` for the product overview.

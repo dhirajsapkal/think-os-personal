@@ -41,6 +41,68 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 LOG_DIR="$HOME/Library/Logs/ThinkOS"
 mkdir -p "$LOG_DIR"
 
+# ---------------------------------------------------------------------------
+# Runtime PATH
+# ---------------------------------------------------------------------------
+# launchd runs jobs with a minimal PATH. Per-user tool installs land outside it
+# — `claude` via npm-global (~/.npm-global/bin) or the native installer
+# (~/.claude/local), `basic-memory` via uv (~/.local/bin). Without this, every
+# job that shells out to either one dies before doing any work.
+#
+# Manifest first (absolute paths recorded at setup), then sweep the known
+# locations so a fresh checkout recovers without re-running setup.
+MANIFEST="$HOME/.thinkos/install-manifest.json"
+PATH_CANDIDATES=(
+  "$HOME/.npm-global/bin"
+  "$HOME/.local/bin"
+  "$HOME/.claude/local"
+  "$HOME/.bun/bin"
+  "/opt/homebrew/bin"
+  "/usr/local/bin"
+)
+
+_ensure_runtime_path() {
+  local dirs=() d
+  if [[ -f "$MANIFEST" ]]; then
+    while IFS= read -r d; do
+      [[ -n "$d" ]] && dirs+=("$d")
+    done < <(python3 - "$MANIFEST" 2>/dev/null <<'PY' || true
+import json, os, sys
+try:
+    m = json.load(open(sys.argv[1]))
+except Exception:
+    sys.exit(0)
+for key in ("claude_bin", "basic_memory_bin"):
+    p = m.get(key)
+    if p and os.path.isfile(p) and os.access(p, os.X_OK):
+        print(os.path.dirname(p))
+PY
+    )
+  fi
+  dirs+=("${PATH_CANDIDATES[@]}")
+  for d in "${dirs[@]}"; do
+    [[ -d "$d" ]] || continue
+    case ":$PATH:" in
+      *":$d:"*) ;;                 # already present
+      *)        PATH="$d:$PATH" ;;
+    esac
+  done
+  export PATH
+}
+_ensure_runtime_path
+
+# Names a missing binary and where we looked, instead of a bare "not found".
+_report_missing_bin() {
+  local bin="$1"
+  {
+    echo "[$TASK_ID] $bin not found."
+    echo "[$TASK_ID] Searched (in order): manifest claude_bin/basic_memory_bin, then:"
+    printf '[%s]   %s\n' "$TASK_ID" "${PATH_CANDIDATES[@]}"
+    echo "[$TASK_ID] Fix: install $bin, or record its absolute path in $MANIFEST"
+    echo "[$TASK_ID] then re-run: bash scripts/thinkos-setup.sh --record-bins"
+  } >&2
+}
+
 # Resolve vault path. Personal hub by default.
 VAULT="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
 # Ledger lives in the vault so both shell (launchd) and basic-memory MCP
@@ -72,10 +134,12 @@ obj = {'ts': ts, 'source': source, 'detail': detail,
        'mode': mode, 'bytes': int(bytes_val)}
 print(json.dumps(obj))
 " "$ts" "$source" "$detail" "$output" "$mode" "$bytes")"
-  {
-    flock 9
-    printf '%s\n' "$line" >&9
-  } 9>> "$LEDGER"
+  # Ledger entries are single-line JSON well under PIPE_BUF (4 KB), and the
+  # shell opens >> with O_APPEND, so a single printf is already atomic on both
+  # macOS and Linux. Do NOT reintroduce flock here: it is util-linux and does
+  # not exist on macOS, where it failed on every run for four months while the
+  # append silently succeeded anyway.
+  printf '%s\n' "$line" >> "$LEDGER"
 }
 
 _rotate_if_large() {
@@ -117,7 +181,7 @@ run_llm_prompt() {
     return 0
   fi
   if ! command -v claude >/dev/null 2>&1; then
-    echo "[$TASK_ID] claude CLI not found in PATH" >&2
+    _report_missing_bin "claude CLI"
     return 1
   fi
   _rotate_if_large "$logfile"

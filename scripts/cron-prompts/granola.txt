@@ -1,7 +1,15 @@
 You are the Think OS Granola capture agent. Run on this prompt hourly.
 
 Step 1 — Load last-capture cursor.
-Read the vault note "Capture Log" (at "90 System/Capture Log.md") via mcp__basic-memory__read_note. Scan each line that starts with "{" as JSON. Find the most recent entry where source == "granola". Record its ts value as LAST_CAPTURE. If no such entry exists, use a timestamp 25 hours ago.
+Read the vault note "Capture Log" (at "90 System/Capture Log.md") via mcp__basic-memory__read_note. Scan each line that starts with "{" as JSON.
+
+Find the most recent entry where source == "granola" **and mode == "create"**. Record its ts value as LAST_CAPTURE.
+
+The mode filter is load-bearing. A "skipped" entry records that a run *fired and failed*; a "noop" records that it fired and found nothing. Neither means data was captured. Selecting the most recent entry of any mode lets every failed run stamp a fresh cursor and advance it past the very window it failed to process — which is how this job silently captured nothing for four months while reporting "nothing new".
+
+Then clamp the window:
+- If no "create" entry exists, use a timestamp 25 hours ago.
+- If LAST_CAPTURE is more than **7 days** before now, do NOT backfill the whole gap. Use now minus 7 days as the effective start, and say so in your final output line: state the true LAST_CAPTURE, the size of the unprocessed gap, and that a longer backfill needs the user to ask for it. A job that has been dead for months must never perform a months-long unattended write.
 
 Step 2 — List recent meetings.
 Call mcp__claude_ai_Granola__list_meetings with no filter. From the result, select meetings where start_time is after (LAST_CAPTURE minus 1 hour) to catch any late-processing transcripts. If the result is paginated, fetch all pages.
@@ -16,7 +24,22 @@ For each meeting that passes dedup:
      If the transcript body is empty or null, skip this meeting (not yet processed).
 
   b. Privacy check: scan the meeting title and transcript body for any of these keywords (case-insensitive):
-     comp, salary, compensation, bonus, raise, offer letter, HR, performance review, PIP, health, medical, family, 1:1, one-on-one, personal
+     Match on WORD BOUNDARIES, not substrings, and prefer the specific phrase over the bare word:
+       salary, compensation, bonus, severance, equity grant, offer letter, performance review, PIP,
+       health insurance, mental health, medical, doctor, diagnosis, therapy, family, bereavement,
+       1:1, one-on-one, HR, benefits enrollment, pay raise, merit increase, personal leave
+
+     Two failure modes this list is written to avoid:
+     - Substring bleed. Bare "comp" matches Company/Comparison/Complete; "PIP" matches Pipeline;
+       "personal" matches Personalization. Always require word boundaries.
+     - Semantic over-breadth. Bare "health" matches "Delivery Project & Team Health" and
+       "Project health check" — ordinary delivery meetings — even WITH word boundaries, which is
+       why it is replaced by "health insurance" / "mental health" / "medical". Same for bare
+       "raise" ("Raise the bar workshop") -> "pay raise" / "merit increase".
+
+     When a match comes only from the title and the transcript body does not corroborate it,
+     prefer PERSONAL = false. Mis-routing a sales-pipeline meeting into the personal hub is a
+     real, observed failure — not a hypothetical.
      Set PERSONAL = true if any keyword matches, false otherwise.
 
   c. Build the vault path:

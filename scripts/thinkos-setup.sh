@@ -16,6 +16,7 @@ DRY_RUN=0
 BUNDLE=""
 BUNDLE_ITEMS=""
 TRACKED_PROJECTS=""
+RECORD_BINS_ONLY=0
 
 usage() {
   cat <<'EOF'
@@ -34,6 +35,7 @@ Options:
   --install-basic-memory      Install Basic Memory with uv if missing
   --skip-mcp                  Do not register MCPs in product CLIs
   --yes                       Non-interactive mode; accept safe defaults
+  --record-bins               Record claude/basic-memory paths in the manifest and exit
   --dry-run                   Show what would happen without changing files
   --bundle PRESET             Install a curated bundle after product setup (pm|eng|design|ops|all)
   --bundle-items LIST         Comma-separated catalog ids to install (advanced)
@@ -86,6 +88,10 @@ while [[ $# -gt 0 ]]; do
     --tracked-projects)
       TRACKED_PROJECTS="$2"
       shift 2
+      ;;
+    --record-bins)
+      RECORD_BINS_ONLY=1
+      shift
       ;;
     -h|--help)
       usage
@@ -439,6 +445,86 @@ install_claude_code() {
 # that this invocation acted on. The uninstaller still falls back to repo
 # enumeration when fields are missing (e.g. for installs done before this
 # was added).
+# ---------------------------------------------------------------------------
+# Record absolute paths of the binaries the scheduled jobs shell out to.
+# ---------------------------------------------------------------------------
+# launchd runs with a minimal PATH, so `claude` (npm-global / native installer)
+# and `basic-memory` (uv) are invisible to it. thinkos-cron-run.sh reads these
+# keys first and falls back to sweeping known locations. Recording them here
+# makes resolution exact rather than best-effort.
+#
+# This is a surgical MERGE into the existing manifest — it must not rewrite the
+# whole file, because _write_install_manifest still emits schema version 1 while
+# installed manifests may already be at version 2.
+_record_bins() {
+  local claude_bin basic_memory_bin
+  claude_bin="$(command -v claude 2>/dev/null || true)"
+  basic_memory_bin="$(command -v basic-memory 2>/dev/null || true)"
+
+  if [[ "${DRY_RUN:-0}" -eq 1 ]]; then
+    log "Would record claude_bin=${claude_bin:-<not found>} basic_memory_bin=${basic_memory_bin:-<not found>}"
+    return 0
+  fi
+
+  CLAUDE_BIN_ENV="$claude_bin" \
+  BASIC_MEMORY_BIN_ENV="$basic_memory_bin" \
+  MANIFEST_FILE="$HOME/.thinkos/install-manifest.json" \
+  python3 - <<'PYEOF'
+import json, os, tempfile
+
+path = os.environ["MANIFEST_FILE"]
+if not os.path.isfile(path):
+    print("No install manifest yet — run setup first; skipping bin recording.")
+    raise SystemExit(0)
+
+try:
+    with open(path) as fh:
+        manifest = json.load(fh)
+except (OSError, json.JSONDecodeError) as exc:
+    print(f"Could not read manifest ({exc}); skipping bin recording.")
+    raise SystemExit(0)
+
+changed = []
+for key, env in (("claude_bin", "CLAUDE_BIN_ENV"),
+                 ("basic_memory_bin", "BASIC_MEMORY_BIN_ENV")):
+    val = os.environ.get(env) or ""
+    if val and os.path.isfile(val) and os.access(val, os.X_OK):
+        if manifest.get(key) != val:
+            manifest[key] = val
+            changed.append(f"{key}={val}")
+    elif not val:
+        print(f"  {key}: not found on PATH — cron jobs will sweep for it")
+
+if not changed:
+    print("Binary paths already current in install manifest.")
+    raise SystemExit(0)
+
+d = os.path.dirname(path)
+fd, tmp = tempfile.mkstemp(dir=d, prefix=".install-manifest-", suffix=".tmp")
+try:
+    with os.fdopen(fd, "w") as fh:
+        json.dump(manifest, fh, indent=2, sort_keys=False)
+        fh.write("\n")
+    os.replace(tmp, path)
+    os.chmod(path, 0o600)
+except Exception:
+    try:
+        os.unlink(tmp)
+    except OSError:
+        pass
+    raise
+
+print("Recorded in install manifest: " + ", ".join(changed))
+PYEOF
+}
+
+# --record-bins: refresh just the binary paths and exit. Cheap, idempotent, and
+# safe to run any time `claude` or `basic-memory` moves.
+if [[ "${RECORD_BINS_ONLY:-0}" -eq 1 ]]; then
+  _record_bins
+  exit 0
+fi
+
 _write_install_manifest() {
   if [[ "$DRY_RUN" -eq 1 ]]; then
     log "Would write install manifest to $HOME/.thinkos/install-manifest.json"
@@ -643,6 +729,7 @@ if [[ -n "$TRACKED_PROJECTS" ]]; then
 fi
 
 _write_install_manifest
+_record_bins
 
 log
 log "Setup steps complete. Run this next:"
