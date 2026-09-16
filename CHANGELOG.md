@@ -2,6 +2,25 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.9.12] — 2026-09-16 — Semantic checkpoints, and the right model for the task
+
+Session capture recorded *when* you worked. This adds *what you decided, learned, and left unfinished* — the save file rather than the playtime counter. And every scheduled job now picks a model deliberately instead of running everything on the default.
+
+The two are connected: checkpointing is a model call per session, so it only makes sense alongside a routing decision.
+
+### Added
+- **`scripts/thinkos-checkpoint.sh`** — runs as a Stop hook, extracts decisions, learnings, open questions, artifacts and commitments from the transcript slice since the last checkpoint, and **stages** them to `90 System/Session Checkpoints/`. Never writes a canonical file. Incremental: a byte cursor per session means a checkpoint costs one slice, not the whole ~50k-token transcript. Gated so a trivial session costs nothing.
+- **`/thinkos-promote`** — the review half. Walks unreviewed checkpoints, proposes a target per item, files only what you approve. Declining marks an item reviewed rather than deleting it, so it never comes back.
+- **`scripts/lib/model-routing.sh`** — one table mapping task → model, read automatically by `thinkos-cron-run.sh` and overridable per task or globally by env. `--dry-run` reports the model without spending anything.
+- **`templates/instructions/15-model-routing.md`** — the doctrine, in the always-on instruction stack.
+- SessionStart now reports unreviewed checkpoints, so staged work does not pile up unread.
+
+### Changed
+- The Stop hook is now Think OS-owned. The previous one had been writing four months of session history to `$CLAUDE_OS_HOME`, which still pointed at the pre-v0.8 predecessor vault — 764 KB accumulating where nothing reads it. Its telemetry was already duplicated, better, by the launchd capture job. The stale env var is replaced with `THINKOS_HOME`; the old hook and its orphaned log are preserved in `~/.thinkos/backups/`.
+
+### Fixed
+- **Checkpoint extraction was initially routed to Haiku and that was wrong.** A transcript describes what was *proposed* in the same confident past tense as what was *done*, and separating them is judgment. Measured on one slice with one prompt: Haiku ignored the required headings and asserted a version bump, a benchmark result and a token count that had never happened; Sonnet used the headings and every item traced to something real. The task was reclassified and the doctrine gained the test that would have caught it — ask whether the input *states* the answer unambiguously, not whether the output looks like a summary.
+
 ## [v0.9.11] — 2026-09-16 — The automation actually runs: runtime repair, one refresh, and a deck skill
 
 The release where the scheduled half of Think OS stopped being decorative. Seven of ten launchd jobs had been failing on every fire since May — `claude` is installed per-user and launchd runs with a minimal `PATH`, so every LLM-driven job died before doing any work, and `thinkos-doctor` reported them all `ok` because it only checked that the target script existed on disk. Four months of silent no-ops: an eight-week-stale `Current Focus`, a four-month gap in meeting capture, and ~2,700 failed runs across two log files.

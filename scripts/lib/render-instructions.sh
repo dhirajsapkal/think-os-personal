@@ -31,6 +31,7 @@ curated_instruction_files() {
     "$dir/00-think-os-priority.md" \
     "$dir/05-global-rules.md" \
     "$dir/10-token-efficiency.md" \
+    "$dir/15-model-routing.md" \
     "$dir/20-skill-routing.md" \
     "$dir/30-think-os-write-targets.md" \
     "$dir/40-emergent-seeding.md" \

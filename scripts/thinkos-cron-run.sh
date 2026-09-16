@@ -38,6 +38,10 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Right model for the task — see lib/model-routing.sh for the split.
+# shellcheck source=lib/model-routing.sh
+source "$SCRIPT_DIR/lib/model-routing.sh"
 LOG_DIR="$HOME/Library/Logs/ThinkOS"
 mkdir -p "$LOG_DIR"
 
@@ -176,6 +180,7 @@ run_llm_prompt() {
   local logfile="$LOG_DIR/$TASK_ID.log"
   if [[ "$DRY_RUN" -eq 1 ]]; then
     local preview="${prompt:0:120}"
+    echo "[dry-run] model: $(model_for "$TASK_ID")"
     echo "[dry-run] would run: claude -p (prompt: $preview...)"
     echo "[dry-run] log → $logfile"
     return 0
@@ -195,7 +200,13 @@ run_llm_prompt() {
   # on this and stage its output instead of writing. Without it, a scheduled
   # /weekly-review would either write unconfirmed or correctly decline and
   # silently do nothing — which is what left Current Focus 8 weeks stale.
-  if THINKOS_UNATTENDED=1 claude -p "$prompt" < /dev/null >> "$logfile" 2>&1; then
+  local model_args
+  # shellcheck disable=SC2046  # word-splitting is intended: "" or "--model haiku"
+  read -r -a model_args <<< "$(model_flag "$TASK_ID")"
+  if [[ ${#model_args[@]} -gt 0 ]]; then
+    echo "[model] ${model_args[*]}" >> "$logfile"
+  fi
+  if THINKOS_UNATTENDED=1 claude -p "${model_args[@]}" "$prompt" < /dev/null >> "$logfile" 2>&1; then
     return 0
   else
     echo "[$TASK_ID] claude session failed; see $logfile" >&2

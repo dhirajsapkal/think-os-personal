@@ -8,15 +8,22 @@ Use this file when you are an agent helping someone install, inspect, or improve
 
 ## If you're maintaining or extending Think OS
 
+> **Model routing:** scheduled tasks pick a model from `scripts/lib/model-routing.sh` —
+> extraction → Haiku, judgment → Sonnet, deterministic → no model. Before adding a task,
+> ask whether the input *states* the answer unambiguously; if not, it is judgment however
+> much the output looks like a summary.
+
 > **Versioning rule:** releases stay in `0.9.x` indefinitely — 0.9.11, 0.9.12, 0.9.100, no ceiling. **Never bump to 1.0.** The 0.1 → 0.9 range was spent too fast, so 1.0 is held for a deliberate final release that only the user decides. Bump the patch, write a `CHANGELOG.md` entry, and leave the major/minor alone.
 
-> **⚠️ Open work — read first:** [`docs/handoff-2026-09-15-automation-runtime.md`](docs/handoff-2026-09-15-automation-runtime.md)
+> **⚠️ Open work — read first:** [`docs/handoff-2026-09-16-semantic-autosave.md`](docs/handoff-2026-09-16-semantic-autosave.md)
 >
-> 7 of 10 scheduled jobs have been failing on every run since May 2026 (`claude` not on launchd's
-> PATH; `flock` absent on macOS). `thinkos-doctor.sh` reports them `ok` because it only checks that
-> the target script exists. That handoff has the diagnosis, repro commands, four scoped fixes with
-> acceptance criteria, and two feature requests. **Start there before building anything new** — most
-> of what looks missing already exists and has simply never run.
+> Session capture records telemetry (time, directories, edit counts) but not substance.
+> Decisions, learnings and open questions from a session reach the vault only if the user
+> asks by hand. That handoff specifies periodic semantic checkpointing — staged, never
+> auto-promoted. The transcripts are already on disk and already being read, so the
+> plumbing exists.
+>
+> Previously filed and now **shipped**: [`docs/handoff-2026-09-15-automation-runtime.md`](docs/handoff-2026-09-15-automation-runtime.md) (launchd jobs were failing on every run; fixed in `fix/automation-runtime`).
 
 Read in this order (skip what you don't need):
 
@@ -47,6 +54,7 @@ The agent instruction block installed into `~/.claude/CLAUDE.md` is assembled fr
    - `00-think-os-priority.md` — "this user has Think OS, query Basic Memory first, core rules" (includes multi-instance dedup rule and cost-of-context skip rule)
    - `05-global-rules.md` — non-negotiable behavioral rules (NEVER / ALWAYS)
    - `10-token-efficiency.md` — tool-use defaults (Grep over Read+grep, Edit over Write, batching, etc.)
+   - `15-model-routing.md` — right model for the task (extraction → Haiku, judgment → Sonnet, deliberation → Opus)
    - `20-skill-routing.md` — topic → skill mapping (design → `frontend-design`, etc.)
    - `30-think-os-write-targets.md` — content type → vault destination
    - `40-emergent-seeding.md` — HOT-file stub detection, propose-then-save, per-file draft state

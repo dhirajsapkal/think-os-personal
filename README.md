@@ -72,6 +72,7 @@ The bet: **plain markdown files on disk are the source of truth, and every agent
 | `/thinkos-learnings [topic]` | Search reusable learnings |
 | `/thinkos-voice <text>` | Log a before/after rewrite sample to sharpen your voice profile |
 | `/thinkos-recent` | What was captured in the last 24h, and where it landed |
+| `/thinkos-promote` | Review staged session checkpoints and file what's worth keeping |
 | `/thinkos-undo-capture` | Remove a capture from the vault and ledger |
 
 **Work**
@@ -156,6 +157,7 @@ Once set up, Think OS records what you work on without you remembering to log it
 - **Session capture** — a local job scans recent Claude Code sessions and appends what you worked on, with real durations, to your vault. No LLM call, no file contents leave your machine. `/thinkos-autosave`.
 - **External ingestion, opt-in per source** — local jobs pull from Granola, Slack DMs and @-mentions, Gmail, Calendar and ClickUp. `/thinkos-capture-setup` offers the safest source first and the most sensitive last.
 - **Privacy routing** — a two-tier keyword scan on word boundaries. Tier 1 terms (compensation, medical, transplant, performance review…) redact on a single mention; tier 2 terms (family, doctor, 1:1…) need to be substantive, so one aside in a work conversation doesn't redact the whole note. Terms are judged by *your* domain: `terminal` means a shell or a shipping terminal here, not a diagnosis.
+- **Session checkpoints** — at session end, a checkpoint extracts what you *decided, learned and left unfinished* and stages it to `90 System/Session Checkpoints/`. Telemetry says when you worked; this says what happened. **Nothing is filed automatically** — `/thinkos-promote` reviews it, and declining marks an item reviewed rather than deleting it.
 - **Audit and undo** — every capture writes one line to `90 System/Capture Log.md`. `/thinkos-recent` shows what landed; `/thinkos-undo-capture` removes it.
 
 Full design: [`docs/continuous-capture/README.md`](docs/continuous-capture/README.md).

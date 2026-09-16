@@ -26,7 +26,7 @@
 exec 2>/dev/null
 
 main() {
-  local vault="" focus="" end="" today="" pending="" staged="" covers=""
+  local vault="" focus="" end="" today="" pending="" staged="" covers="" cp_dir="" cp_n=""
 
   # --- Resolve personal vault ------------------------------------------------
   local vaults_json="$HOME/.thinkos/vaults.json"
@@ -46,6 +46,22 @@ PY
 )"
   fi
   [[ -n "$vault" ]] || vault="${THINKOS_HOME:-$HOME/ThinkOS/vault}"
+
+  # --- Unreviewed session checkpoints ----------------------------------------
+  # Checkpoints stage substance at session end and are never promoted
+  # automatically. If nobody surfaces them they pile up unread, which makes the
+  # whole layer pointless. One line, count only — the detail is in the files.
+  cp_dir="$vault/90 System/Session Checkpoints"
+  if [[ -d "$cp_dir" ]]; then
+    cp_n="$(grep -l '^reviewed: false' "$cp_dir"/*.md 2>/dev/null | wc -l | tr -d ' ')"
+    if [[ "${cp_n:-0}" -gt 0 ]]; then
+      if [[ "$cp_n" -eq 1 ]]; then
+        printf 'UNREVIEWED CHECKPOINT: 1 session checkpoint is staged — review with `/thinkos-promote`\n'
+      else
+        printf 'UNREVIEWED CHECKPOINTS: %s staged — review with `/thinkos-promote --all`\n' "$cp_n"
+      fi
+    fi
+  fi
 
   # --- Pending focus refresh (FIX-4) -----------------------------------------
   # An unattended /weekly-review has no one to confirm a Current Focus rewrite,
