@@ -59,14 +59,13 @@ For each meeting that passes dedup:
 
      Two real failures this tiering exists to fix:
      - OVER-flagging. A design backlog call was redacted because someone said
-       "family party thing" once in weekend small talk. A WalWil planning
+       "family party thing" once in weekend small talk. A project planning
        meeting was redacted for one mention of a doctor's appointment in
        scheduling logistics. Tier 2 stops both.
-     - UNDER-flagging, which is worse. A meeting titled "WalWil Design Backlog
-       Refinement" spent its last tenth on a participant's sibling's transplant
-       and medical leave. None of "transplant", "bone marrow" or "stem cell"
-       were on the old list, so it was written unredacted under an ordinary
-       work title. Tier 1 catches that on a single mention.
+     - UNDER-flagging, which is worse. A meeting with an ordinary project title
+       spent its last tenth on a serious medical matter. The old list carried no
+       clinical terms at all, so it was written unredacted. Tier 1 catches that
+       on a single mention.
 
      A work title guarantees nothing about the body. Scan the whole transcript,
      not the first screenful.

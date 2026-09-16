@@ -227,7 +227,7 @@ before the work week closes).
 
 **Type:** new feature. **Priority:** lower — real pain, narrower audience.
 
-**Motivating quote**, WalWil team call 2026-09-14:
+**Motivating quote**, from a client team call, 2026-09-14:
 > "I just don't like the way Figma handles comments. They're all in like a crazy order, and then even
 > if you sort them, they're bad. It still doesn't cover all of it. It's just a disaster."
 

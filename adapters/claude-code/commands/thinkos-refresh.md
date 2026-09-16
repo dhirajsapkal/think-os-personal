@@ -97,7 +97,7 @@ Two pulls:
 1. **DMs awaiting reply** — for each DM channel the user has been active in last 7d, call `mcp__claude_ai_Slack__slack_read_channel` with `limit=5`. If the last message is NOT from the user AND was sent within 48h, that's an awaiting-reply candidate.
 2. **Watched channels** — extract channel names from existing Tasks.md `### 🔔 Slack tracker → **Watching**` section. For each, read the last 48h. Surface anything @-mentioning the user, anything in a thread the user participated in, anything from a manager/exec (cross-ref `03 People/People.md` for the Quick map).
 
-**Skip:** Personal channels (`#beerswap`, book group DMs with Caleb/Chris N), spam (per People.md flagged contacts).
+**Skip:** Personal/social channels and non-work DM threads — the user's `People.md` flags which contacts and channels are social rather than work, and `Connectors.md` records any standing skip list. Spam per the same flags.
 
 **Extract per thread:** counterparty, channel, 1-line gist, suggested action, freshness (today / N hours ago).
 
@@ -198,7 +198,7 @@ Items must be machine-readable or nothing downstream can see them — not Obsidi
 Every actionable item is a real checkbox carrying its metadata inline, in Tasks-plugin format (https://publish.obsidian.md/tasks):
 
 ```
-- [ ] Reply to Keith re: component upgrade ⏫ 📅 2026-09-17 #walwil #waiting
+- [ ] Reply to Sam re: component upgrade ⏫ 📅 2026-09-17 #project-a #waiting
 - [ ] Submit timesheet 🔺 📅 2026-09-18 #admin
 - [x] Peer feedback for Dina ✅ 2026-09-15 #admin
 ```
