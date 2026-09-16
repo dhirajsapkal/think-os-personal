@@ -62,6 +62,7 @@ Show the full index of Think OS slash commands grouped by category, plus key scr
 | Command | What it does |
 |---|---|
 | `/thinkos-refresh` | **The one refresh.** Sweeps every source (Gmail · Slack · Calendar · ClickUp · Atlassian · Notion · Granola), updates Tasks.md *including closing what's done*, reindexes, reconciles projects, proposes a Current Focus, and validates. Flags: `--quick`, `--tasks-only`, `--dry-run`, `--skip-focus`, `--source <name>`, `--days <N>` |
+| `thinkos-deck` *(skill)* | Build or improve a Google Slides deck from vault content, in your voice |
 | `/thinkos-voice <before \| after>` | Log a before/after rewrite sample to improve your voice profile |
 
 ---

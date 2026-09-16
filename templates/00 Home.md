@@ -2,7 +2,7 @@
 title: Home
 type: dashboard
 permalink: think-os/home
-last_reviewed: {{YYYY-MM-DD}}
+last_reviewed: '2026-09-15'
 ---
 
 # Think OS Home

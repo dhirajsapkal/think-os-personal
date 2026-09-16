@@ -721,7 +721,6 @@ _execute() {
 
   # 8b. LaunchAgent jobs, sync job, session capture, logs, and capture state.
   hdr "Removing LaunchAgent jobs and runtime artifacts"
-  _KNOWN_TASK_IDS="daily-reindex weekly-review quarterly-archive morning-brief granola slack calendar clickup gmail linear jira"
   for _task_id in $_KNOWN_TASK_IDS; do
     if [ -f "$SCRIPT_DIR/uninstall-launchd-job.sh" ]; then
       if [ "$DRY_RUN" -eq 1 ]; then

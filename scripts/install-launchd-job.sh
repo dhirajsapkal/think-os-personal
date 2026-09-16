@@ -178,7 +178,7 @@ XML
 SCHEDULE_BLOCK="$(schedule_block_for "$TASK_ID" || true)"
 if [[ -z "$SCHEDULE_BLOCK" ]]; then
   echo "Unknown task id: $TASK_ID" >&2
-  echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola slack calendar clickup gmail linear jira figma loose-ends" >&2
+  echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola slack calendar clickup gmail figma loose-ends" >&2
   exit 2
 fi
 

@@ -488,7 +488,7 @@ PY
     LAST_TS="$(echo "$LAST_SESSION_INFO" | awk '{print $1}')"
     AGE_H="$(echo "$LAST_SESSION_INFO" | awk '{print $2}')"
     # Check local hour to determine if we're in 9am–9pm window
-    LOCAL_HOUR="$(date +%H)"
+    LOCAL_HOUR="$(date +%-H)"   # %H is zero-padded; bash reads "09" as bad octal
     AGE_INT="$(python3 -c "print(int(float('$AGE_H')))" 2>/dev/null || echo "0")"
     if [[ "$LOCAL_HOUR" -ge 9 && "$LOCAL_HOUR" -lt 21 && "$AGE_INT" -gt 4 ]]; then
       add_check "capture:last_session" warn "last session capture was ${AGE_H}h ago ($LAST_TS); expected every ~2h during working hours"
@@ -588,6 +588,9 @@ for line in snapshot.splitlines():
         exit_codes[parts[2]] = (parts[0], parts[1])   # label -> (pid, status)
 
 SIGNATURES = [
+    ("OAuth access token has expired",
+     "claude's OAuth token expired — re-run /login so background jobs can authenticate"),
+    ("Failed to authenticate", "claude could not authenticate — re-run /login"),
     ("claude CLI not found",   "claude not resolvable under launchd's PATH"),
     ("not found.",             "a required binary is not resolvable under launchd's PATH"),
     ("command not found",      "a required binary is missing from launchd's PATH"),
@@ -661,6 +664,32 @@ BENIGN = [
     re.compile(r"^\(rotated previous log"),
 ]
 
+def current_run_cause(path, started, budget=32768):
+    """Signature from THIS run only.
+
+    Task logs accumulate for months. Scanning a fixed tail window surfaces
+    whichever signature appears first in that window, which can be a cause
+    fixed weeks ago — observed: four jobs reported as a PATH failure when the
+    real, same-morning cause was an expired OAuth token. Slice to the text
+    after the most recent run marker before matching."""
+    if not path or not os.path.isfile(path):
+        return None
+    try:
+        with open(path, "rb") as fh:
+            fh.seek(0, os.SEEK_END)
+            fh.seek(max(0, fh.tell() - budget))
+            tail = fh.read().decode("utf-8", "replace")
+    except OSError:
+        return None
+    marks = list(re.finditer(r"^=== \S+ ", tail, re.M))
+    if marks:
+        tail = tail[marks[-1].start():]
+    for needle, human in SIGNATURES:
+        if needle in tail:
+            return ("fail", human)
+    return None
+
+
 def stderr_cause(path, budget=8192):
     if not path or not os.path.isfile(path):
         return None
@@ -716,7 +745,7 @@ for plist_path in sorted(glob.glob(os.path.expanduser("~/Library/LaunchAgents/co
     hint = f" (launchctl: pid={pid} last_exit={code}{'; currently running' if running else ''})"
 
     if started is None:
-        found = stderr_cause(err_p)
+        found = stderr_cause(run_log) or stderr_cause(err_p)
         if found:
             emit(f"launchagent:{label}:health", found[0],
                  f"has never completed a run — {found[1]}{hint}")
@@ -727,7 +756,10 @@ for plist_path in sorted(glob.glob(os.path.expanduser("~/Library/LaunchAgents/co
 
     when = time.strftime("%Y-%m-%d %H:%M", time.localtime(started))
     if err_mt is not None and err_mt >= started - 2:
-        found = stderr_cause(err_p)
+        # THIS run's evidence first. The task log carries claude's own message
+        # (an expired OAuth token lands here); the stderr tail spans months and
+        # will happily surface a cause that was fixed weeks ago.
+        found = current_run_cause(run_log, started) or stderr_cause(err_p)
         if found:
             # `started` is the last run that got far enough to write a marker,
             # NOT the last attempt. A job dying before that point keeps firing

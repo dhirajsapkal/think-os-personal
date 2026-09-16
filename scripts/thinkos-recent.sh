@@ -15,7 +15,6 @@
 #
 # Flags:
 #   --hours N      Events in the last N hours (default: 24)
-#   --source X     Filter to one source (session|granola|slack|gmail|calendar|linear|clickup|manual)
 #   --worklog      Extract Work Log entries instead of ledger events (read-only)
 #   --days N       Worklog window in days (default: 7; only with --worklog)
 #   --json         Machine-readable JSON output
@@ -46,7 +45,6 @@ With --json it emits a JSON array of {date, text} objects.
 
 Options:
   --hours N       How far back to look (default: 24)
-  --source X      Filter to one source: session|granola|slack|gmail|calendar|linear|clickup|manual
   --worklog       Extract Work Log entries instead of ledger events
   --days N        Worklog window in days (default: 7; only with --worklog)
   --json          Output compact JSON
@@ -298,7 +296,6 @@ groups = defaultdict(list)
 for e in events:
     groups[e.get("source", "unknown")].append(e)
 
-SOURCE_ORDER = ["session", "granola", "slack", "gmail", "calendar", "linear", "clickup", "manual"]
 sorted_sources = sorted(groups.keys(), key=lambda s: SOURCE_ORDER.index(s) if s in SOURCE_ORDER else 99)
 
 print(f"Last {hours}h")

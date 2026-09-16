@@ -256,8 +256,6 @@ run_task() {
     clickup)  run_llm_task "clickup"  ;;
     gmail)    run_llm_task "gmail"    ;;
     slack)    run_llm_task "slack"    ;;
-    linear)   run_llm_task "linear"   ;;
-    jira)     run_llm_task "jira"     ;;
 
     # Composio-backed / cross-source. Both degrade to a no-op when their
     # source is unavailable rather than failing the job.
@@ -266,7 +264,7 @@ run_task() {
 
     *)
       echo "Unknown task id: $TASK_ID" >&2
-      echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola calendar clickup gmail slack linear jira figma loose-ends" >&2
+      echo "Known: daily-reindex weekly-review quarterly-archive morning-brief granola calendar clickup gmail slack figma loose-ends" >&2
       exit 2
       ;;
   esac

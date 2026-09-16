@@ -114,71 +114,7 @@ Move to Source 3.
 
 ---
 
-## Source 3 — Linear
-
-Only proceed with this path if the direct Linear MCP is available. Check with `ToolSearch` query `"linear issues"`.
-
-### Offer step
-
-Use `AskUserQuestion`:
-- prompt: "Linear: captures tickets assigned to you that changed status in the past 24 hours. Filter: assignee = me, status changed, last 25 hours. Vault: `01 Now/Signals/linear-<date>.md`.\n\nEnable Linear capture?"
-- chips: `["Enable", "Skip", "Show me the filter rules first"]`
-
-**On "Show me the filter rules first"**: show "Filter" section from `docs/continuous-capture/sources/linear.md`, re-ask.
-
-**On "Skip"**: move to Source 4.
-
-**On "Enable"**:
-
-1. Verify the direct Linear MCP is available via `ToolSearch` query `"linear issues"`.
-   If unavailable: > Linear MCP isn't connected. Install the Linear plugin and retry. Moving to the Jira path.
-   Move to Source 4.
-
-2. Install the launchd job:
-   ```bash
-   bash "$REPO_ROOT/scripts/install-launchd-job.sh" linear
-   ```
-
-3. Confirm: > Linear capture enabled. Job `com.thinkos.linear` fires daily at 6am local time when your Mac is awake.
-
-Move to Source 4.
-
----
-
-## Source 4 — Jira / Atlassian
-
-Only proceed with this path if `mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql` exists. Check with `ToolSearch select:mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql`.
-
-If Source 3 (Linear) was enabled, this source is independent — offer it separately for teams that use Jira alongside or instead of Linear.
-
-### Offer step
-
-Use `AskUserQuestion`:
-- prompt: "Jira: captures Jira issues assigned to you that changed status in the past 24 hours. Filter: assignee = currentUser(), status changed, last 25 hours. Vault: `01 Now/Signals/jira-<date>.md`.\n\nEnable Jira capture?"
-- chips: `["Enable", "Skip", "Show me the filter rules first"]`
-
-**On "Show me the filter rules first"**: show "Filter" section from `docs/continuous-capture/sources/jira.md` if it exists, otherwise summarize: assignee = currentUser(), updatedDate >= -25h, status changed. Re-ask.
-
-**On "Skip"**: move to Source 5.
-
-**On "Enable"**:
-
-1. Verify the Atlassian MCP: `ToolSearch select:mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql`.
-   If unavailable: > Atlassian MCP isn't connected. Install the Atlassian plugin and retry. Skipping Jira.
-   Move to Source 5.
-
-2. Install the launchd job:
-   ```bash
-   bash "$REPO_ROOT/scripts/install-launchd-job.sh" jira
-   ```
-
-3. Confirm: > Jira capture enabled. Job `com.thinkos.jira` fires daily at 6am local time when your Mac is awake.
-
-Move to Source 5.
-
----
-
-## Source 5 — ClickUp
+## Source 3 — ClickUp
 
 ### Offer step
 
@@ -206,7 +142,7 @@ Move to Source 6.
 
 ---
 
-## Source 6 — Gmail
+## Source 4 — Gmail
 
 ### Offer step
 
@@ -234,7 +170,7 @@ Move to Source 7.
 
 ---
 
-## Source 7 — Slack
+## Source 5 — Slack
 
 ### Privacy framing (mandatory — do not skip)
 
@@ -307,7 +243,6 @@ If the user passes a single source name as an argument:
 2. Run the preflight check first (ledger exists, Basic Memory operational).
 3. After enabling or skipping, exit — do not walk through the remaining sources.
 
-Valid source names: `granola`, `calendar`, `linear`, `jira`, `clickup`, `gmail`, `slack`.
 
 If an unrecognized name is passed, list the valid names and exit.
 

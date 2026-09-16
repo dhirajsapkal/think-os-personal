@@ -3,6 +3,7 @@
 When the user's intent matches a topic below, invoke the named skill **first**, then synthesize. If a skill isn't installed, fall through gracefully and mention it once. Match on intent, not exact wording; when in doubt, pick the more specific skill.
 
 - design, UI, components, styling, Figma, landing page, web app interface → `frontend-design:frontend-design`
+- Google Slides deck — build, improve, redesign, polish, or a workshare / readout / presentation from recorded work → `thinkos-deck` (sources from the vault; always backs up first)
 - Google Slides deck — improve, enhance, redesign, polish, clean up, restyle, or add content to a deck, or any `docs.google.com/presentation` URL paired with a request to change it → `enhance-slides` (render-and-verify each slide before reporting done; never edit a deck without a backup)
 - design-to-code (paper sketch → component) → `paper-desktop:design-to-code`; code-to-design → `paper-desktop:code-to-design`
 - Claude API, Anthropic SDK, prompt caching, model migration, tool use design, batch API, extended thinking → `claude-api` (required for any code importing `anthropic`/`@anthropic-ai/sdk`)

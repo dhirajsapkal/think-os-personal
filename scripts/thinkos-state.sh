@@ -161,7 +161,6 @@ if sub == "init":
             "gmail": None,
             "drive": None,
             "notion": None,
-            "linear": None,
             "atlassian": None,
         },
     }

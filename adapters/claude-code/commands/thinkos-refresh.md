@@ -125,9 +125,9 @@ Confluence pages the user authored or edited in the last 48h. Also: pages where 
 
 Skip Jira queries entirely — connector lacks the scope (per `Connectors.md`).
 
-### Notion
+### Notion  *(interactive only — no scheduled prompt)*
 
-**Only pull if `--source notion` was explicitly passed** OR `--comprehensive` was explicit. Per `Connectors.md` default rule, Notion is not queried on the standard sweep.
+**Only pull if `--source notion` was explicitly passed.** Notion is deliberately absent from the standard sweep, and there is no `cron-prompts/notion.txt`, so the scheduled path cannot sweep it at all. Interactively the MCP is reachable and `--source notion` works; do not imply a background sync that does not exist.
 
 When pulled: recent edits + comments mentioning the user in the AI Implementation Hub workspace.
 
