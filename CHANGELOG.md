@@ -2,6 +2,43 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+> **Versioning: stay in `0.9.x`.** Patch numbers keep incrementing — 0.9.11, 0.9.12, 0.9.20, 0.9.100 — with no upper bound. **Do not bump to 1.0.** Early versions moved through 0.1 → 0.9 too quickly for the maturity they represented; 1.0 is reserved for a deliberate final release and is the user's call alone. Every change still gets a version and an entry here.
+
+## [v0.9.11] — 2026-09-16 — The automation actually runs: runtime repair, one refresh, and a deck skill
+
+The release where the scheduled half of Think OS stopped being decorative. Seven of ten launchd jobs had been failing on every fire since May — `claude` is installed per-user and launchd runs with a minimal `PATH`, so every LLM-driven job died before doing any work, and `thinkos-doctor` reported them all `ok` because it only checked that the target script existed on disk. Four months of silent no-ops: an eight-week-stale `Current Focus`, a four-month gap in meeting capture, and ~2,700 failed runs across two log files.
+
+Fixing the runtime exposed the next layer. Once the jobs ran, their capture cursors turned out to be poisoned — every failed run had stamped a fresh cursor and advanced it past the window it never processed — so a job could report "nothing new" forever while capturing nothing. And the privacy keyword scan, once it had real transcripts to read, was wrong in both directions at once.
+
+### Added
+- **`thinkos-deck` skill** — builds or improves Google Slides decks from vault content (Meetings, Work Log, Decisions, Learnings) rather than interviewing you about work you already recorded. Matches `Voice Profile`, applies the tiered privacy rules before anything reaches a slide, and refuses to run a mutating phase until a backup exists — Slides exposes no undo an API client can drive.
+- **`/thinkos-loose-ends`** — diffs spoken commitments in Granola transcripts against ClickUp, and reports what you agreed to that never became a ticket. Drafts tickets on request; never creates one.
+- **`/thinkos-figma-triage`** — groups a file's comments by frame in reading order instead of Figma's chronological-across-the-whole-file ordering. Read-only against Figma.
+- **Composio bridge** (`scripts/lib/composio.sh`) — reaches sources the first-party MCPs don't cover. The Figma MCP is design read/write only and exposes no comments tool at all. Wired as a local CLI, not another MCP server: an MCP server pushes its whole catalogue into every session's context, whereas `composio search` discovers a slug on demand. Fails closed — an unconfirmable connection is treated as absent.
+- **`scripts/session-activity.py`** — timestamp-accurate per-project, per-day activity from Claude Code session logs.
+- **`scripts/harvest-timesheet.py` + `/thinkos-timesheet`** — converges a Harvest week onto a plan. Idempotent; never touches submitted or approved entries.
+- **Job health checks in doctor** — existence is not health. Reports `fail` with a named cause, and surfaces staleness.
+
+### Changed
+- **`/thinkos-refresh` is now the one refresh.** It absorbs `/thinkos-reindex`, `/validate-os`, `/thinkos-stale` and `/index-projects`, which were separate commands with undocumented ordering dependencies. Reindex belongs *after* writes; Current Focus depends on Tasks already being fresh; and closing completed items has to happen in the same pass that adds new ones, or the list only grows — which is how `Tasks.md` reached 225 lines with 8 checkboxes.
+- **Tasks are written as data, not prose.** Tasks-plugin syntax (`🔺⏫🔼🔽` priority, `📅` due, `✅` done, `#tags`) so Obsidian Bases and the Tasks plugin can actually query them.
+- **Unattended `/weekly-review` stages instead of writing.** Step 4 said "after the user confirms", which unattended can only resolve two wrong ways. It now writes to `90 System/Pending Focus Refresh.md` and the SessionStart hook surfaces it.
+- **CHANGELOG split** at v0.8.4 — earlier releases moved verbatim to `CHANGELOG-archive.md`.
+
+### Fixed
+- **`claude` and `basic-memory` unresolvable under launchd.** Manifest-first with a PATH sweep fallback, so an existing install recovers without re-running setup. `thinkos-setup.sh --record-bins` records both.
+- **`flock` on macOS.** It is util-linux and does not exist here; it failed on every run of every job for four months while the ledger append silently succeeded anyway.
+- **Poisoned capture cursors.** `granola.txt` and `slack.txt` selected the cursor as the most recent ledger entry of *any* mode, so 1,333 failed runs each advanced it. Now requires `mode == "create"`, clamped to a 7-day lookback so a job dead for months reports the gap instead of performing a months-long unattended backfill.
+- **Privacy classification, wrong in both directions.** A flat "any keyword matches" rule redacted a design call for one "family party thing" in small talk, while writing a meeting containing a participant's sibling's transplant unredacted under an ordinary work title. Now tiered, with terms judged by domain — bare `terminal` redacted seven ordinary meetings for a shipping-terminal client, and bare `personal` redacted a meeting *about* PII handling.
+- **Session capture invented work that never happened.** It selected files by mtime then counted every edit in the whole file; a session file can span days, so any touch replayed the entire history as "today's work" — 76 phantom entries during a medical leave.
+- **Doctor reported a cause fixed weeks earlier.** It scanned a fixed byte window and took the first matching signature. Now scoped to the current run, and returns no verdict when a log has no run markers rather than guessing.
+- **`date +%H` is zero-padded**, which bash reads as invalid octal — an error that only fired between 08:00 and 09:59.
+- **`00 Home.md`** had two frontmatter blocks, an unrendered token, and a leading blank line that stopped the YAML parsing entirely.
+
+### Removed
+- `/thinkos-log`, `/thinkos-save`, `/thinkos-decide` — delegation shims whose own text read "one fewer command to remember". Use `/thinkos-capture --mode <log|session-recap|decision>`.
+- `linear` and `jira` connectors — zero ledger entries ever, no MCP registered, and the Atlassian connector has no Jira read scopes, so `jira.txt` could never have worked.
+
 ## [v0.9.10] — 2026-09-14 — Timesheets, and a session-capture accuracy fix
 
 Two things that turned out to be the same thing. Filling a timesheet from memory is tedious because the hard part is recall, not data entry — so Think OS should be able to say what you actually worked on. It couldn't, because session capture was wrong.

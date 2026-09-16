@@ -8,6 +8,8 @@ Use this file when you are an agent helping someone install, inspect, or improve
 
 ## If you're maintaining or extending Think OS
 
+> **Versioning rule:** releases stay in `0.9.x` indefinitely — 0.9.11, 0.9.12, 0.9.100, no ceiling. **Never bump to 1.0.** The 0.1 → 0.9 range was spent too fast, so 1.0 is held for a deliberate final release that only the user decides. Bump the patch, write a `CHANGELOG.md` entry, and leave the major/minor alone.
+
 > **⚠️ Open work — read first:** [`docs/handoff-2026-09-15-automation-runtime.md`](docs/handoff-2026-09-15-automation-runtime.md)
 >
 > 7 of 10 scheduled jobs have been failing on every run since May 2026 (`claude` not on launchd's
