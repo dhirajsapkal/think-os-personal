@@ -881,6 +881,38 @@ PY
 )
 
 # ---------------------------------------------------------------------------
+# v0.9.13: hook and agent vault paths.
+#
+# Three hooks and two agent definitions spent four months writing to the
+# pre-v0.8 predecessor vault. Nothing surfaced it, because a hook that writes
+# to the wrong place does not error — it succeeds, somewhere nothing reads.
+#
+# The logic lives in scripts/lib/check-hook-paths.py rather than inline here:
+# `bash -n` does not validate heredoc contents, so a stray backtick in embedded
+# Python kills every check after it while still passing a syntax check. That
+# happened three times while building this one.
+#
+# The output is captured before the loop so an empty result is visible. A
+# process substitution that dies feeds the loop nothing and reports nothing,
+# which is indistinguishable from a clean pass.
+# ---------------------------------------------------------------------------
+HOOK_PATH_CHECKER="$REPO_ROOT/scripts/lib/check-hook-paths.py"
+if [[ ! -f "$HOOK_PATH_CHECKER" ]]; then
+  add_check "hooks:vault-paths" warn "checker missing: $HOOK_PATH_CHECKER"
+else
+  HOOK_PATH_OUT="$(python3 "$HOOK_PATH_CHECKER" "$OS_HOME" 2>/dev/null || true)"
+  if [[ -z "$HOOK_PATH_OUT" ]]; then
+    add_check "hooks:vault-paths" warn "hook/agent path check produced no output (python3 error); wrong-vault writers would go unnoticed"
+  else
+    while IFS=$'\t' read -r _name _status _detail; do
+      [[ -z "$_name" ]] && continue
+      add_check "$_name" "$_status" "$_detail"
+    done <<<"$HOOK_PATH_OUT"
+  fi
+fi
+
+
+# ---------------------------------------------------------------------------
 # v0.9.3: focus freshness — covers_week end date vs today (mechanical, not prose)
 # ---------------------------------------------------------------------------
 FOCUS_FILE="$OS_HOME/01 Now/Current Focus.md"

@@ -2,6 +2,22 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
+## [v0.9.13] — 2026-09-16 — Doctor can see the wrong vault
+
+v0.9.12 fixed five hooks and agents that had been writing to the pre-v0.8 predecessor vault. This is the guard that stops a sixth from going unnoticed for another four months.
+
+A hook pointed at the wrong vault does not error. It succeeds — somewhere nothing reads. There was no check that would ever have surfaced it.
+
+### Added
+- **`scripts/lib/check-hook-paths.py`**, wired into `thinkos-doctor.sh` — scans every `~/.claude/hooks/*.sh` and `~/.claude/agents/*.md` for vault-shaped paths and reports two findings: `hooks:dead-paths` (**fail** — the path does not exist, so writes vanish and reads return nothing) and `hooks:foreign-vault` (**warn** — the path exists but resolves outside the active vault; legitimate for a reference vault, suspect otherwise). Paths under `.claude`, `.thinkos`, the repo, logs and `/tmp` are allowed.
+
+### Fixed
+- **The first version of this checker reported `ok` on a path it had been pointed straight at.** Its path regex stopped at whitespace, so `.../Routines/Claude OS Setup/work-log.md` truncated to `.../Routines/Claude` — which then failed the "looks like a vault path" test and was skipped. Vault paths routinely contain spaces (`01 Now`, `Claude OS Setup`), which is precisely the class it was built to catch. Quoted paths are now matched whole.
+- Doctor captures the checker's output before iterating it. A process substitution whose command dies feeds the loop nothing, which is indistinguishable from a clean pass — the same shape of failure as the heredoc bug below. An empty result now warns.
+
+### Notes
+The logic lives in a file rather than an inline heredoc because `bash -n` does not validate heredoc contents: a stray backtick in embedded Python silently disables every check after it while still passing a syntax check. That happened three times during this work, each time dropping doctor from 49 checks to 29 while still reporting a pass. Verify doctor by counting checks, not by exit status.
+
 ## [v0.9.12] — 2026-09-16 — Semantic checkpoints, and the right model for the task
 
 Session capture recorded *when* you worked. This adds *what you decided, learned, and left unfinished* — the save file rather than the playtime counter. And every scheduled job now picks a model deliberately instead of running everything on the default.
