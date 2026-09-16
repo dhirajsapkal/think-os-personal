@@ -2,8 +2,6 @@
 
 All notable changes to Think OS Alpha are documented here. Dates are ISO (YYYY-MM-DD).
 
-> **Versioning: stay in `0.9.x`.** Patch numbers keep incrementing — 0.9.11, 0.9.12, 0.9.20, 0.9.100 — with no upper bound. **Do not bump to 1.0.** Early versions moved through 0.1 → 0.9 too quickly for the maturity they represented; 1.0 is reserved for a deliberate final release and is the user's call alone. Every change still gets a version and an entry here.
-
 ## [v0.9.11] — 2026-09-16 — The automation actually runs: runtime repair, one refresh, and a deck skill
 
 The release where the scheduled half of Think OS stopped being decorative. Seven of ten launchd jobs had been failing on every fire since May — `claude` is installed per-user and launchd runs with a minimal `PATH`, so every LLM-driven job died before doing any work, and `thinkos-doctor` reported them all `ok` because it only checked that the target script existed on disk. Four months of silent no-ops: an eight-week-stale `Current Focus`, a four-month gap in meeting capture, and ~2,700 failed runs across two log files.
