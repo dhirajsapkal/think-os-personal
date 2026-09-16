@@ -682,8 +682,16 @@ def current_run_cause(path, started, budget=32768):
     except OSError:
         return None
     marks = list(re.finditer(r"^=== \S+ ", tail, re.M))
-    if marks:
-        tail = tail[marks[-1].start():]
+    if not marks:
+        # No run markers at all — this script does not write them (e.g.
+        # session-capture). Without a marker we cannot tell which lines belong
+        # to the current run, and matching the whole window resurrects causes
+        # from months ago. Observed: a healthy session-capture reported as
+        # "macOS denied execution" because of one line from a prior era.
+        # Return nothing and let the caller fall back to stderr, which is
+        # append-only per run and far less likely to mislead.
+        return None
+    tail = tail[marks[-1].start():]
     for needle, human in SIGNATURES:
         if needle in tail:
             return ("fail", human)
