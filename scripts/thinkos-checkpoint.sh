@@ -25,6 +25,21 @@
 set -uo pipefail
 umask 0077
 
+# --- re-entrancy guard -------------------------------------------------------
+# This script extracts the checkpoint by spawning `claude -p` (see below). That
+# nested run is a full Claude Code session with its own Stop hook, which re-runs
+# this script. Its transcript is ~32 events, so the MIN_EVENTS gate cannot stop
+# it, and the chain self-sustains: 850 nested sessions in a single day against 4
+# staged checkpoints, each one holding the Stop hook open for minutes.
+#
+# The nested claude is launched with THINKOS_UNATTENDED=1 and hooks inherit the
+# environment, so this cuts the chain at depth 1. It also skips checkpointing
+# the unattended runs from thinkos-cron-run.sh, which set the same flag — those
+# are automation, not sessions worth a save file.
+if [[ "${THINKOS_UNATTENDED:-0}" == "1" ]]; then
+  exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 STATE_DIR="$HOME/.thinkos/checkpoints"
