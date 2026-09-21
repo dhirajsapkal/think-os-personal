@@ -412,7 +412,11 @@ If `90 System/Pending Focus Refresh.md` exists, a scheduled run already staged a
 What `/validate-os` and `/thinkos-stale` used to do:
 
 - **Stale** — notes past their freshness window; `covers_week` in the past; `last_synced` older than 24h after a sweep that should have refreshed it.
-- **Broken references** — `[[wikilinks]]` with no target.
+- **Broken references** — `[[wikilinks]]` with no target. **Two classes are by design and must NOT be reported:**
+  - **Person links.** `03 People/People.md` is a single-file mini-CRM; there are no per-person notes, so `[[Adrienne Taylor]]` and every other person link resolves to a section heading, not an entity. Basic Memory lists these as "unresolved relations" and Obsidian shows them unlinked. That is the intended shape — the vault trades link resolution for one browsable CRM. Do not propose generating per-person stubs to "fix" it.
+  - **Project rows marked `→ *(no note yet)*`** in `02 Projects/Project Index.md`. The pointer is deliberately absent because no deep note exists yet; the row is the record. Create the note from `_Project Template.md` when that project next needs deep context — not as index hygiene.
+
+  Report only genuinely dangling targets outside those two classes — a `[[Note]]` that was renamed or deleted, or a link to something that was supposed to exist. When counting, resolve against filenames, paths, headings **and** frontmatter titles/permalinks; a naive filename-only comparison produces mostly false positives.
 - **Contradictions** — Work Log implying a role, employer or project that Identity or Project Index disagrees with.
 - **Budget** — HOT files over budget (Identity <= 80 lines, Current Focus <= 60).
 
