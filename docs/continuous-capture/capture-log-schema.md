@@ -17,6 +17,24 @@ Canonical contract for the vault note "Capture Log" at `90 System/Capture Log.md
 - **No trailing commas, no comments**: strict JSON per line.
 - Blank lines are allowed and must be skipped by readers.
 
+### Appending safely
+
+Newline-termination is the writer's job, and a writer cannot assume the
+previous one did it. **Before appending, check whether the file already ends
+with `\n`; if it does not, emit one first.** Appending blind to a
+non-terminated file glues your first event onto the previous writer's last one
+and makes *both* lines unparseable — the reader loses two events, not one.
+
+This is not hypothetical: on 2026-09-20 a `deck` event written without a
+terminal newline swallowed the `session` event that followed it, and both were
+invisible to `thinkos-recent.sh` (and therefore to `/weekly-review`) until the
+line was split on 2026-09-21.
+
+Writers that already enforce this: `thinkos-cron-run.sh :: ledger_append`,
+`thinkos-session-capture.sh`. **Agents appending via `basic-memory`
+`edit_note(operation="append")` must do the same** — and must not shell out
+with `>>`, which bypasses the index as well as this guard.
+
 ---
 
 ## Line schema
@@ -290,6 +308,7 @@ Readers and writers must enforce:
 5. `output` is either a string (non-empty, vault-relative, no leading `/`) or JSON `null`.
 6. When `redacted: true`, `detail` must be `{}`.
 7. When `mode` is `undone`, `output` must be `null` and `detail` must contain `undone_ts` and `undone_output`.
+8. Every appended line is newline-terminated, and the file ends with `\n` after the write — see [Appending safely](#appending-safely).
 
 `thinkos-doctor.sh`'s `capture:ledger` check validates rule 1 (parseable JSON per line). Full field validation is the writer's responsibility.
 

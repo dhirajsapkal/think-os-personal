@@ -143,7 +143,15 @@ print(json.dumps(obj))
   # macOS and Linux. Do NOT reintroduce flock here: it is util-linux and does
   # not exist on macOS, where it failed on every run for four months while the
   # append silently succeeded anyway.
-  printf '%s\n' "$line" >> "$LEDGER"
+  # A previous writer may have left the file without a terminal newline —
+  # agents appending via basic-memory do this. Appending blind then glues two
+  # events onto one line and BOTH become unparseable (observed 2026-09-20: a
+  # deck event + the session event after it, invisible to thinkos-recent.sh
+  # until repaired 2026-09-21). Fold the repair into the same printf so the
+  # append stays a single atomic write.
+  local prefix=""
+  [ -s "$LEDGER" ] && [ -n "$(tail -c1 "$LEDGER")" ] && prefix=$'\n'
+  printf '%s%s\n' "$prefix" "$line" >> "$LEDGER"
 }
 
 _rotate_if_large() {

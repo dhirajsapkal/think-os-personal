@@ -339,8 +339,20 @@ if dry:
     for l in lines:
         print("[dry-run] ledger entry:", l)
 else:
+    # A previous writer may have left the file without a terminal newline;
+    # appending blind would glue our first event onto theirs and make both
+    # unparseable. See the matching guard in thinkos-cron-run.sh.
+    need_nl = False
+    try:
+        with open(ledger, "rb") as fh:
+            fh.seek(0, 2)
+            if fh.tell():
+                fh.seek(-1, 2)
+                need_nl = fh.read(1) != b"\n"
+    except FileNotFoundError:
+        pass
     with open(ledger, "a") as fh:
-        fh.write("\n".join(lines) + "\n")
+        fh.write(("\n" if need_nl else "") + "\n".join(lines) + "\n")
     print(f"captured {len(buckets)} bucket(s), "
           f"{sum(b['active_hours'] for b in buckets):.2f}h active")
 PYEOF

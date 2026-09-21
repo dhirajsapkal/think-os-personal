@@ -133,7 +133,12 @@ appear in the render.
 
 ### 6. Ledger it
 
-Append one event to `90 System/Capture Log.md`:
+Append one event to `90 System/Capture Log.md` via
+`mcp__basic-memory__edit_note(identifier="Capture Log", operation="append", ...)`.
+**End the line with a newline, and never shell out with `>>`.** A bare append
+onto a file that does not already end in `\n` glues this event onto the previous
+one and makes both unparseable — see
+[capture-log-schema.md](../../../../docs/continuous-capture/capture-log-schema.md#appending-safely).
 
 ```json
 {"ts":"<ISO8601 UTC>","source":"deck","detail":{"deck_id":"<id>","title":"<name>","phases":[...],"slides_touched":<n>,"backup_url":"<url>"},"output":"<deck url>","mode":"update","bytes":0}
