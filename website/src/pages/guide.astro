@@ -8,7 +8,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 const dos = [
   ['Answer the save offers.', 'A one-keystroke y is the price of memory. Claude never captures silently, so deferring forever means an empty vault.'],
   ['Keep Current Focus to 3–5 priorities.', 'The file itself says it: if a fifth item is fighting for space, something fell off. The morning brief surfaces the top three — a ten-item list defeats it.'],
-  ['Edit vault files directly, in any editor.', 'The files are yours — Obsidian, VS Code, whatever. After heavy outside editing, run /thinkos-reindex so search catches up; doctor will flag it if you forget.'],
+  ['Edit vault files directly, in any editor.', 'The files are yours — Obsidian, VS Code, whatever. After heavy outside editing, run /thinkos-refresh so search catches up; doctor will flag it if you forget.'],
   ['Track your real work folders.', 'Automatic capture only watches folders you’ve listed. scripts/thinkos-vault.sh track ~/code once, and your work log starts writing itself.'],
   ['Run /weekly-review before the nag does.', 'Once Current Focus expires, every session opens with a staleness warning. Sunday evening, twenty minutes, done.'],
   ['Check the ledger when curious.', '/thinkos-recent shows everything that was captured and from where. Trust it because you can verify it.'],
@@ -18,18 +18,18 @@ const dos = [
 const donts = [
   ['Don’t paste secrets into notes headed for shared vaults.', 'Project vaults sync via git to your team. Personal-marker content (comp, health, HR, family) is auto-routed to your private hub, but an API key in a meeting note is on you. Mark genuinely private notes tier: sensitive and they’re hidden when you screen-share with /thinkos-shared on.'],
   ['Don’t hand-edit ~/.thinkos/vaults.json.', 'It’s the registry the whole system reads. Use /thinkos-vault or the track/untrack script commands — they validate; your text editor doesn’t.'],
-  ['Don’t worry about the index.', 'It’s a disposable cache rebuilt from your files. If it corrupts, nothing is lost — doctor detects it, /thinkos-reindex repairs it. Your markdown was never wrong.'],
+  ['Don’t worry about the index.', 'It’s a disposable cache rebuilt from your files. If it corrupts, nothing is lost — doctor detects it, /thinkos-refresh repairs it. Your markdown was never wrong.'],
   ['Don’t treat capture as surveillance — it isn’t built to be.', 'The background job records session metadata: directories, file counts, a commit hash. Not file contents, not transcripts, not anything you typed. It runs locally, makes no network calls, and every entry it writes is listed in the ledger and removable with /thinkos-undo-capture.'],
   ['Don’t bulk-paste your life into the vault on day one.', 'The system is built to fill in from real use. If you do want to front-load, use /thinkos-continue — it drafts for your review instead of you transcribing.'],
   ['Don’t ignore the doctor.', 'If /thinkos-recent shows nothing for days, capture is probably misconfigured, not quietly perfect. /thinkos-doctor says which.'],
-  ['Don’t expect Claude to remember what never reached a file.', 'A brilliant conclusion that ends with the session is gone. One /thinkos-log line is the difference.'],
+  ['Don’t expect Claude to remember what never reached a file.', 'A brilliant conclusion that ends with the session is gone. One /thinkos-capture line is the difference.'],
 ];
 
 const tenCommands = [
   ['/thinkos-morning', '"good morning"', 'Daily brief: focus, plate, who you’re waiting on, calendar'],
   ['/thinkos-plate', '"what’s on my plate today?"', 'Today’s tasks against this week’s priorities; flags overdue'],
-  ['/thinkos-log <note>', '"log this: ..."', 'Timestamped entry in your work log'],
-  ['/thinkos-decide <decision>', '"we decided to..."', 'Standing decision recorded with date, reasoning, scope'],
+  ['/thinkos-capture --mode log <note>', '"log this: ..."', 'Timestamped entry in your work log'],
+  ['/thinkos-capture --mode decision <decision>', '"we decided to..."', 'Standing decision recorded with date, reasoning, scope'],
   ['/thinkos-who <name>', '"who is Jordan?"', 'Everything you know about a person, before you message them'],
   ['/thinkos-decisions <topic>', '"what did we decide about X?"', 'Searches past decisions; superseded ones filtered out'],
   ['/recent-log', '"what did I do this week?"', 'Summary of recent work-log entries'],
@@ -108,7 +108,7 @@ const tenCommands = [
               decide about the design tokens?", Claude searches rather than
               reading your whole vault. The index is a copy of your files, not
               the other way around. If it ever breaks or goes stale, one
-              command (<code>/thinkos-reindex</code>) rebuilds it from the
+              command (<code>/thinkos-refresh</code>) rebuilds it from the
               files. You never have to care for it.
             </p>
 
@@ -120,8 +120,8 @@ const tenCommands = [
               and tab through the list. A handful of ritual commands are named
               for what they do instead: <code>/weekly-review</code>,
               <code>/quarterly-review</code>, <code>/recent-log</code>,
-              <code>/draft-reply</code>, <code>/validate-os</code>,
-              <code>/index-projects</code>.
+              <code>/draft-reply</code>, <code>/thinkos-loose-ends</code>,
+              <code>/thinkos-timesheet</code>.
             </p>
 
             <p>
@@ -300,12 +300,12 @@ const tenCommands = [
             <ul>
               <li>
                 Made a call you'll want to stand by?
-                <code>/thinkos-decide we'll always version the API from day
+                <code>/thinkos-capture --mode decision we'll always version the API from day
                 one</code> — it lands in your Decisions file with the date, the
                 reasoning, and what it applies to.
               </li>
               <li>
-                Noticed a pattern worth reusing? <code>/thinkos-log</code> or
+                Noticed a pattern worth reusing? <code>/thinkos-capture</code> or
                 just say "log this: the client reviews go better with a written
                 agenda" — Claude infers whether it's a decision, a learning, or
                 a log entry and files it accordingly.
@@ -313,7 +313,7 @@ const tenCommands = [
                 all of these; the aliases just save you remembering flags.
               </li>
               <li>
-                Ending a meaty session? <code>/thinkos-save</code> captures a
+                Ending a meaty session? <code>/thinkos-capture --mode session-recap</code> captures a
                 recap of the session's substantive items.
               </li>
             </ul>
@@ -448,10 +448,10 @@ const tenCommands = [
               N days" means the inbox hasn't seen your tools lately — run
               <code>/thinkos-refresh</code>. "Index drift" from doctor means
               the search index disagrees with the files on disk — run
-              <code>/thinkos-reindex</code>, which rebuilds it from the files
+              <code>/thinkos-refresh</code>, which rebuilds it from the files
               in one shot. None of these warnings mean data loss; your files
               are always the truth the system repairs itself from.
-              <code>/thinkos-stale</code> lists everything past its window if
+              <code>/thinkos-vitals</code> lists everything past its window if
               you want the overview.
             </p>
           </div>
@@ -561,7 +561,7 @@ const tenCommands = [
       <div class="grid grid-cols-12 gap-6 reveal">
         <div class="col-span-12 md:col-span-8 md:col-start-5">
           <p class="font-mono text-[12px] tracking-[0.18em] uppercase">
-            <a href="/commands" class="link-anim text-muted">All 36 commands →</a>
+            <a href="/commands" class="link-anim text-muted">All 33 commands →</a>
             <span class="mx-4 text-muted opacity-50">·</span>
             <a href="/docs" class="link-anim text-muted">More docs →</a>
           </p>
